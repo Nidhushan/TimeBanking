@@ -1,0 +1,19 @@
+header {
+    background-image: url('https://example.com/background-image.jpg');
+    background-size: cover;
+    color: white;
+}
+
+h1 {
+    font-size: 3.5rem;
+    font-weight: bold;
+}
+
+p {
+    font-size: 1.2rem;
+}
+
+input.form-control {
+    height: 50px;
+    border-radius: 0;
+}
