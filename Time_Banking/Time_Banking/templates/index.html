@@ -8,63 +8,111 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
-        <!-- Bootstrap JS and dependencies -->
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <a class="navbar-brand" href="#">
-            <img src="static/images/Logo.png" alt="Logo" height="30">
-        </a>
-        <form class="form-inline mx-auto">
-            <div class="input-group">
-                <input class="form-control" type="search" placeholder="What service are you looking for today?" aria-label="Search" style="width: 400px;">
-                <div class="input-group-append">
-                    <button class="btn btn-dark search" type="submit">
-                        <i class="fa-solid fa-search"></i>
-                    </button>
-                </div>
-            </div>
-        </form>
+        <a class="navbar-brand" href="#">Time Banking</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ml-auto">
-
                 <li class="nav-item">
-                    <a class="btn" href="#" role="button">Create Account</a>
+                    <a class="nav-link" href="#">Browse Services</a>
                 </li>
                 <li class="nav-item">
-                    <a class="btn" href="#" role="button">Sign In</a>
+                    <a class="nav-link" href="#">Sign In</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">Become a Freelancer</a>
                 </li>
             </ul>
         </div>
     </nav>
-    
-    <!-- Navigation Links Below Header -->
-    <div class="container-fluid bg-light">
-        <div class="row">
-            <div class="col text-center py-2">
-                <a href="#">Graphics & Design</a> |
-                <a href="#">Programming & Tech</a> |
-                <a href="#">Digital Marketing</a> |
-                <a href="#">Video & Animation</a> |
-                <a href="#">Writing & Translation</a> |
-                <a href="#">Music & Audio</a> |
-                <a href="#">Business</a> |
-                <a href="#">Finance</a> |
-                <a href="#">AI Services</a> |
-                <a href="#">Personal Growth</a>
+
+    <header class="text-center py-5" style="background: #f5f5f5;">
+        <h1 class="display-4">Timebanking</h1>
+        <p class="lead">for your project, anywhere, anytime.</p>
+        <div class="container">
+            <form>
+                <div class="input-group mb-3">
+                    <input type="text" class="form-control" placeholder="What service are you looking for?" aria-label="Search for services">
+                    <div class="input-group-append">
+                        <button class="btn btn-primary" type="button">Search</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </header>
+
+    <footer>
+        <div class="footer-container">
+            <!-- Footer Section 1 -->
+            <div class="footer-section">
+                <h3>Programming & Tech</h3>
+                <ul>
+                    <li><a href="#">Web Development</a></li>
+                    <li><a href="#">Data Science</a></li>
+                    <li><a href="#">AI Services</a></li>
+                </ul>
+            </div>
+            <!-- Footer Section 2 -->
+            <div class="footer-section">
+                <h3>Digital Marketing</h3>
+                <ul>
+                    <li><a href="#">Social Media</a></li>
+                    <li><a href="#">SEO</a></li>
+                    <li><a href="#">Content Marketing</a></li>
+                </ul>
+            </div>
+            <!-- Footer Section 3 -->
+            <div class="footer-section">
+                <h3>Writing & Translation</h3>
+                <ul>
+                    <li><a href="#">Proofreading</a></li>
+                    <li><a href="#">Copywriting</a></li>
+                    <li><a href="#">Translation</a></li>
+                </ul>
+            </div>
+            <!-- Footer Section 4 -->
+            <div class="footer-section">
+                <h3>Business</h3>
+                <ul>
+                    <li><a href="#">Consulting</a></li>
+                    <li><a href="#">Project Management</a></li>
+                    <li><a href="#">Financial Services</a></li>
+                </ul>
+            </div>
+            <!-- More sections as needed -->
+            <div class="footer-section">
+                <h3>Company</h3>
+                <ul>
+                    <li><a href="#">About Us</a></li>
+                    <li><a href="#">Terms of service</a></li>
+                    <li><a href="#">Privacy Policy</a></li>
+                    <li><a href="#">Help and Support</a></li>
+                </ul>
             </div>
         </div>
-    </div>
-
-
-
-    <footer class="text-center py-4">
-        <p>&copy; 2024 Time Banking. All rights reserved.</p>
+        </div>
+        
+        <!-- Footer Bottom -->
+        <div class="footer-bottom">
+            © 2024 Time banking. All rights reserved.
+        </div>
+        <div class="footer-bottom-right">
+            <div class="social-icons">
+                <a href="#" class="fab fa-facebook"></a>
+                <a href="#" class="fab fa-twitter"></a>
+                <a href="#" class="fab fa-instagram"></a>
+                <a href="#" class="fab fa-linkedin-in"></a>
+            </div>  
+        </div>
     </footer>
 
-
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
 </html>

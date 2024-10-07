@@ -13,72 +13,91 @@ p {
     font-size: 1.2rem;
 }
 
-/* Navbar -------------========================-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- */
-
-
 input.form-control {
-    border-radius: 50px 0 0 50px;
-    padding: 10px 20px;
-    width: 400px;
+    height: 50px;
+    border-radius: 0;
 }
-
-.search {
-    padding: 10px 15px; 
+/* Footer container */
+.footer-container {
     display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50px;
-    background-color: #11407e;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-top: 1px solid #ddd;
 }
 
-.search:hover {
-    background-color: #000c36;
+/* Each footer section */
+.footer-section {
+    flex: 1 1 200px;
+    margin: 10px;
 }
 
-.fa-search {
-    font-size: 1rem;
-    line-height: 1;
-    color: white;
+.footer-section h3 {
+    font-size: 18px;
+    color: #333;
 }
 
-.navbar-brand img {
-    height: 30px;
+.footer-section ul {
+    list-style: none;
+    padding: 0;
 }
 
-.nav-item {
-    margin-right: 20px;
-    background-color:#11407e;
-    border-radius: 5px;
+.footer-section ul li {
+    margin: 8px 0;
 }
 
-.btn {
-    color: white;
-}
-
-.btn:hover {
-    color: white;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    background-color: #000c36;
-}
-
-.badge-danger {
-    background-color: #ff6b6b;
-    border-radius: 50%;
-    padding: 7px;
-}
-
-.container-fluid a {
-    color: #555;
-    font-weight: 500;
+.footer-section ul li a {
     text-decoration: none;
+    color: #666;
+}
+
+.footer-section ul li a:hover {
+    color: #000;
+}
+
+/* Footer bottom part */
+.footer-bottom {
+    text-align: left;
+    padding: 15px;
+    background-color: #333;
+    color: white;
+}
+
+/* Footer bottom right */
+.footer-bottom-right {
+    display: flex;
+    justify-content: right;
+    align-items: right;
+}
+
+/* Social icons */
+.social-icons {
+    display: flex;
+}
+
+.social-icons a {
+    color: black; /* Change to a color that contrasts with the background */
     margin: 0 10px;
+    font-size: 30px;
+    background: white;
+    display: flex;
+    width: 50px;
+    text-align: right;
 }
 
-.container-fluid a:hover {
-    text-decoration: underline;
+.social-icons a:hover {
+    background: #f0a500;
 }
 
-.bg-light {
-    background-color: #f5f5f5 !important;
-}
 
+/* Responsive design */
+@media (max-width: 768px) {
+    .footer-container {
+        flex-direction: column;
+    }
+
+    .footer-section {
+        margin: 20px;
+    }
+}
