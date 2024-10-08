@@ -63,6 +63,15 @@
             <h2 class="section-title">Featured Services</h2>
             <p class="section-description">Description or list of featured services can go here.</p>
             <div class="card-container">
+                {% for listing in listings %}
+                    <div class="card">
+                        <img src="{{ listing.image.url }}" class="card-img-top" alt="{{ listing.title }}">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ listing.title }}</h5>
+                            <p class="card-text">{{ listing.description }}</p>
+                        </div>
+                    </div>
+                {% endfor %}
             </div>
         </div>
     
