@@ -8,14 +8,27 @@ LISTING_TYPES = [
 ]
 
 # defines top-most category for offers & requests
-class Category(models.Model):
-    name = models.CharField(max_length=200)
-    def __str__(self):
-        return self.name
+# class Category(models.Model):
+#     name = models.CharField(max_length=200)
+#     def __str__(self):
+#         return self.name
+
+# Use enum (since we have pre-defined categories)
+class Category(models.TextChoices):
+    GRAPHICS_DESIGN = 'GRAPHICS', 'Graphics & Design'
+    PROGRAMMING_TECH = 'TECH', 'Programming & Tech'
+    DIGITAL_MARKETING = 'MARKETING', 'Digital Marketing'
+    VIDEO_ANIMATION = 'VIDEO', 'Video & Animation'
+    WRITING_TRANSLATION = 'WRITING', 'Writing & Translation'
+    MUSIC_AUDIO = 'MUSIC', 'Music & Audio'
+    BUSINESS = 'BUSINESS', 'Business'
+    FINANCE = 'FINANCE', 'Finance'
+    AI_SERVICES = 'AI', 'AI Services'
+    PERSONAL_GROWTH = 'GROWTH', 'Personal Growth'
 
 # tags within a category
 class Tag(models.Model):
-    category = models.ForeignKey(Category, on_delete=models.CASCADE)
+    category = models.CharField(max_length=20, choices=Category.choices) # enum for Category
     name = models.CharField(max_length=200)
     def __str__(self):
         return self.name
@@ -31,16 +44,25 @@ class User(models.Model):
         return self.username
 
 # parent class of BOTH offers AND requests
+# class Listing(models.Model):
+#     creator = models.ForeignKey(User, on_delete=models.CASCADE)
+#     category = models.ForeignKey(Category)
+#     tags = models.ManyToManyField(Tag) # backend needs to check that tags belong to category
+#     title = models.CharField() # use CharField
+#     description = models.TextField()
+#     listing_type = models.BooleanField(choices=LISTING_TYPES)
+#     duration = models.DurationField() # how long the work is expected/preferred to take
+#     posted_at = models.DateTimeField(auto_now_add=True)
+#     edited_at = models.DateTimeField(auto_now=True)
+#     def __str__(self):
+#         return self.title
+
+# simple model for Week 5 demo
 class Listing(models.Model):
-    creator = models.ForeignKey(User, on_delete=models.CASCADE)
-    category = models.ForeignKey(Category)
-    tags = models.ManyToManyField(Tag) # backend needs to check that tags belong to category
-    title = models.TextField() # or CharField?
+    title = models.CharField(max_length=255) # use CharField
+    category = models.CharField(max_length=20, choices=Category.choices) # enum for Category
+    image = models.ImageField(upload_to='images/')
     description = models.TextField()
-    listing_type = models.BooleanField(choices=LISTING_TYPES)
-    duration = models.DurationField() # how long the work is expected/preferred to take
-    posted_at = models.DateTimeField(auto_now_add=True)
-    edited_at = models.DateTimeField(auto_now=True)
     def __str__(self):
         return self.title
 
@@ -58,7 +80,7 @@ class ListingAvailability(models.Model):
     to_time = models.DateTimeField()
 
 # images within a listing
-class ListingImage(models.Model):
-    listing = models.ForeignKey(Listing, on_delete=models.CASCADE)
-    url = models.URLField()
-    # TODO: other fields for implementation convenience?
+# class ListingImage(models.Model):
+#     listing = models.ForeignKey(Listing, on_delete=models.CASCADE)
+#     url = models.URLField()
+#     # TODO: other fields for implementation convenience?
