@@ -108,7 +108,7 @@
         <!-- First Section: Featured Services -->
         <div class="section">
             <h2 class="section-title">Featured Services</h2>
-            <p class="section-description">Description or list of featured services can go here.</p>
+            <p class="section-description">Description or list of featured services.</p>
             <div class="card-container">
                 {% for listing in listings %}
                     <div class="card">
@@ -125,27 +125,68 @@
         <!-- Second Section: Programming & Tech -->
         <div class="section">
             <h2 class="section-title">Programming & Tech</h2>
-            <p class="section-description">Description or list of services under this category can go here.</p>
+            <p class="section-description">Description or list of services under this category.</p>
             <div class="card-container">
-                <!-- Cards can be added inside here in the future -->
+                {% for listing in programming_listings %}
+                    <div class="card">
+                        <img src="{{ listing.image.url }}" class="card-img-top" alt="{{ listing.title }}">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ listing.title }}</h5>
+                            <p class="card-text">{{ listing.description }}</p>
+                        </div>
+                    </div>
+                {% endfor %}
             </div>
         </div>
     
         <!-- Third Section: Digital Marketing -->
         <div class="section">
             <h2 class="section-title">Digital Marketing</h2>
-            <p class="section-description">Description or list of services under this category can go here.</p>
+            <p class="section-description">Description or list of services under this category.</p>
             <div class="card-container">
-                <!-- Cards can be added inside here in the future -->
+                {% for listing in digitalm_listings %}
+                    <div class="card">
+                        <img src="{{ listing.image.url }}" class="card-img-top" alt="{{ listing.title }}">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ listing.title }}</h5>
+                            <p class="card-text">{{ listing.description }}</p>
+                        </div>
+                    </div>
+                {% endfor %}
             </div>
         </div>
     
         <!-- Fourth Section: Writing & Translation -->
         <div class="section">
             <h2 class="section-title">Writing & Translation</h2>
-            <p class="section-description">Description or list of services under this category can go here.</p>
+            <p class="section-description">Description or list of services under this category.</p>
             <div class="card-container">
-                <!-- Cards can be added inside here in the future -->
+                {% for listing in writing_listings %}
+                    <div class="card">
+                        <img src="{{ listing.image.url }}" class="card-img-top" alt="{{ listing.title }}">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ listing.title }}</h5>
+                            <p class="card-text">{{ listing.description }}</p>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Fifth Section: Business -->
+        <div class="section">
+            <h2 class="section-title">Business</h2>
+            <p class="section-description">Description or list of services under this category.</p>
+            <div class="card-container">
+                {% for listing in business_listings %}
+                    <div class="card">
+                        <img src="{{ listing.image.url }}" class="card-img-top" alt="{{ listing.title }}">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ listing.title }}</h5>
+                            <p class="card-text">{{ listing.description }}</p>
+                        </div>
+                    </div>
+                {% endfor %}
             </div>
         </div>
     </div>
