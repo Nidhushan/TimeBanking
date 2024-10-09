@@ -8,9 +8,17 @@ from django.views.decorators.csrf import csrf_exempt
 
 def home(request):
     listings = Listing.objects.all()
+    programming_listings = Listing.objects.filter(category='TECH')
+    writing_listings = Listing.objects.filter(category='WRITING')
+    business_listings = Listing.objects.filter(category='BUSINESS')
+    digitalm_listings = Listing.objects.filter(category='MARKETING')
 
     context = {
         "listings": listings,
+        'programming_listings': programming_listings,
+        'writing_listings': writing_listings,
+        'business_listings': business_listings,
+        'digitalm_listings': digitalm_listings,
     }
     return render(request, "index.html", context)
 
