@@ -56,6 +56,24 @@ input.form-control {
     border-radius: 5px;
 }
 
+/* Style for the Create Account and Sign In buttons */
+.nav-item .create-account {
+    background-color: #11407e; /* Dark blue background */
+    color: white; /* White text color */
+    border-radius: 5px; /* Rounded corners */
+    padding: 10px 20px; /* Padding for the button */
+    font-weight: bold; /* Bold font */
+    font-size: 1rem; /* Adjust font size */
+    transition: all 0.3s ease; /* Smooth transition for hover effects */
+}
+
+/* Hover effect for the buttons */
+.nav-item .create-account:hover {
+    background-color: #000c36; /* Darker blue on hover */
+    color: white; /* Keep text white */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Add a subtle shadow on hover */
+}
+
 .btn {
     color: white;
 }

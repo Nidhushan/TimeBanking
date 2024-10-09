@@ -22,6 +22,8 @@ def home(request):
     }
     return render(request, "index.html", context)
 
+def create_account(request):
+    return render(request, 'create-account.html')
 
 @csrf_exempt  # We disable CSRF for simplicity
 def create_user(request):
