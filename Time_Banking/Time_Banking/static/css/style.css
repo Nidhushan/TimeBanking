@@ -203,14 +203,20 @@ input.form-control {
 /* Ensure card image fits within the set dimensions */
 .card-img-top {
     width: 100%;
-    height: auto;
+    height: 200px; /* Set the desired fixed height */
+    object-fit: cover; /* Ensures the image scales to fit the container without distortion */
     border-radius: 10px;
 }
 
 .card img {
     width: 100%;
-    height: auto;
+    height: 175px; /* Set the desired fixed height */
+    object-fit: contain; /* Ensures the image scales to fit the container without distortion */
     border-radius: 10px;
+}
+
+.card-body {
+    padding: 3px 0px 0px 0px;
 }
 
 
