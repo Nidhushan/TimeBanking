@@ -1,6 +1,7 @@
 from django.shortcuts import render, get_object_or_404
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponseRedirect
 from django.contrib.auth.forms import *
+from django.contrib.auth import authenticate, login
 from .models import Listing, User, ListingResponse, ListingAvailability
 from .forms import RegisterForm
 import json
@@ -29,7 +30,10 @@ def create_account(request):
         form = RegisterForm(request.POST)
         if form.is_valid():
             user = form.save()
-            return redirect('/') # TODO: what happens after someone has logged in?
+            new_user = authenticate(username=form.cleaned_data['username'],
+                                    password=form.cleaned_data['password1'])
+            login(request, new_user)
+            return HttpResponseRedirect("/") # TODO: some page other than homepage?
         else:
             form = RegisterForm()
             return render(request, 'create-account.html', {'form': form})
