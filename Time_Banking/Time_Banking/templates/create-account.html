@@ -13,7 +13,8 @@
         <div class="row justify-content-center">
             <div class="col-md-6">
                 <h2 class="text-center">Create an Account</h2>
-                <form action="/register" method="post">
+                <form method="post">
+                    {% csrf_token %}
                     <div class="form-group">
                         <label for="username">Username</label>
                         <input type="text" class="form-control" id="username" name="username" placeholder="Enter username" required>
@@ -24,11 +25,11 @@
                     </div>
                     <div class="form-group">
                         <label for="password">Password</label>
-                        <input type="password" class="form-control" id="password" name="password" placeholder="Enter password" required>
+                        <input type="password" class="form-control" id="password1" name="password1" placeholder="Enter password" required>
                     </div>
                     <div class="form-group">
                         <label for="confirm-password">Confirm Password</label>
-                        <input type="password" class="form-control" id="confirm-password" name="confirm-password" placeholder="Confirm your password" required>
+                        <input type="password" class="form-control" id="password2" name="password2" placeholder="Confirm your password" required>
                     </div>
                     <button type="submit" class="btn btn-primary btn-block create-account">Create Account</button>
                 </form>

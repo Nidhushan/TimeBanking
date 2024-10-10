@@ -1,10 +1,9 @@
 from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse
+from django.contrib.auth.forms import *
 from .models import Listing, User, ListingResponse, ListingAvailability
+from .forms import RegisterForm
 import json
-
-from django.views.decorators.csrf import csrf_exempt
-
 
 def home(request):
     listings = Listing.objects.all()
@@ -23,41 +22,17 @@ def home(request):
     return render(request, "index.html", context)
 
 def create_account(request):
-    return render(request, 'create-account.html')
-
-@csrf_exempt  # We disable CSRF for simplicity
-def create_user(request):
-    # Authurization is needed in the future
-    if request.method == "POST":
-        try:
-            data = json.loads(request.body)
-            username = data.get("username")
-            password_hash = data.get("password_hash")  # hash by frontend
-            multiplier = data.get("multiplier", 1.0)  # Default to 1.0 if not provided
-            avg_rating = data.get("avg_rating", 0)  # Default to 0 if not provided
-
-            user = User.objects.create(
-                username=username,
-                password_hash=password_hash,
-                multiplier=multiplier,
-                avg_rating=avg_rating,
-            )
-            user.save()
-
-            # Respond with the newly created user's information to confirm the creation
-            return JsonResponse(
-                {
-                    "id": user.id,
-                    "username": user.username,
-                    "multiplier": user.multiplier,
-                    "avg_rating": float(user.avg_rating),
-                },
-                status=201,
-            )
-        except Exception as e:
-            return JsonResponse({"error": str(e)}, status=400)
-    else:
-        return JsonResponse({"error": "POST request required"}, status=405)
+    if request.method == 'GET':
+        form = RegisterForm()
+        return render(request, 'create-account.html', {'form': form})   
+    if request.method == 'POST':
+        form = RegisterForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            return redirect('/') # TODO: what happens after someone has logged in?
+        else:
+            form = RegisterForm()
+            return render(request, 'create-account.html', {'form': form})
 
 
 def user_detail(request, id):

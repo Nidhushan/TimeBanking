@@ -27,13 +27,20 @@
             </form>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ml-auto">
-    
+                    {% if user.is_authenticated %}
+                    Hi {{ user.username }} !
+                    <form action="{% url 'logout' %}" method="post">
+                        {% csrf_token %}
+                        <button type="submit">Log Out</button>
+                      </form>
+                    {% else %}
                     <li class="nav-item">
                         <a class="btn" href="{% url 'create_account' %}" role="button">Create Account</a>
                     </li>
                     <li class="nav-item">
-                        <a class="btn" href="#" role="button">Sign In</a>
+                        <a class="btn" href="{% url 'login' %}" role="button">Sign In</a>
                     </li>
+                    {% endif %}
                 </ul>
             </div>
         </nav>
