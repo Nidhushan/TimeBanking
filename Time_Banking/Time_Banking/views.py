@@ -35,7 +35,6 @@ def create_account(request):
             login(request, new_user)
             return HttpResponseRedirect("/") # TODO: some page other than homepage?
         else:
-            form = RegisterForm()
             return render(request, 'create-account.html', {'form': form})
 
 
