@@ -26,6 +26,8 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("", views.home, name="home"),
     path('create-account/', views.create_account, name='create_account'),
+    # path('login/', views.login, name='login'),
+    path('accounts/login/', views.login, name='login'),
     path("user/<int:id>/", views.user_detail, name="user_detail"),
     path("api/create-user/", views.create_user, name="create_user"),
     path("api/listings/", views.get_all_listings, name="get_all_listings"),

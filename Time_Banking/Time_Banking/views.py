@@ -9,9 +9,9 @@ from django.views.decorators.csrf import csrf_exempt
 def home(request):
     listings = Listing.objects.all()
     programming_listings = Listing.objects.filter(category='TECH')
+    digitalm_listings = Listing.objects.filter(category='MARKETING')
     writing_listings = Listing.objects.filter(category='WRITING')
     business_listings = Listing.objects.filter(category='BUSINESS')
-    digitalm_listings = Listing.objects.filter(category='MARKETING')
 
     context = {
         "listings": listings,
@@ -24,6 +24,9 @@ def home(request):
 
 def create_account(request):
     return render(request, 'create-account.html')
+
+def login(request):
+    return render(request, 'login.html')
 
 @csrf_exempt  # We disable CSRF for simplicity
 def create_user(request):
