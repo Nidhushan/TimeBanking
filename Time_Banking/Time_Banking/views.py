@@ -20,6 +20,10 @@ def home(request):
         'business_listings': business_listings,
         'digitalm_listings': digitalm_listings,
     }
+
+    if request.GET.get('new_account', '') == 'true':
+        context['new_account'] = True
+
     return render(request, "index.html", context)
 
 def create_account(request):
@@ -33,7 +37,7 @@ def create_account(request):
             new_user = authenticate(username=form.cleaned_data['username'],
                                     password=form.cleaned_data['password1'])
             login(request, new_user)
-            return HttpResponseRedirect("/") # TODO: some page other than homepage?
+            return HttpResponseRedirect("/?new_account=true") # TODO: some page other than homepage?
         else:
             return render(request, 'create-account.html', {'form': form})
 
