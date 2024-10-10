@@ -75,6 +75,7 @@ input.form-control {
 }
 
 .btn {
+    background-color: #11407e;
     color: white;
 }
 
@@ -172,7 +173,7 @@ input.form-control {
 
 .carousel-control-prev, .carousel-control-next {
     width: 10%; /* Adjust the width of the control area */
-    color: #000; /* Color of the arrow */
+    color: #11407e; /* Color of the arrow */
 }
 
 .carousel-control-prev-icon,
