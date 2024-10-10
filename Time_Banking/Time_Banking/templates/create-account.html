@@ -12,12 +12,16 @@
     <div class="container mt-5">
         <div class="row justify-content-center">
             <div class="col-md-6">
-                <h2 class="text-center">Create an Account</h2>
+                <h2 class="text-center">Create an Account</h2>            
                 <form method="post">
                     {% csrf_token %}
                     <div class="form-group">
                         <label for="username">Username</label>
-                        <input type="text" class="form-control" id="username" name="username" placeholder="Enter username" required>
+                        {% if form.cleaned_data and form.cleaned_data.username %}
+                            <input type="text" class="form-control" id="username" name="username" placeholder="Enter username" value="{{ form.cleaned_data.username }}" required>
+                        {% else %}
+                            <input type="text" class="form-control" id="username" name="username" placeholder="Enter username" required>
+                        {% endif %}
                         {% if form.errors and form.errors.username %}   
                             {% for error in form.errors.username %}
                                 <p style="font-size: 13px;">
@@ -28,7 +32,11 @@
                     </div>
                     <div class="form-group">
                         <label for="email">Email address</label>
-                        <input type="email" class="form-control" id="email" name="email" placeholder="Enter email" required>
+                        {% if form.cleaned_data and form.cleaned_data.email %}
+                            <input type="email" class="form-control" id="email" name="email" placeholder="Enter email" value="{{ form.cleaned_data.email }}" required>
+                        {% else %}
+                            <input type="email" class="form-control" id="email" name="email" placeholder="Enter email" required>
+                        {% endif %}
                     </div>
                     <div class="form-group">
                         <label for="password">Password</label>
