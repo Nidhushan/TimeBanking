@@ -28,7 +28,6 @@ urlpatterns = [
     path("accounts/", include("django.contrib.auth.urls")),
     path('create-account/', views.create_account, name='create_account'),
     path("user/<int:id>/", views.user_detail, name="user_detail"),
-    path("api/create-user/", views.create_user, name="create_user"),
     path("api/listings/", views.get_all_listings, name="get_all_listings"),
     path(
         "api/listings/<int:listing_id>/responses/",
