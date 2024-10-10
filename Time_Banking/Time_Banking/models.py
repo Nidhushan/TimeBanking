@@ -1,6 +1,7 @@
 from datetime import timezone
 from django.db import models
 import datetime
+from django.contrib.auth.models import AbstractUser
 
 LISTING_TYPES = [
     (True, "Offer"),
@@ -34,11 +35,9 @@ class Tag(models.Model):
         return self.name
 
 # user account
-class User(models.Model):
-    username = models.CharField(max_length=200) # this limit needs to be in the frontend
-    password_hash = models.TextField()
+class User(AbstractUser):
     multiplier = models.FloatField(default=1.0) # or DecimalField?
-    avg_rating = models.DecimalField(max_digits=3, decimal_places=2) # 1.00 to 5.00
+    avg_rating = models.DecimalField(max_digits=3, decimal_places=2, default=0.00) # 1.00 to 5.00, or 0.00
     # TODO: profiles
     def __str__(self):
         return self.username
