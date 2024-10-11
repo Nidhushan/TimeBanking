@@ -1,0 +1,75 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Account</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <h2 class="text-center">Create an Account</h2>            
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="username">Username</label>
+                        {% if form.cleaned_data and form.cleaned_data.username %}
+                            <input type="text" class="form-control" id="username" name="username" placeholder="Enter username" value="{{ form.cleaned_data.username }}" required>
+                        {% else %}
+                            <input type="text" class="form-control" id="username" name="username" placeholder="Enter username" required>
+                        {% endif %}
+                        {% if form.errors and form.errors.username %}   
+                            {% for error in form.errors.username %}
+                                <p style="font-size: 13px;">
+                                    {{ error|escape }}
+                                </p>
+                            {% endfor %}                
+                        {% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email address</label>
+                        {% if form.cleaned_data and form.cleaned_data.email %}
+                            <input type="email" class="form-control" id="email" name="email" placeholder="Enter email" value="{{ form.cleaned_data.email }}" required>
+                        {% else %}
+                            <input type="email" class="form-control" id="email" name="email" placeholder="Enter email" required>
+                        {% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input type="password" class="form-control" id="password1" name="password1" placeholder="Enter password" required>
+                        {% if form.errors and form.errors.password1 %}   
+                            {% for error in form.errors.password1 %}
+                                <p style="font-size: 13px;">
+                                    {{ error|escape }}
+                                </p>
+                            {% endfor %}                
+                        {% endif %}
+                        {{ form.password1.help_text }}
+                    </div>
+                    <div class="form-group">
+                        <label for="confirm-password">Confirm Password</label>
+                        <input type="password" class="form-control" id="password2" name="password2" placeholder="Confirm your password" required>
+                        {% if form.errors and form.errors.password2 %}   
+                            {% for error in form.errors.password2 %}
+                                <p style="font-size: 13px;">
+                                    {{ error|escape }}
+                                </p>
+                            {% endfor %}                
+                        {% endif %}
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block create-account">Create Account</button>
+                </form>
+                <p class="mt-3 text-center">Already have an account? <a href="/accounts/login">Login here</a></p>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

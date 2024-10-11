@@ -56,6 +56,24 @@ input.form-control {
     border-radius: 5px;
 }
 
+/* Style for the Create Account and Sign In buttons */
+.nav-item .create-account {
+    background-color: #11407e; /* Dark blue background */
+    color: white; /* White text color */
+    border-radius: 5px; /* Rounded corners */
+    padding: 10px 20px; /* Padding for the button */
+    font-weight: bold; /* Bold font */
+    font-size: 1rem; /* Adjust font size */
+    transition: all 0.3s ease; /* Smooth transition for hover effects */
+}
+
+/* Hover effect for the buttons */
+.nav-item .create-account:hover {
+    background-color: #000c36; /* Darker blue on hover */
+    color: white; /* Keep text white */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Add a subtle shadow on hover */
+}
+
 .btn {
     color: white;
 }
@@ -102,7 +120,7 @@ input.form-control {
     border-radius: 10px;
     padding: 20px;
     margin: 10px 0; 
-    height: 45vh; 
+    min-height: 50vh;  /* Ensure enough space for content */
     display: flex;
     flex-direction: column;
     justify-content: flex-start; 
@@ -120,15 +138,59 @@ input.form-control {
     color: grey;
     margin-bottom: 20px; 
 }
+/* For the slide show */
+.carousel-item img {
+    width: 100%;
+    height: 500px;  /* Set the desired fixed height for all slides */
+    object-fit: contain;  /* Ensures the image covers the area without distortion */
+    border-radius: 10px;
+}
 
+/* Caption Below Image Styling */
+.carousel-caption-below {
+    text-align: center;
+    background-color: rgba(0, 0, 0, 0.7); /* Slight transparent background */
+    color: white;
+    padding: 20px;
+    margin-top: 10px; /* Adds space between the image and the caption */
+    border-radius: 10px;
+    max-width: 90%;
+    margin-left: auto;
+    margin-right: auto;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
 
-/* Ensure that the cards added inside maintain their own layout */
+.carousel-caption-below h5 {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.carousel-caption-below p {
+    font-size: 1.2rem;
+}
+
+.carousel-control-prev, .carousel-control-next {
+    width: 10%; /* Adjust the width of the control area */
+    color: #000; /* Color of the arrow */
+}
+
+.carousel-control-prev-icon,
+.carousel-control-next-icon {
+    background-color: rgba(0, 0, 0, 0.5); /* Background color of the control icons */
+    border-radius: 50%;
+    padding: 20px; /* Increase padding for larger icon size */
+    font-size: 2rem; /* Increase the size of the icon */
+}
+
 .card-container {
     display: flex;
     flex-wrap: wrap;
-    justify-content: left; 
+    justify-content: flex-start;  
+    gap: 20px;
 }
 
+/* Adjust the card styling */
 .card {
     background-color: white;
     border: 1px solid #ddd;
@@ -136,9 +198,44 @@ input.form-control {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     padding: 20px;
     margin: 10px;
-    width: 200px;
+    width: 100%; 
+    max-width: 300px;
+    box-sizing: border-box;
+    height: 400px; /* Set a fixed height for the card */
+    overflow: hidden; /* Hide any overflow content */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
 }
 
+/* Limit the height of the card text */
+.card-text {
+    overflow: hidden;
+    text-overflow: ellipsis; /* Adds ellipsis (...) for overflowing text */
+    display: -webkit-box;
+    -webkit-line-clamp: 4; /* Limits the text to 4 lines */
+    -webkit-box-orient: vertical;
+    height: auto;
+}
+
+/* Ensure card image fits within the set dimensions */
+.card-img-top {
+    width: 100%;
+    height: 200px; /* Set the desired fixed height */
+    object-fit: cover; /* Ensures the image scales to fit the container without distortion */
+    border-radius: 10px;
+}
+
+.card img {
+    width: 100%;
+    height: 175px; /* Set the desired fixed height */
+    object-fit: contain; /* Ensures the image scales to fit the container without distortion */
+    border-radius: 10px;
+}
+
+.card-body {
+    padding: 3px 0px 0px 0px;
+}
 
 
 /* Footer container */
@@ -239,4 +336,12 @@ input.form-control {
         padding: 20px;
     }
     
+    .card-container {
+        flex-direction: column;  /* Stack cards vertically */
+    }
+    
+    .card {
+        max-width: 100%;  /* Take full width on smaller screens */
+    }
+
 }
