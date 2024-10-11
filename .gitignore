@@ -3,3 +3,16 @@
 *.pyc
 /Time_Banking/Time_Banking/migrations
 Time_Banking/.env
+Time_Banking/Time_Banking/__pycache__/admin.cpython-311.pyc
+Time_Banking/Time_Banking/__pycache__/forms.cpython-311.pyc
+Time_Banking/Time_Banking/__pycache__/models.cpython-311.pyc
+Time_Banking/Time_Banking/__pycache__/settings.cpython-311.pyc
+Time_Banking/Time_Banking/__pycache__/urls.cpython-311.pyc
+Time_Banking/Time_Banking/__pycache__/views.cpython-311.pyc
+Time_Banking/Time_Banking/migrations/0001_initial.py
+Time_Banking/Time_Banking/migrations/0002_alter_customuser_options_alter_customuser_table.py
+Time_Banking/Time_Banking/migrations/0002_alter_user_options_alter_user_managers_and_more.py
+Time_Banking/Time_Banking/migrations/__pycache__/0001_initial.cpython-311.pyc
+Time_Banking/Time_Banking/migrations/__pycache__/0001_initial.cpython-312.pyc
+Time_Banking/Time_Banking/migrations/__pycache__/0002_alter_customuser_options_alter_customuser_table.cpython-311.pyc
+Time_Banking/Time_Banking/migrations/__pycache__/__init__.cpython-312.pyc
