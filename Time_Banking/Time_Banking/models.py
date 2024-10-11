@@ -38,6 +38,8 @@ class Tag(models.Model):
 class User(AbstractUser):
     multiplier = models.FloatField(default=1.0) # or DecimalField?
     avg_rating = models.DecimalField(max_digits=3, decimal_places=2, default=0.00) # 1.00 to 5.00, or 0.00
+    is_verified = models.BooleanField(default=False)  # Track if user is verified
+    verification_code = models.CharField(max_length=100, blank=True, null=True)  # Store verification code
     # TODO: profiles
     def __str__(self):
         return self.username

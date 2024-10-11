@@ -1,9 +1,13 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from django.http import JsonResponse, HttpResponseRedirect
 from django.contrib.auth.forms import *
 from django.contrib.auth import authenticate, login
+from django.core.mail import send_mail
+import uuid
 from .models import Listing, User, ListingResponse, ListingAvailability
 from .forms import RegisterForm
+from django.contrib.auth import get_user_model
+import random
 import json
 
 def home(request):
@@ -26,20 +30,81 @@ def home(request):
 
     return render(request, "index.html", context)
 
+
+User = get_user_model()
+
+def verify_account_code(request):
+    if request.method == 'POST':
+        code = request.POST.get('code')
+        stored_code = request.session.get('verification_code')
+
+        if code == str(stored_code):
+            # Retrieve the stored user data
+            user_data = request.session.get('user_data')
+            
+            if user_data:
+                # Create a new user with the saved data
+                user = User.objects.create(
+                    username=user_data['username'],
+                    email=user_data['email'],
+                    password=user_data['password1'],
+                    is_active=True,
+                    is_verified=True
+                )
+                user.set_password(user_data['password1'])  # Set the password correctly
+                user.save()
+
+                # Clear session data after successful verification
+                del request.session['user_data']
+                del request.session['verification_code']
+
+                return redirect('login')  # Redirect to login page after verification
+        else:
+            return render(request, 'verification_failed.html')  # If code is incorrect
+    
+    return render(request, 'verify_account_code.html')
+
+
 def create_account(request):
     if request.method == 'GET':
         form = RegisterForm()
-        return render(request, 'create-account.html', {'form': form})   
+        return render(request, 'create-account.html', {'form': form})
+    
     if request.method == 'POST':
         form = RegisterForm(request.POST)
         if form.is_valid():
-            user = form.save()
-            new_user = authenticate(username=form.cleaned_data['username'],
-                                    password=form.cleaned_data['password1'])
-            login(request, new_user)
-            return HttpResponseRedirect("/?new_account=true") # TODO: some page other than homepage?
+            # Temporarily store user data in session until verification is completed
+            request.session['user_data'] = form.cleaned_data
+            verification_code = random.randint(100000, 999999)  # Generate 6-digit code
+            request.session['verification_code'] = verification_code
+
+            # Send the six-digit code via email
+            send_mail(
+                'Verify your account',
+                f'Your verification code is: {verification_code}',
+                'timebartersystem@gmail.com',  # Use your verified sender email
+                [form.cleaned_data['email']],
+                fail_silently=False,
+            )
+
+            return redirect('verify_account_code')  # Redirect to verification code entry
         else:
             return render(request, 'create-account.html', {'form': form})
+
+def custom_login(request):
+    if request.method == 'POST':
+        username = request.POST['username']
+        password = request.POST['password']
+        user = authenticate(request, username=username, password=password)
+        if user is not None:
+            if user.is_verified:
+                login(request, user)
+                return redirect('home')
+            else:
+                return render(request, 'login.html', {'error': 'Please verify your email before logging in.'})
+        else:
+            return render(request, 'login.html', {'error': 'Invalid username or password.'})
+    return render(request, 'login.html')
 
 
 def user_detail(request, id):

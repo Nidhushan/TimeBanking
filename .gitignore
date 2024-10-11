@@ -2,3 +2,4 @@
 **/.DS_Store
 *.pyc
 /Time_Banking/Time_Banking/migrations
+Time_Banking/.env
