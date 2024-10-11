@@ -27,29 +27,23 @@
             </form>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ml-auto">
-    
                     {% if user.is_authenticated %}
-                        <!-- Display Profile and Logout Links if the User is Logged In -->
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <!-- User's Profile Image as Icon -->
-                                <img src="{{ user.profile_image.url }}" alt="{{ user.username }}" class="rounded-circle" width="40" height="40"> <!-- Ensure the image URL points to the user's profile picture -->
-                            </a>
-                            <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
-                                <a class="dropdown-item" href="#">Profile</a>
-                                <a class="dropdown-item" href="#">Settings</a>
-                                <div class="dropdown-divider"></div>
-                                <a class="dropdown-item" href="{% url 'home' %}">Logout</a>
-                            </div>
-                        </li>
+                    <li class="nav-item">
+                        Hi<b>{{ user.username }}</b>!
+                    </li>
+                    <li class="nav-item">
+                        <form action="{% url 'logout' %}" method="post">
+                            {% csrf_token %}
+                            <button type="submit" class="btn">Log Out</button>
+                        </form>
+                    </li>
                     {% else %}
-                        <!-- Display Create Account and Sign In Links if the User is Not Logged In -->
-                        <li class="nav-item">
-                            <a class="btn" href="{% url 'create_account' %}" role="button">Create Account</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="btn" href="{% url 'login' %}" role="button">Sign In</a>
-                        </li>
+                    <li class="nav-item">
+                        <a class="btn" href="{% url 'create_account' %}" role="button">Create Account</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="btn" href="{% url 'login' %}" role="button">Sign In</a>
+                    </li>
                     {% endif %}
                 </ul>
             </div>
@@ -73,6 +67,9 @@
             </div>
         </div>
     </header>
+    {% if new_account %}
+        Your account has been created!!!
+    {% endif %}
     <!-- Intro Slideshow: What is Timebanking -->
     <div id="timebankingCarousel" class="carousel slide" data-ride="carousel">
         <ol class="carousel-indicators">
@@ -103,6 +100,14 @@
                 </div>
             </div>
         </div>
+        <!-- <a class="carousel-control-prev" href="#timebankingCarousel" role="button" data-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="sr-only">Previous</span>
+        </a>
+        <a class="carousel-control-next" href="#timebankingCarousel" role="button" data-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="sr-only">Next</span>
+        </a> -->
         <a class="carousel-control-prev" href="#timebankingCarousel" role="button" data-slide="prev">
             <span class="carousel-control-prev-icon" aria-hidden="true"></span>
             <span class="sr-only">Previous</span>
@@ -199,6 +204,11 @@
             </div>
         </div>
     </div>
+    
+    
+    
+
+
 
     <footer>
         <div class="footer-container">
