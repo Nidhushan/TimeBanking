@@ -5,7 +5,7 @@ from django.contrib.auth import authenticate, login
 from django.core.mail import send_mail
 import uuid
 from .models import Listing, User, ListingResponse, ListingAvailability
-from .forms import RegisterForm
+from .forms import RegisterForm, ProfileCreationForm
 from django.contrib.auth import get_user_model
 import random
 import json
@@ -162,3 +162,15 @@ def get_availability_for_listing(request, listing_id):
             {"from_time": availability.from_time, "to_time": availability.to_time}
         )
     return JsonResponse(data, safe=False)
+
+def create_profile(request):
+    if request.method=='POST':
+        form = ProfileCreationForm(request.POST, request.FILES, instance=request.user)
+        if form.is_valid():
+            form.save()
+            return JsonResponse({"status": "success", "message": "Profile created successfully"})
+        else:
+            return JsonResponse({"status": "error", "errors": form.errors}, status=400)
+    else:
+        form = ProfileCreationForm(instance=request.user)  # pre-fill the form with current user data
+    # render frontend

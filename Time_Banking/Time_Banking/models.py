@@ -41,6 +41,12 @@ class User(AbstractUser):
     is_verified = models.BooleanField(default=False)  # Track if user is verified
     verification_code = models.CharField(max_length=100, blank=True, null=True)  # Store verification code
     # TODO: profiles
+    name = models.CharField(max_length=100)
+    picture = models.ImageField(upload_to='/static/images/user')
+    title = models.CharField(max_length=100)
+    location = models.CharField(max_length=100)
+    bio = models.TextField(blank=True)  # optional
+    link = models.URLField(blank=True)  # optional
     def __str__(self):
         return self.username
 
@@ -62,7 +68,7 @@ class User(AbstractUser):
 class Listing(models.Model):
     title = models.CharField(max_length=255) # use CharField
     category = models.CharField(max_length=20, choices=Category.choices) # enum for Category
-    image = models.ImageField(upload_to='images/')
+    image = models.ImageField(upload_to='/static/images/listing')
     description = models.TextField()
     def __str__(self):
         return self.title
