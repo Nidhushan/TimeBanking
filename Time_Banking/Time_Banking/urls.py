@@ -19,6 +19,7 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from django.views.generic import TemplateView
 from . import views
 
 
@@ -27,6 +28,13 @@ urlpatterns = [
     path("", views.home, name="home"),
     path("accounts/", include("django.contrib.auth.urls")),
     path('create-account/', views.create_account, name='create_account'),
+    # path('verify/<str:code>/', views.verify_account, name='verify_account'),
+    path('verification-sent/', TemplateView.as_view(template_name='verification_sent.html'), name='verification_sent'),  # Verification URL
+    path('verification-success/', TemplateView.as_view(template_name='verification_successful.html'), name='verification_successful'),
+    path('verification-failed/', TemplateView.as_view(template_name='verification_failed.html'), name='verification_failed'),
+    path('verify/', views.verify_account_code, name='verify_account_code'),
+    # path('login/', views.login, name='login'),
+    path('accounts/login/', views.login, name='login'),
     path("user/<int:id>/", views.user_detail, name="user_detail"),
     path("api/listings/", views.get_all_listings, name="get_all_listings"),
     path(

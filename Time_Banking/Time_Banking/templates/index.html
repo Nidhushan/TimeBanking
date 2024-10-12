@@ -28,15 +28,22 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ml-auto">
                     {% if user.is_authenticated %}
-                    <li class="nav-item">
-                        Hi<b>{{ user.username }}</b>!
-                    </li>
-                    <li class="nav-item">
-                        <form action="{% url 'logout' %}" method="post">
-                            {% csrf_token %}
-                            <button type="submit" class="btn">Log Out</button>
-                        </form>
-                    </li>
+                        <!-- User Profile Icon with Dropdown Menu -->
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <!-- User's Profile Text -->
+                                <span>Hi, {{ user.username }}</span>
+                            </a>
+                            <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
+                                <a class="dropdown-item" href="#">Profile</a>
+                                <a class="dropdown-item" href="#">Settings</a>
+                                <div class="dropdown-divider"></div>
+                                <form action="{% url 'logout' %}" method="post" class="dropdown-item">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-link p-0" style="color: inherit; text-decoration: none;">Log Out</button>
+                                </form>
+                            </div>
+                        </li>
                     {% else %}
                     <li class="nav-item">
                         <a class="btn" href="{% url 'create_account' %}" role="button">Create Account</a>
