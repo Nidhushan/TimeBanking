@@ -163,6 +163,7 @@ def get_availability_for_listing(request, listing_id):
         )
     return JsonResponse(data, safe=False)
 
+
 def create_profile(request):
     if request.method=='POST':
         form = ProfileCreationForm(request.POST, request.FILES, instance=request.user)
@@ -172,5 +173,7 @@ def create_profile(request):
         else:
             return JsonResponse({"status": "error", "errors": form.errors}, status=400)
     else:
-        form = ProfileCreationForm(instance=request.user)  # pre-fill the form with current user data
+        form = ProfileCreationForm(instance=request.user)
+        return render(request, 'create_profile.html', {'form': form})  # pre-fill the form with current user data
     # render frontend
+ 

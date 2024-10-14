@@ -47,7 +47,10 @@ urlpatterns = [
         views.get_availability_for_listing,
         name="get_availability_for_listing",
     ),
-    path('profile/create/', views.create_profile, name='create_profile'),   
+    path('create-profile/', views.create_profile, name='create_profile'),
+    
+    
+
 ]
 
 

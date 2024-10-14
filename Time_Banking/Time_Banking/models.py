@@ -42,7 +42,7 @@ class User(AbstractUser):
     verification_code = models.CharField(max_length=100, blank=True, null=True)  # Store verification code
     # TODO: profiles
     name = models.CharField(max_length=100)
-    picture = models.ImageField(upload_to='/static/images/user')
+    picture = models.ImageField(upload_to='static/images/user')
     title = models.CharField(max_length=100)
     location = models.CharField(max_length=100)
     bio = models.TextField(blank=True)  # optional
@@ -68,7 +68,7 @@ class User(AbstractUser):
 class Listing(models.Model):
     title = models.CharField(max_length=255) # use CharField
     category = models.CharField(max_length=20, choices=Category.choices) # enum for Category
-    image = models.ImageField(upload_to='/static/images/listing')
+    image = models.ImageField(upload_to='static/images/listing')
     description = models.TextField()
     def __str__(self):
         return self.title
