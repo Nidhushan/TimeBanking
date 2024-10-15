@@ -8,6 +8,8 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    
+
 </head>
 <body>
     <header>
@@ -35,7 +37,9 @@
                                 <span>Hi, {{ user.username }}</span>
                             </a>
                             <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
-                                <a class="dropdown-item" href="#">Profile</a>
+                                <a class="dropdown-item" href="{% url 'create_profile' %}">Profile</a>
+
+                                
                                 <a class="dropdown-item" href="#">Settings</a>
                                 <div class="dropdown-divider"></div>
                                 <form action="{% url 'logout' %}" method="post" class="dropdown-item">
@@ -107,6 +111,8 @@
                 </div>
             </div>
         </div>
+
+
         <!-- <a class="carousel-control-prev" href="#timebankingCarousel" role="button" data-slide="prev">
             <span class="carousel-control-prev-icon" aria-hidden="true"></span>
             <span class="sr-only">Previous</span>

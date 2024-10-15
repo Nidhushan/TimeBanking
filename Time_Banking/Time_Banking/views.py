@@ -5,7 +5,7 @@ from django.contrib.auth import authenticate, login
 from django.core.mail import send_mail
 import uuid
 from .models import Listing, User, ListingResponse, ListingAvailability
-from .forms import RegisterForm
+from .forms import RegisterForm, ProfileCreationForm
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
@@ -268,3 +268,18 @@ def create_listing(request):
             return JsonResponse({'error': str(e)}, status=500)
 
     return JsonResponse({'error': 'POST request required'}, status=405)
+
+
+def create_profile(request):
+    if request.method=='POST':
+        form = ProfileCreationForm(request.POST, request.FILES, instance=request.user)
+        if form.is_valid():
+            form.save()
+            return JsonResponse({"status": "success", "message": "Profile created successfully"})
+        else:
+            return JsonResponse({"status": "error", "errors": form.errors}, status=400)
+    else:
+        form = ProfileCreationForm(instance=request.user)
+        return render(request, 'create_profile.html', {'form': form})  # pre-fill the form with current user data
+    # render frontend
+ 

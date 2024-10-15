@@ -49,6 +49,10 @@ urlpatterns = [
     ),
     path('api/change-password/', views.change_password, name='change_password'),
     path('api/delete-account/', views.delete_account, name='delete_account'),
+    path('create-profile/', views.create_profile, name='create_profile'),
+    
+    
+
 ]
 
 
