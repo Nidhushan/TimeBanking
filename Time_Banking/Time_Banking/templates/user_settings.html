@@ -10,6 +10,8 @@
 
     <!-- Form for updating user information -->
     <form id="userSettingsForm" enctype="multipart/form-data">
+        {% csrf_token %}  <!-- Include the CSRF token here -->
+
         <label for="name">Name:</label>
         <input type="text" id="name" name="name" placeholder="Enter your name"><br>
 
@@ -39,9 +41,15 @@
 
             const formData = new FormData(this);  // Collect the form data
 
+            // Get the CSRF token from the hidden input field
+            const csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
+
             // Send the request to the update-user-settings API
             fetch('/api/update-user-settings/', {
                 method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken  // Send the CSRF token in the headers
+                },
                 body: formData  // Send the form data, including files
             })
             .then(response => response.json())
