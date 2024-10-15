@@ -7,6 +7,8 @@ import uuid
 from .models import Listing, User, ListingResponse, ListingAvailability
 from .forms import RegisterForm
 from django.contrib.auth import get_user_model
+from django.contrib.auth.decorators import login_required
+from django.views.decorators.csrf import csrf_exempt
 import random
 import json
 
@@ -107,6 +109,65 @@ def custom_login(request):
     return render(request, 'login.html')
 
 
+"""
+curl -X POST http://localhost:8000/api/change-password/ \
+     -H "Content-Type: application/json" \
+     -d '{"username": "testuser", "current_password": "oldpassword", "new_password": "newpassword"}'
+
+"""
+def change_password(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            username = data.get('username')
+            current_password = data.get('current_password')
+            new_password = data.get('new_password')
+
+            user = User.objects.get(username=username)
+
+            # Check if the current password is correct
+            if not user.check_password(current_password):
+                return JsonResponse({'error': 'Current password is incorrect'}, status=400)
+
+            # Set the new password
+            user.set_password(new_password)
+            user.save()
+
+            return JsonResponse({'status': 'Password changed successfully'}, status=200)
+
+        except User.DoesNotExist:
+            return JsonResponse({'error': 'User not found'}, status=404)
+        except KeyError:
+            return JsonResponse({'error': 'Invalid input, missing fields'}, status=400)
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+
+    return JsonResponse({'error': 'POST request required'}, status=405)
+
+
+"""
+curl -X POST http://localhost:8000/api/delete-account/ \
+     -b "sessionid=<your_session_id>"
+"""
+@login_required  # Ensures the user is logged in
+@csrf_exempt  
+def delete_account(request):
+    if request.method == 'POST':
+        try:
+            # Get the logged-in user
+            user = request.user
+
+            # Delete the user's account
+            user.delete()
+
+            return JsonResponse({'status': 'Account deleted successfully'}, status=200)
+
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+    
+    return JsonResponse({'error': 'POST request required'}, status=405)
+
+
 def user_detail(request, id):
     user = get_object_or_404(User, pk=id)
 
@@ -120,7 +181,6 @@ def user_detail(request, id):
 
 
 def get_all_listings(request):
-    # for demo purpose
     listings = Listing.objects.all()
     data = []
     for listing in listings:
@@ -135,9 +195,19 @@ def get_all_listings(request):
         )
     return JsonResponse(data, safe=False)
 
+def get_listing_by_id(request, listing_id):
+    listing = Listing.objects.get(id=listing_id)
+    data = {
+        "id": listing.id,
+        "title": listing.title,
+        "category": listing.category,
+        "description": listing.description,
+        "image": listing.image.url if listing.image else None,
+    }
+    return JsonResponse(data)
+
 
 def get_responses_for_listing(request, listing_id):
-    # for demo purpose
     listing = Listing.objects.get(id=listing_id)
     responses = ListingResponse.objects.filter(listing=listing)
     data = []
@@ -153,7 +223,6 @@ def get_responses_for_listing(request, listing_id):
 
 
 def get_availability_for_listing(request, listing_id):
-    # for demo purpose
     listing = Listing.objects.get(id=listing_id)
     availabilities = ListingAvailability.objects.filter(listing=listing)
     data = []
@@ -162,3 +231,40 @@ def get_availability_for_listing(request, listing_id):
             {"from_time": availability.from_time, "to_time": availability.to_time}
         )
     return JsonResponse(data, safe=False)
+
+
+@login_required  # Ensures the user must be logged in
+def create_listing(request):
+    if request.method == 'POST':
+        try:
+            title = request.POST.get('title')
+            category = request.POST.get('category')
+            description = request.POST.get('description')
+            image = request.FILES.get('image') # We can only have 1 image per listing by now
+
+            # Ensure all required fields are provided
+            if not title or not category or not description or not image:
+                return JsonResponse({'error': 'Missing required fields'}, status=400)
+
+            # Create the listing (user is associated with the request.user)
+            listing = Listing.objects.create(
+                # creator=request.user,
+                title=title,
+                category=category,
+                description=description,
+                image=image
+            )
+            listing.save()
+
+            return JsonResponse({
+                'id': listing.id,
+                'title': listing.title,
+                'category': listing.category,
+                'description': listing.description,
+                'image_url': listing.image.url
+            }, status=201)
+
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+
+    return JsonResponse({'error': 'POST request required'}, status=405)

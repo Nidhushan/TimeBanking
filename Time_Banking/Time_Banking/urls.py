@@ -47,6 +47,8 @@ urlpatterns = [
         views.get_availability_for_listing,
         name="get_availability_for_listing",
     ),
+    path('api/change-password/', views.change_password, name='change_password'),
+    path('api/delete-account/', views.delete_account, name='delete_account'),
 ]
 
 
