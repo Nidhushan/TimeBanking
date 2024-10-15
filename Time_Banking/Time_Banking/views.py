@@ -2,6 +2,8 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.http import JsonResponse, HttpResponseRedirect
 from django.contrib.auth.forms import *
 from django.contrib.auth import authenticate, login
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError
 from django.core.mail import send_mail
 import uuid
 from .models import Listing, User, ListingResponse, ListingAvailability
@@ -93,6 +95,7 @@ def create_account(request):
         else:
             return render(request, 'create-account.html', {'form': form})
 
+
 def custom_login(request):
     if request.method == 'POST':
         username = request.POST['username']
@@ -115,6 +118,7 @@ curl -X POST http://localhost:8000/api/change-password/ \
      -d '{"username": "testuser", "current_password": "oldpassword", "new_password": "newpassword"}'
 
 """
+@login_required  # Ensures the user is logged in
 def change_password(request):
     if request.method == 'POST':
         try:
@@ -128,6 +132,11 @@ def change_password(request):
             # Check if the current password is correct
             if not user.check_password(current_password):
                 return JsonResponse({'error': 'Current password is incorrect'}, status=400)
+            
+            try:
+                validate_password(new_password, user=user)
+            except ValidationError as e:
+                return JsonResponse({'error': list(e.messages)}, status=400)
 
             # Set the new password
             user.set_password(new_password)
@@ -143,6 +152,11 @@ def change_password(request):
             return JsonResponse({'error': str(e)}, status=500)
 
     return JsonResponse({'error': 'POST request required'}, status=405)
+
+
+@login_required  # Ensures the user is logged in
+def change_password_page(request):
+    return render(request, 'change_password.html')
 
 
 """
@@ -166,6 +180,54 @@ def delete_account(request):
             return JsonResponse({'error': str(e)}, status=500)
     
     return JsonResponse({'error': 'POST request required'}, status=405)
+
+
+@login_required  # Make sure the user is logged in to access this page
+def delete_account_page(request):
+    return render(request, 'delete_account.html')
+
+
+@login_required   # Ensures the user is logged in
+# @csrf_exempt  # For handling form submissions via AJAX, use CSRF protection in production
+def update_user_settings(request):
+    if request.method == 'POST':
+        try:
+            user = request.user 
+
+            # Get the updated fields from the form or JSON data
+            name = request.POST.get('name')
+            title = request.POST.get('title')
+            location = request.POST.get('location')
+            bio = request.POST.get('bio')
+            link = request.POST.get('link')
+            picture = request.FILES.get('picture')  
+
+            # Update user information only for the fields that are provided
+            if name is not None:
+                user.name = name
+            if title is not None:
+                user.title = title
+            if location is not None:
+                user.location = location
+            if bio is not None:
+                user.bio = bio
+            if link is not None:
+                user.link = link
+            if picture is not None:
+                user.picture = picture  
+            user.save()
+
+            return JsonResponse({'status': 'Profile updated successfully'}, status=200)
+
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+
+    return JsonResponse({'error': 'POST request required'}, status=405)
+
+
+@login_required   # Ensures the user is logged in
+def user_settings_page(request):
+    return render(request, 'user_settings.html')
 
 
 def user_detail(request, id):
