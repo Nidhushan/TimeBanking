@@ -375,7 +375,7 @@ input.form-control {
 }
 
 /* Form Elements */
-form {
+/* form {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -408,10 +408,10 @@ form button:hover {
     background-color: #0b325e;
     transform: translateY(-2px);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-}
+}*/
 
 /* Error Messages */
-ul {
+/* ul {
     padding: 0;
     list-style-type: none;
     color: red;
@@ -421,7 +421,7 @@ ul {
 
 ul li {
     padding: 5px 0;
-}
+}  */
 
 /* Responsive Design */
 @media (max-width: 480px) {

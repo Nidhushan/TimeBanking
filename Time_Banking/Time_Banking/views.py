@@ -64,9 +64,9 @@ def verify_account_code(request):
 
                 return redirect('login')  # Redirect to login page after verification
         else:
-            return render(request, 'verification_failed.html')  # If code is incorrect
+            return render(request, 'registration/verification_failed.html')  # If code is incorrect
     
-    return render(request, 'verify_account_code.html')
+    return render(request, 'registration/verify_account_code.html')
 
 
 def create_account(request):
