@@ -1,0 +1,114 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    margin: 0;
+    padding: 0;
+}
+.container {
+    width: 800px;
+    max-width: 1200px;
+    margin: 50px auto;
+    background: white;
+    padding: 20px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+}
+.header{
+    border-bottom:solid 1px #cccccc;
+    padding: 10px;
+    display: flex;
+}
+.title{
+    font-weight: bold;
+    font-size: 25px;
+}
+.gotoprofile{
+    flex:auto;
+    text-align: end;
+    padding-top: 10px;
+    font-size: 15px;
+}
+.subtitle{
+    font-weight: bold;
+    font-size: 20px;
+}
+.link{
+    color:#007bff;
+}
+.link:hover{
+    text-decoration: underline;
+    color:#0056b3;
+    cursor: pointer;
+}
+.form-group {
+    margin: 20px 10px;
+    width: 94%
+}
+.name{
+    display: flex;
+    margin-top: 20px;
+}
+.subgroup{
+    flex:none;
+    width: 25%;
+    margin-right: 93px;
+}
+.doublesubgroup{
+    display: flex;
+}
+.doublesubgroupleft{
+    flex:none;
+    width: 40%;
+    margin-right: 22%;
+}
+label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+}
+input[type="text"],
+input[type="email"],
+input[type="tel"],
+input[type="password"] {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 16px;
+}
+.select2-selection{
+    height: 40px !important; 
+    display: flex !important;              /* 使用 flexbox 对齐内容 */
+    align-items: center;
+}
+.select2-results__option--selected {
+    background-color: transparent !important;
+}
+.select2-results__option--highlighted {
+    background-color: #f1f1f1 !important;  
+    color: #000000 !important;  
+}
+.select2-selection__arrow {
+    top:7px !important;
+}
+.clear-btn {
+    position: absolute;
+    right: 500px;
+    cursor: pointer;
+    background: none;
+    border: 1px solid #c0c0c0;
+    border-radius: 100%;
+    color: #c0c0c0;
+}
+.sbt-btn {
+    background-color: #007bff;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+}
+.sbt-btn:hover {
+    background-color: #0056b3;
+}
