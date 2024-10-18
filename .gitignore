@@ -3,3 +3,4 @@
 *.pyc
 /Time_Banking/Time_Banking/migrations
 Time_Banking/.env
+Time_Banking/db.sqlite3

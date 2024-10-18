@@ -1,0 +1,18 @@
+{% extends "master.html" %}
+
+{% block title %}
+Verification Email Sent - Time Banking
+{% endblock %}
+
+{% block content %}
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-6 text-center">
+                <h2>Email Verification Sent</h2>
+                <p>We have sent you an email with a link to verify your account. Please check your inbox and follow the instructions to activate your account.</p>
+                <p>If you do not see the email in your inbox, check your spam folder or <a href="/resend-verification">click here to resend it</a>.</p>
+                <a href="/" class="btn btn-primary mt-3">Go Back to Home</a>
+            </div>
+        </div>
+    </div>
+{% endblock %}

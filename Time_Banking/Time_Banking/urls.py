@@ -47,7 +47,15 @@ urlpatterns = [
         views.get_availability_for_listing,
         name="get_availability_for_listing",
     ),
-    path('profile/create/', views.create_profile, name='create_profile'),   
+    path('api/change-password/', views.change_password, name='change_password'),
+    path('api/delete-account/', views.delete_account, name='delete_account'),
+    path('api/update-user-settings/', views.update_user_settings, name='update_user_settings'),
+    path('create-profile/', views.create_profile, name='create_profile'),
+    path('change-password/', views.change_password_page, name='change_password_page'),
+    path('delete-account/', views.delete_account_page, name='delete_account_page'),
+    path('settings/', views.user_settings_page, name='user_settings_page'),
+    
+
 ]
 
 
