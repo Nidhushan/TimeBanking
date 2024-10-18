@@ -32,6 +32,7 @@ urlpatterns = [
     path('verification-sent/', TemplateView.as_view(template_name='verification_sent.html'), name='verification_sent'),  # Verification URL
     path('verification-success/', TemplateView.as_view(template_name='verification_successful.html'), name='verification_successful'),
     path('verification-failed/', TemplateView.as_view(template_name='verification_failed.html'), name='verification_failed'),
+    path('resend-verification/', views.resend_verification_email, name='resend_verification_email'),
     path('verify/', views.verify_account_code, name='verify_account_code'),
     # path('login/', views.login, name='login'),
     path('accounts/login/', views.login, name='login'),
