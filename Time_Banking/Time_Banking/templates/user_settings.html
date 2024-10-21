@@ -3,39 +3,443 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>User Settings</title>
+    <title>Settings</title>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            width: 800px;
+            max-width: 1200px;
+            margin: 50px auto;
+            background: white;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+        .header{
+            border-bottom:solid 1px #cccccc;
+            padding: 10px;
+            display: flex;
+        }
+        .title{
+            font-weight: bold;
+            font-size: 25px;
+        }
+        .gotoprofile{
+            flex:auto;
+            text-align: end;
+            padding-top: 10px;
+            font-size: 15px;
+        }
+        .subtitle{
+            font-weight: bold;
+            font-size: 20px;
+            margin:30px 20px;
+        }
+        .link{
+            color:#007bff;
+        }
+        .link:hover{
+            text-decoration: underline;
+            color:#0056b3;
+            cursor: pointer;
+        }
+        .form-group {
+            margin: 20px 60px 20px 30px;
+        }
+        .subform-group {
+            margin: 30px 50px 30px 20px;
+        }
+        .name{
+            display: flex;
+            margin-top: 20px;
+        }
+        .subgroup{
+            flex:none;
+            width: 25%;
+            margin-right: 90px;
+        }
+        .doublesubgroup{
+            display: flex;
+        }
+        .doublesubgroupleft{
+            flex:none;
+            width: 40%;
+            margin-right: 100px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        input[type="text"],
+        input[type="email"],
+        input[type="tel"],
+        input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        .select2-selection{
+            height: 40px !important; 
+            display: flex !important;              /* 使用 flexbox 对齐内容 */
+            align-items: center;
+        }
+        .select2-results__option--selected {
+            background-color: transparent !important;
+        }
+        .select2-results__option--highlighted {
+            background-color: #f1f1f1 !important;  
+            color: #000000 !important;  
+        }
+        .select2-selection__arrow {
+            top:7px !important;
+        }
+        .clear-btn {
+            position: absolute;
+            right: 500px;
+            cursor: pointer;
+            background: none;
+            border: 1px solid #c0c0c0;
+            border-radius: 100%;
+            color: #c0c0c0;
+        }
+        .sbt-btn {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top:15px;
+            margin-bottom: 5px;
+        }
+        .sbt-btn:hover {
+            background-color: #0056b3;
+        }
+        .sbt-btn2 {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 10px 30px 15px 0;
+        }
+        .sbt-btn2:hover {
+            background-color: #0056b3;
+        }
+        .seperator{
+            background-color: #cccccc;
+            height: 1px;
+        }
+        .seclab{
+            font-weight: bold;
+            padding: 10px 0;
+        }
+        .sec-btn {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .sec-btn:hover {
+            background-color: #0056b3;
+        }
+        /* 模态框的覆盖层样式 */
+        .modal {
+            display: none; /* 默认隐藏 */
+            position: fixed;
+            z-index: 1; /* 保证在最上层 */
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.4); /* 半透明背景 */
+            justify-content: center; /* 水平居中 */
+            align-items: center; /* 垂直居中 */
+        }
+
+        /* 模态框内容样式 */
+        .modal-content {
+            background-color: white;
+            margin: 15% auto; /* 居中显示 */
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 500px;
+        }
+
+        /* 关闭按钮样式 */
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .hidden-field {
+        display: none;
+    }
+    </style>
 </head>
 <body>
-    <h1>User Settings</h1>
 
-    <!-- Form for updating user information -->
-    <form id="userSettingsForm" enctype="multipart/form-data">
-        {% csrf_token %}  <!-- Include the CSRF token here -->
+<div class="container">
+    <div class="header">
+        <div class="title">Settings</div>
+        <div class="gotoprofile">Need to update your public profile? <a class="link" hef="#">Go to My Profile</a></div>
+    </div>
+    <div class="subtitle">Account Information</div>
+    <form id="userSettingsForm" action="#" method="POST">
+        <!-- Name Section -->
+        <div class="form-group">
+            <div class="name">
+                <div class="subgroup">
+                    <label for="firstname">First Name</label>
+                    <input type="text" id="firstname" name="firstname" value=" " required>
+                </div>
+                <div class="subgroup">
+                    <label for="middlename">Middle Name(optional)</label>
+                    <input type="text" id="middlename" name="middlename" value=" " required>
+                </div>
+                <div class="subgroup" style="margin-right:0">
+                    <label for="lastname">Last Name</label>
+                    <input type="text" id="lastname" name="lastname" value=" " required>
+                </div>
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="preferredname">Preferred Name(optional)</label>
+            <input type="text" id="preferredname" name="preferredname" value=" " required>
+        </div>
 
-        <label for="name">Name:</label>
-        <input type="text" id="name" name="name" placeholder="Enter your name"><br>
+        <!-- Gender&Pronouns Section -->
+        <div class="form-group">
+            <div class="doublesubgroup">
+                <div class="doublesubgroupleft">
+                    <label for="pronouns">Pronouns</label>
+                    <select id="pronouns" name="pronouns" required>
+                        <option value="" disabled selected>Please Select your pronouns</option>
+                        <option value="she/her">She/Her</option>
+                        <option value="he/him">He/Him</option>
+                        <option value="They/Them">They/Them</option>
+                        <option value="custom">Custom</option>
+                    </select>
+                </div>
+                <div class="doublesubgroupleft">
+                    <label for="gender">Gender</label>
+                    <select id="gender" name="gender" required>
+                        <option value="" disabled selected>Please Select your gender</option>
+                        <option value="man">Man</option>
+                        <option value="woman">Woman</option>
+                        <option value="others">Others</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="form-group" style="display: none" id="custompronouns">
+            <label for="custompronouns">Enter costom pronouns</label>
+            <input type="text" id="custompronouns" name="custompronouns" value="" required>
+        </div>
 
-        <label for="title">Title:</label>
-        <input type="text" id="title" name="title" placeholder="Enter your title"><br>
+        <!-- Email Section -->
+        <div class="form-group">
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" value="{{ user.email }}" required>
+        </div>
 
-        <label for="location">Location:</label>
-        <input type="text" id="location" name="location" placeholder="Enter your location"><br>
+        
+        <!-- Mobile Section -->
+        <div class="form-group">
+            <label for="phone">Mobile</label>
+            <input type="text" id="phone" name="phone" value="{{ user.phone }}" placeholder="(xxx)xxx-xxxx" max-length="14"required>
+        </div>
+        
+        <!-- Race Section -->
+        <div class="form-group" style="margin-right: 40px;">
+            <label for="race">Race and ethnicity</label>
+            <select id="race" name="race" required>
+                <option value="" disabled selected>Please Select your race and ethnicity</option>
+                <option value="asian">Asian</option>
+                <option value="black">Black, including African American</option>
+                <option value="hispanic">Hispanic, Latino/a or Latinx</option>
+                <option value="middleeast">Middle Eastern or North African</option>
+                <option value="nativeamr">Native American or Alaska Native</option>
+                <option value="pacific">Pacific Islander, including Native Hawaiian</option>
+                <option value="white">White or Caucasian</option>
+            </select>
+        </div>
 
-        <label for="bio">Bio:</label>
-        <textarea id="bio" name="bio" placeholder="Enter your bio"></textarea><br>
+        <!-- Submit Button -->
+        <div class="form-group" style="display: flex; justify-content: flex-end; margin-right: 40px;">
+            <button type="submit" class="sbt-btn">Save Changes</button>
+        </div>
 
-        <label for="link">Link:</label>
-        <input type="url" id="link" name="link" placeholder="Enter your website link"><br>
+    <div class="seperator"></div>
+    <!-- Security Section -->
+    <div class="subtitle">Security</div>
+    <div class="form-group" style="display: flex; margin-right: 40px;">
+        <div class="seclab">Password</div>
+        <div style="flex:auto;text-align: end;"><button type="submit" class="sec-btn" id="openPswdBtn">Reset Password</button></div>
+    </div>
+    <!-- 模态框的HTML结构 -->
+    <div id="Password" class="modal">
+        <div class="modal-content">
+            <span id="close1" class="close">&times;</span>
+            <!-- Password Section -->
+            <form id="changePasswordForm" action="#" method="POST">
+                <input type="password" class="hidden-field" autocomplete="new-password">
+                <div class="subform-group" style="margin-top: 50px;">
+                    <label for="current_password">Current Password</label>
+                    <input type="password" id="current_password" name="current_password" autocomplete="off" required>
+                </div>
+                <div class="subform-group">
+                    <label for="new_password">New Password</label>
+                    <input type="password" id="new_password" name="new_password" required>
+                </div>
+                <div class="subform-group">
+                    <label for="comfirm_password">Confirm Password</label>
+                    <input type="password" id="confirm_password" name="confirm_password" required>
+                </div>
+                <div style="display: flex; justify-content: flex-end;">
+                    <button type="submit" class="sbt-btn2">Change Password</button>
+                </div>
+            </form>
+            <div id="responseMessage"></div>
+        </div>
+    </div>
+    <div class="form-group" style="display: flex; margin-right: 40px;">
+        <div class="seclab">Account Deactivation</div>
+        <div style="flex:auto;text-align: end;"><button type="submit" class="sec-btn" id="openDelBtn">Deactivate account</button></div>
+    </div>
+    <!-- 模态框的HTML结构 -->
+    <div id="Deactivation" class="modal">
+        <div class="modal-content">
+            <span id="close2" class="close">&times;</span>
+            <!-- Deactivation Section -->
+            <h1>Delete Account</h1>
 
-        <label for="picture">Profile Picture:</label>
-        <input type="file" id="picture" name="picture"><br>
+            <p style="margin-right: 20px;">Are you sure you want to delete your account? This action cannot be undone.</p>
 
-        <button type="submit">Update Settings</button>
-    </form>
+            <!-- Simple form for deleting the account -->
+            <form id="deleteAccountForm">
+                <div style="display: flex; justify-content: flex-end;">
+                    <button type="submit" class="sbt-btn2">Delete My Account</button>
+                </div>
+            </form>
 
-    <div id="responseMessage"></div>
+            <div id="responseMessage"></div>
+        </div>
+</div>
 
-    <script>
+<!-- 引入 jQuery 和 Select2 -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<!-- 初始化 Select2 -->
+<script>
+    $(document).ready(function() {
+        $('#gender').select2({
+            minimumResultsForSearch: Infinity,  // 禁用搜索框
+            placeholder: 'Please select your gender',
+            width: '100%',
+            
+        });
+
+        $('#pronouns').select2({
+            minimumResultsForSearch: Infinity,  // 禁用搜索框
+            placeholder: 'Please select your pronouns',
+            width: '100%',
+        });
+        
+        $('#race').select2({
+            minimumResultsForSearch: Infinity,  // 禁用搜索框
+            placeholder: 'Please select your race and ethnicity',
+            width: '100%',
+            
+        });
+
+        // 监听鼠标移出 Select2 下拉框时的事件
+        $(document).on('mouseleave', '.select2-results__options', function() {
+            // 清除高亮状态
+            $('.select2-results__option--highlighted').removeClass('select2-results__option--highlighted');
+        });
+
+        $('#pronouns').on('select2:select', function (e) {
+            var selectedOption = e.params.data;
+
+            // 根据选中的值动态添加新选项
+            if (selectedOption.id === "custom") { // 如果选中的是 Alabama
+                let custompronous=document.querySelector("#custompronouns")
+                custompronous.style.display="block";
+            }
+            else {
+                let custompronous=document.querySelector("#custompronouns")
+                custompronous.style.display="none";
+            }
+        })
+
+        document.getElementById('phone').addEventListener('input', function(e) {
+        let input = e.target.value;
+
+        // 移除所有非数字字符
+        input = input.replace(/\D/g, '');
+
+        // 检查输入的长度
+        if (input.length > 6) {
+            input = '(' + input.substring(0, 3) + ') ' + input.substring(3, 6) + '-' + input.substring(6, 10);  // 添加连字符
+        }
+        else if (input.length > 3) {
+            input = '(' + input.substring(0, 3) + ') ' + input.substring(3, 6);  // 添加右括号和空格
+        }
+        else if (input.length > 0) {
+            input = '(' + input.substring(0, 3);  // 添加开头括号和区号
+        }
+
+        // 限制长度为 14 个字符：如 (123) 456-7890
+        e.target.value = input.substring(0, 14);
+        });
+        
+        // 模态框
+        var modal1 = document.getElementById("Password");
+        var btn1 = document.getElementById("openPswdBtn");
+        var span1 = document.getElementsByClassName("close")[0];
+        btn1.onclick = function() {
+            modal1.style.display = "flex";
+        }
+        span1.onclick = function() {
+            modal1.style.display = "none";
+        }
+
+        var modal2 = document.getElementById("Deactivation");
+        var btn2 = document.getElementById("openDelBtn");
+        var span2 = document.getElementsByClassName("close")[1];
+        btn2.onclick = function() {
+            modal2.style.display = "flex";
+        }
+        span2.onclick = function() {
+            modal2.style.display = "none";
+        }
+
         document.getElementById('userSettingsForm').addEventListener('submit', function(event) {
             event.preventDefault();  // Prevent the default form submission
 
@@ -63,7 +467,65 @@
             })
             .catch(error => console.error('Error:', error));
         });
-    </script>
-    <a href="/change-password">change password</a>
+        document.getElementById('changePasswordForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            // Get the form data
+            const currentPassword = document.getElementById('current_password').value;
+            const newPassword = document.getElementById('new_password').value;
+
+            // Send the request to the change-password API
+            fetch('/api/change-password/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'  // If using CSRF protection
+                },
+                body: JSON.stringify({
+                    username: '{{ request.user.username }}',  // Get the logged-in user's username
+                    current_password: currentPassword,
+                    new_password: newPassword
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Display the response message
+                const responseMessage = document.getElementById('responseMessage');
+                if (data.status) {
+                    responseMessage.innerText = data.status;
+                } else if (data.error) {
+                    responseMessage.innerText = data.error;
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        });
+        document.getElementById('deleteAccountForm').addEventListener('submit', function(event) {
+            event.preventDefault();  // Prevent the default form submission
+
+            // Send the request to the delete-account API
+            fetch('/api/delete-account/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'  // Use CSRF token for security
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Display the response message
+                const responseMessage = document.getElementById('responseMessage');
+                if (data.status) {
+                    responseMessage.innerText = data.status;
+                    // Optionally, redirect the user to the homepage after account deletion
+                    setTimeout(() => window.location.href = '/', 2000);  // Redirect after 2 seconds
+                } else if (data.error) {
+                    responseMessage.innerText = data.error;
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        });
+    })
+</script>
+
 </body>
 </html>
