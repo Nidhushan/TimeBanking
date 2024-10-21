@@ -35,7 +35,7 @@ urlpatterns = [
     path('resend-verification/', views.resend_verification_email, name='resend_verification_email'),
     path('verify/', views.verify_account_code, name='verify_account_code'),
     # path('login/', views.login, name='login'),
-    path('accounts/login/', views.login, name='login'),
+    path('accounts/login/', views.custom_login, name='login'),
     path("user/<int:id>/", views.user_detail, name="user_detail"),
     path("api/listings/", views.get_all_listings, name="get_all_listings"),
     path(
