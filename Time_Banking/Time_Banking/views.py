@@ -68,6 +68,27 @@ def verify_account_code(request):
     
     return render(request, 'registration/verify_account_code.html')
 
+def resend_verification_email(request):
+    # Check if user data exists in the session
+    user_data = request.session.get('user_data')
+    
+    if user_data:
+        verification_code = random.randint(100000, 999999)  # Generate a new 6-digit code
+        request.session['verification_code'] = verification_code
+
+        # Send the verification code via email
+        send_mail(
+            'Verify your account',
+            f'Your new verification code is: {verification_code}',
+            'timebartersystem@gmail.com',
+            [user_data['email']],
+            fail_silently=False,
+        )
+
+        # Redirect to the verification page
+        return redirect('verify_account_code')
+    else:
+        return redirect('create_account')  # If user data doesn't exist, redirect to account creation
 
 def create_account(request):
     if request.method == 'GET':
