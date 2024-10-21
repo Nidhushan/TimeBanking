@@ -127,10 +127,10 @@ def custom_login(request):
                 login(request, user)
                 return redirect('home')
             else:
-                return render(request, 'login.html', {'error': 'Please verify your email before logging in.'})
+                return render(request, 'registration/login.html', {'error': 'Please verify your email before logging in.'})
         else:
-            return render(request, 'login.html', {'error': 'Invalid username or password.'})
-    return render(request, 'login.html')
+            return render(request, 'registration/login.html', {'error': 'Invalid username or password.'})
+    return render(request, 'registration/login.html')
 
 
 """
