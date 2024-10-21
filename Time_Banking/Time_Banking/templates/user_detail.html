@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Detail</title>
+</head>
+<body>
+    <h1>User Details</h1>
+    
+    <!-- Check if there is an error message -->
+    {% if error %}
+        <p style="color: red;">{{ error }}</p>
+    {% else %}
+        <div id="user-details">
+            <p><strong>Username:</strong> {{ user.username }}</p>
+            <p><strong>Email:</strong> {{ user.email }}</p>
+            <p><strong>Multiplier:</strong> {{ user.multiplier }}</p>
+            <p><strong>Average Rating:</strong> {{ user.avg_rating }}</p>
+            <p><strong>Verified:</strong> {{ user.is_verified }}</p>
+            <p><strong>Name:</strong> {{ user.name }}</p>
+            <p><strong>Title:</strong> {{ user.title }}</p>
+            <p><strong>Location:</strong> {{ user.location }}</p>
+            <p><strong>Bio:</strong> {{ user.bio }}</p>
+            <p><strong>Link:</strong> <a href="{{ user.link }}" target="_blank">{{ user.link }}</a></p>
+
+            <!-- Check if the user has a picture and if the picture has a URL -->
+            {% if user.picture and user.picture.url %}
+                <p><strong>Picture:</strong> <img src="{{ user.picture.url }}" alt="User Picture" width="100" height="100"/></p>
+            {% else %}
+                <p><strong>Picture:</strong> No picture available</p>
+            {% endif %}
+        </div>
+    {% endif %}
+</body>
+</html>
