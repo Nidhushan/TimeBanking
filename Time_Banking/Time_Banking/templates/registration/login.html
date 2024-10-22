@@ -9,16 +9,21 @@ Login - Time Banking
         <div class="row justify-content-center">
             <div class="col-md-6">
                 <h2 class="text-center">Login</h2>
+
+                {% if error %}
+                    <p style="color: red;">{{ error }}</p>
+                {% endif %}
+                
                 <form method="post">
                     {% csrf_token %}
                     <div class="form-group">
                       <label for="username">Username</label>
                       <input type="text" class="form-control" id="username" name="username" placeholder="Enter username" required>
-                  </div>
+                    </div>
                     <div class="form-group">
                       <label for="password">Password</label>
                       <input type="password" class="form-control" id="password" name="password" placeholder="Enter password" required>
-                  </div>
+                    </div>
                     <button type="submit" class="btn btn-primary btn-block create-account">Login</button>
                 </form>
                 <p class="mt-3 text-center">Don't have an account? <a href="{% url 'create_account' %}">Create one here</a></p>
