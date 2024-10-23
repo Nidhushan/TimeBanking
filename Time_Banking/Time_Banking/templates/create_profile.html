@@ -11,7 +11,7 @@ Edit Profile - Time Banking
                 <h1 class="profile-title">Edit Profile</h1>
                     <div class="profile-card">
                         <img src="{{ user.picture.url }}" alt="{{ user.username }}" class="profile-image" >
-                <form method="POST">
+                <form method="POST" enctype="multipart/form-data">
                     {% csrf_token %}
                     {{ form.as_p }}
             <button type="submit">Save the changes</button>
