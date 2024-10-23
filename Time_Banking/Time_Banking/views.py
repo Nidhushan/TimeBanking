@@ -392,11 +392,11 @@ def create_profile(request):
             user = User.objects.create(
                 username=verified_user_data['username'],
                 email=verified_user_data['email'],
-                password=verified_user_data['password1'],
+                password=verified_user_data['password'],
                 is_active=True,
                 is_verified=True
             )
-            user.set_password(verified_user_data['password1'])  # Set the password correctly
+            user.set_password(verified_user_data['password'])  # Set the password correctly
             
             user.name = form.cleaned_data['name']
             user.title = form.cleaned_data['title']
