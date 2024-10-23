@@ -1,209 +1,18 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Settings</title>
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            margin: 0;
-            padding: 0;
-        }
-        .container {
-            width: 800px;
-            max-width: 1200px;
-            margin: 50px auto;
-            background: white;
-            padding: 20px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            border-radius: 8px;
-        }
-        .header{
-            border-bottom:solid 1px #cccccc;
-            padding: 10px;
-            display: flex;
-        }
-        .title{
-            font-weight: bold;
-            font-size: 25px;
-        }
-        .gotoprofile{
-            flex:auto;
-            text-align: end;
-            padding-top: 10px;
-            font-size: 15px;
-        }
-        .subtitle{
-            font-weight: bold;
-            font-size: 20px;
-            margin:30px 20px;
-        }
-        .link{
-            color:#007bff;
-        }
-        .link:hover{
-            text-decoration: underline;
-            color:#0056b3;
-            cursor: pointer;
-        }
-        .form-group {
-            margin: 20px 60px 20px 30px;
-        }
-        .subform-group {
-            margin: 30px 50px 30px 20px;
-        }
-        .name{
-            display: flex;
-            margin-top: 20px;
-        }
-        .subgroup{
-            flex:none;
-            width: 25%;
-            margin-right: 90px;
-        }
-        .doublesubgroup{
-            display: flex;
-        }
-        .doublesubgroupleft{
-            flex:none;
-            width: 40%;
-            margin-right: 100px;
-        }
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: bold;
-        }
-        input[type="text"],
-        input[type="email"],
-        input[type="tel"],
-        input[type="password"] {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            font-size: 16px;
-        }
-        .select2-selection{
-            height: 40px !important; 
-            display: flex !important;              /* 使用 flexbox 对齐内容 */
-            align-items: center;
-        }
-        .select2-results__option--selected {
-            background-color: transparent !important;
-        }
-        .select2-results__option--highlighted {
-            background-color: #f1f1f1 !important;  
-            color: #000000 !important;  
-        }
-        .select2-selection__arrow {
-            top:7px !important;
-        }
-        .clear-btn {
-            position: absolute;
-            right: 500px;
-            cursor: pointer;
-            background: none;
-            border: 1px solid #c0c0c0;
-            border-radius: 100%;
-            color: #c0c0c0;
-        }
-        .sbt-btn {
-            background-color: #007bff;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            font-size: 16px;
-            cursor: pointer;
-            margin-top:15px;
-            margin-bottom: 5px;
-        }
-        .sbt-btn:hover {
-            background-color: #0056b3;
-        }
-        .sbt-btn2 {
-            background-color: #007bff;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            font-size: 16px;
-            cursor: pointer;
-            margin: 10px 30px 15px 0;
-        }
-        .sbt-btn2:hover {
-            background-color: #0056b3;
-        }
-        .seperator{
-            background-color: #cccccc;
-            height: 1px;
-        }
-        .seclab{
-            font-weight: bold;
-            padding: 10px 0;
-        }
-        .sec-btn {
-            background-color: #007bff;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            font-size: 16px;
-            cursor: pointer;
-        }
-        .sec-btn:hover {
-            background-color: #0056b3;
-        }
-        /* 模态框的覆盖层样式 */
-        .modal {
-            display: none; /* 默认隐藏 */
-            position: fixed;
-            z-index: 1; /* 保证在最上层 */
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.4); /* 半透明背景 */
-            justify-content: center; /* 水平居中 */
-            align-items: center; /* 垂直居中 */
-        }
+{% extends "master.html" %}
+{% load static %}
 
-        /* 模态框内容样式 */
-        .modal-content {
-            background-color: white;
-            margin: 15% auto; /* 居中显示 */
-            padding: 20px;
-            border: 1px solid #888;
-            width: 80%;
-            max-width: 500px;
-        }
+{% block title %}
+Settings - Time Banking
+{% endblock %}
 
-        /* 关闭按钮样式 */
-        .close {
-            color: #aaa;
-            float: right;
-            font-size: 28px;
-            font-weight: bold;
-        }
+{% block extra_links %}
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<link rel="stylesheet" href="{% static 'css/usersettings.css' %}">
+{% endblock %}
 
-        .close:hover,
-        .close:focus {
-            color: black;
-            text-decoration: none;
-            cursor: pointer;
-        }
-        .hidden-field {
-        display: none;
-    }
-    </style>
-</head>
-<body>
-
-<div class="container">
+{% block content %}
+<div class="body">
+<div class="containerset">
     <div class="header">
         <div class="title">Settings</div>
         <div class="gotoprofile">Need to update your public profile? <a class="link" hef="#">Go to My Profile</a></div>
@@ -237,7 +46,7 @@
             <div class="doublesubgroup">
                 <div class="doublesubgroupleft">
                     <label for="pronouns">Pronouns</label>
-                    <select id="pronouns" name="pronouns" required>
+                    <select id="pronouns" name="pronouns">
                         <option value="" disabled selected>Please Select your pronouns</option>
                         <option value="she/her">She/Her</option>
                         <option value="he/him">He/Him</option>
@@ -247,7 +56,7 @@
                 </div>
                 <div class="doublesubgroupleft">
                     <label for="gender">Gender</label>
-                    <select id="gender" name="gender" required>
+                    <select id="gender" name="gender">
                         <option value="" disabled selected>Please Select your gender</option>
                         <option value="man">Man</option>
                         <option value="woman">Woman</option>
@@ -258,7 +67,7 @@
         </div>
         <div class="form-group" style="display: none" id="custompronouns">
             <label for="custompronouns">Enter costom pronouns</label>
-            <input type="text" id="custompronouns" name="custompronouns" value="" required>
+            <input type="text" id="custompronouns" name="custompronouns" value="">
         </div>
 
         <!-- Email Section -->
@@ -271,13 +80,13 @@
         <!-- Mobile Section -->
         <div class="form-group">
             <label for="phone">Mobile</label>
-            <input type="text" id="phone" name="phone" value="{{ user.phone }}" placeholder="(xxx)xxx-xxxx" max-length="14"required>
+            <input type="text" id="phone" name="phone" value="{{ user.phone }}" placeholder="(xxx)xxx-xxxx" max-length="14">
         </div>
         
         <!-- Race Section -->
         <div class="form-group" style="margin-right: 40px;">
             <label for="race">Race and ethnicity</label>
-            <select id="race" name="race" required>
+            <select id="race" name="race">
                 <option value="" disabled selected>Please Select your race and ethnicity</option>
                 <option value="asian">Asian</option>
                 <option value="black">Black, including African American</option>
@@ -301,12 +110,12 @@
         <div class="seclab">Password</div>
         <div style="flex:auto;text-align: end;"><button type="submit" class="sec-btn" id="openPswdBtn">Reset Password</button></div>
     </div>
-    <!-- 模态框的HTML结构 -->
+    <!-- Password Section -->
     <div id="Password" class="modal">
         <div class="modal-content">
             <span id="close1" class="close">&times;</span>
-            <!-- Password Section -->
             <form id="changePasswordForm" action="#" method="POST">
+                {% csrf_token %} 
                 <input type="password" class="hidden-field" autocomplete="new-password">
                 <div class="subform-group" style="margin-top: 50px;">
                     <label for="current_password">Current Password</label>
@@ -331,7 +140,7 @@
         <div class="seclab">Account Deactivation</div>
         <div style="flex:auto;text-align: end;"><button type="submit" class="sec-btn" id="openDelBtn">Deactivate account</button></div>
     </div>
-    <!-- 模态框的HTML结构 -->
+    <!-- Deactivation Section -->
     <div id="Deactivation" class="modal">
         <div class="modal-content">
             <span id="close2" class="close">&times;</span>
@@ -342,6 +151,7 @@
 
             <!-- Simple form for deleting the account -->
             <form id="deleteAccountForm">
+                {% csrf_token %} 
                 <div style="display: flex; justify-content: flex-end;">
                     <button type="submit" class="sbt-btn2">Delete My Account</button>
                 </div>
@@ -526,6 +336,6 @@
         });
     })
 </script>
-
-</body>
-</html>
+</div>
+</div>
+{% endblock %}

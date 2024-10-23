@@ -1,10 +1,9 @@
-body {
+.body {
     font-family: Arial, sans-serif;
-    background-color: #f4f4f4;
     margin: 0;
     padding: 0;
 }
-.container {
+.containerset {
     width: 800px;
     max-width: 1200px;
     margin: 50px auto;
@@ -31,6 +30,7 @@ body {
 .subtitle{
     font-weight: bold;
     font-size: 20px;
+    margin:30px 20px;
 }
 .link{
     color:#007bff;
@@ -41,8 +41,10 @@ body {
     cursor: pointer;
 }
 .form-group {
-    margin: 20px 10px;
-    width: 94%
+    margin: 20px 60px 20px 30px;
+}
+.subform-group {
+    margin: 30px 50px 30px 20px;
 }
 .name{
     display: flex;
@@ -51,7 +53,7 @@ body {
 .subgroup{
     flex:none;
     width: 25%;
-    margin-right: 93px;
+    margin-right: 90px;
 }
 .doublesubgroup{
     display: flex;
@@ -59,7 +61,7 @@ body {
 .doublesubgroupleft{
     flex:none;
     width: 40%;
-    margin-right: 22%;
+    margin-right: 100px;
 }
 label {
     display: block;
@@ -108,7 +110,83 @@ input[type="password"] {
     border-radius: 5px;
     font-size: 16px;
     cursor: pointer;
+    margin-top:15px;
+    margin-bottom: 5px;
 }
 .sbt-btn:hover {
     background-color: #0056b3;
+}
+.sbt-btn2 {
+    background-color: #007bff;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    margin: 10px 30px 15px 0;
+}
+.sbt-btn2:hover {
+    background-color: #0056b3;
+}
+.seperator{
+    background-color: #cccccc;
+    height: 1px;
+}
+.seclab{
+    font-weight: bold;
+    padding: 10px 0;
+}
+.sec-btn {
+    background-color: #007bff;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+}
+.sec-btn:hover {
+    background-color: #0056b3;
+}
+/* 模态框的覆盖层样式 */
+.modal {
+    display: none; /* 默认隐藏 */
+    position: fixed;
+    z-index: 1; /* 保证在最上层 */
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.4); /* 半透明背景 */
+    justify-content: center; /* 水平居中 */
+    align-items: center; /* 垂直居中 */
+}
+
+/* 模态框内容样式 */
+.modal-content {
+    background-color: white;
+    margin: 15% auto; /* 居中显示 */
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+    max-width: 500px;
+}
+
+/* 关闭按钮样式 */
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+.hidden-field {
+display: none;
 }
