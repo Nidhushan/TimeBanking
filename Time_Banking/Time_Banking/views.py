@@ -7,7 +7,7 @@ from django.core.exceptions import ValidationError
 from django.core.mail import send_mail
 import uuid
 from .models import Listing, User, ListingResponse, ListingAvailability
-from .forms import RegisterForm, ProfileCreationForm
+from .forms import RegisterForm, ProfileCreationForm, ProfileEditForm
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
@@ -47,22 +47,30 @@ def verify_account_code(request):
             user_data = request.session.get('user_data')
             
             if user_data:
-                # Create a new user with the saved data
-                user = User.objects.create(
-                    username=user_data['username'],
-                    email=user_data['email'],
-                    password=user_data['password1'],
-                    is_active=True,
-                    is_verified=True
-                )
-                user.set_password(user_data['password1'])  # Set the password correctly
-                user.save()
+                # delegate to create_profile
+                # # Create a new user with the saved data
+                # user = User.objects.create(
+                #     username=user_data['username'],
+                #     email=user_data['email'],
+                #     password=user_data['password1'],
+                #     is_active=True,
+                #     is_verified=True
+                # )
+                # user.set_password(user_data['password1'])  # Set the password correctly
+                # user.save()
+
+                request.session['verified_user_data'] = {
+                    'username': user_data['username'],
+                    'email': user_data['email'],
+                    'password': user_data['password1']
+                }
 
                 # Clear session data after successful verification
                 del request.session['user_data']
                 del request.session['verification_code']
 
-                return redirect('login')  # Redirect to login page after verification
+                # return redirect('login')  # Redirect to login page after verification
+                return redirect('create_profile') # redirect to profile page before login
         else:
             return render(request, 'registration/verification_failed.html')  # If code is incorrect
     
@@ -352,17 +360,70 @@ def create_listing(request):
 
     return JsonResponse({'error': 'POST request required'}, status=405)
 
+@csrf_exempt
+def get_profile(request):
+    try:
+        data = json.loads(request.body)
+        username = data.get('username')
+        user = User.objects.get(username=username)
 
+        profile = {
+            'name': user.name,
+            'picture': user.picture,
+            'title': user.title,
+            'location': user.location,
+            'bio': user.bio if user.bio else None,
+            'link': user.link if user.link else None,
+        }
+
+        return JsonResponse({"status": "success", "data": profile}, status=200)
+    except User.DoesNotExist:
+        return JsonResponse({'error': 'User not found'}, status=404)
+
+@csrf_exempt
 def create_profile(request):
+    verified_user_data = request.session.get('verified_user_data')
+    if not verified_user_data:
+        return redirect('create_account')
+    
     if request.method=='POST':
-        form = ProfileCreationForm(request.POST, request.FILES, instance=request.user)
+        form = ProfileCreationForm(request.POST, request.FILES)
+        if form.is_valid():
+            user = User.objects.create(
+                username=verified_user_data['username'],
+                email=verified_user_data['email'],
+                password=verified_user_data['password1'],
+                is_active=True,
+                is_verified=True
+            )
+            user.set_password(verified_user_data['password1'])  # Set the password correctly
+            
+            user.name = form.cleaned_data['name']
+            user.title = form.cleaned_data['title']
+            user.location = form.cleaned_data['location']
+            user.picture = form.cleaned_data['picture']
+            user.bio = form.cleaned_data.get('bio', '')
+            user.link = form.cleaned_data.get('link', '')
+
+            user.save()
+            del request.session['verified_user_data']
+
+            return redirect('login')  # Redirect to login page
+    else:
+        form = ProfileCreationForm()
+    
+    return render(request, 'create_profile.html', {'form': form})
+
+@csrf_exempt
+def edit_profile(request):
+    if request.method=='POST':
+        form = ProfileEditForm(request.POST, request.FILES, instance=request.user)
         if form.is_valid():
             form.save()
-            return JsonResponse({"status": "success", "message": "Profile created successfully"})
+            return JsonResponse({"status": "success", "message": "Profile edited successfully"}, status=200)
         else:
             return JsonResponse({"status": "error", "errors": form.errors}, status=400)
     else:
-        form = ProfileCreationForm(instance=request.user)
-        return render(request, 'create_profile.html', {'form': form})  # pre-fill the form with current user data
-    # render frontend
- 
+        form = ProfileEditForm(instance=request.user)  # pre-fill the form with current user data
+    
+    # return render(request, 'edit_profile.html', {'form': form})
