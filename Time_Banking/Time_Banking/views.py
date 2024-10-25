@@ -261,14 +261,29 @@ def user_settings_page(request):
 
 def user_detail(request, id):
     user = get_object_or_404(User, pk=id)
-
-    # for demo purpose
     data = {
-        "username": user.username,
+        "email": user.email,  # Include email
         "multiplier": user.multiplier,
         "avg_rating": float(user.avg_rating),
+        "name": user.name,
+        "picture_url": user.picture.url if user.picture else "",
+        "title": user.title,
+        "location": user.location,
+        "bio": user.bio,
+        "link": user.link,
     }
     return JsonResponse(data)
+
+
+# Display User's information
+def user_detail_page(request, id):
+    try:
+        user = User.objects.get(pk=id)
+        # Pass the user object to the template context
+        return render(request, 'user_detail.html', {'user': user})
+    except User.DoesNotExist:
+        # Pass an error message to the template if user is not found
+        return render(request, 'user_detail.html', {'error': 'User not found'})
 
 
 def get_all_listings(request):

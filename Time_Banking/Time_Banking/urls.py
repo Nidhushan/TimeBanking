@@ -35,8 +35,11 @@ urlpatterns = [
     path('resend-verification/', views.resend_verification_email, name='resend_verification_email'),
     path('verify/', views.verify_account_code, name='verify_account_code'),
     # path('login/', views.login, name='login'),
-    path('accounts/login/', views.custom_login, name='login'),
-    path("user/<int:id>/", views.user_detail, name="user_detail"),
+
+    path('accounts/login/', views.login, name='login'),
+    path("api/user/<int:id>/", views.user_detail, name="user_detail"),
+
+
     path("api/listings/", views.get_all_listings, name="get_all_listings"),
     path(
         "api/listings/<int:listing_id>/responses/",
@@ -57,6 +60,7 @@ urlpatterns = [
     path('change-password/', views.change_password_page, name='change_password_page'),
     path('delete-account/', views.delete_account_page, name='delete_account_page'),
     path('settings/', views.user_settings_page, name='user_settings_page'),
+    path('user/<int:id>/', views.user_detail_page, name='user_detail_page'),
     
 
 ]
