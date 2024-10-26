@@ -1,4 +1,6 @@
 from django.shortcuts import render, get_object_or_404, redirect
+from django.db import models
+from django.db.models import Q
 from django.http import JsonResponse, HttpResponseRedirect
 from django.contrib.auth.forms import *
 from django.contrib.auth import authenticate, login
@@ -21,12 +23,22 @@ def home(request):
     business_listings = Listing.objects.filter(category='BUSINESS')
     digitalm_listings = Listing.objects.filter(category='MARKETING')
 
+    # Handle search
+    query = request.GET.get('search', '')  # Capture the search query from the URL
+
+    if query:
+        listings = listings.filter(
+            Q(title__icontains=query) |  # Search in the title
+            Q(description__icontains=query)  # Search in the description
+        )
+
     context = {
         "listings": listings,
         'programming_listings': programming_listings,
         'writing_listings': writing_listings,
         'business_listings': business_listings,
         'digitalm_listings': digitalm_listings,
+        'query': query,
     }
 
     if request.GET.get('new_account', '') == 'true':

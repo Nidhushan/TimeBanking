@@ -1,3 +1,7 @@
+html {
+    scroll-behavior: smooth;
+}
+
 header {
     background-image: url('https://example.com/background-image.jpg');
     background-size: cover;
