@@ -1,22 +1,30 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Create Profile</title>
-    {% load static %}
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+<meta charset="UTF-8">
+<title>Edit Profile</title>
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
 <body>
     <div id="profile-page">
-<div class="profile-form-container">
-        <h1 class="profile-h1">Please Enter Your Profile Details</h1>
+    <div class="profile-form-container">
+        <h1 class="profile-h1">Edit Your Profile</h1>
         <form method="post" enctype="multipart/form-data" class="profile-form">
             {% csrf_token %}
             <div class="profile-picture" onclick="triggerFileInput()">
-                <img id="profileImage" src="{% static 'default-profile.png' %}" alt="Profile Picture">
+                {% if user.picture %}
+                    <img id="profileImage" src="{{ user.picture.url }}" alt="Profile Picture">
+                {% else %}
+                    <img id="profileImage" src="{% static 'default-profile.png' %}" alt="Profile Picture">
+                {% endif %}
                 <input type="file" id="fileInput" name="picture" style="display:none;" onchange="previewImage(event)">
             </div>
-            {{ form.as_p }}
+            {{ form.name.label_tag }} {{ form.name }}
+            {{ form.title.label_tag }} {{ form.title }}
+            {{ form.location.label_tag }} {{ form.location }}
+            {{ form.bio.label_tag }} {{ form.bio }}
+            {{ form.link.label_tag }} {{ form.link }}
             <button type="submit" class="profile-button">Save Changes</button>
         </form>
 </div>

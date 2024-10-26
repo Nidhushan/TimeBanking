@@ -441,4 +441,4 @@ def edit_profile(request):
     else:
         form = ProfileEditForm(instance=request.user)  # pre-fill the form with current user data
     
-    # return render(request, 'edit_profile.html', {'form': form})
+    return render(request, 'edit_profile.html', {'form': form})
