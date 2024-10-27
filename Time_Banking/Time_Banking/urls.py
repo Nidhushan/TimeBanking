@@ -32,10 +32,14 @@ urlpatterns = [
     path('verification-sent/', TemplateView.as_view(template_name='verification_sent.html'), name='verification_sent'),  # Verification URL
     path('verification-success/', TemplateView.as_view(template_name='verification_successful.html'), name='verification_successful'),
     path('verification-failed/', TemplateView.as_view(template_name='verification_failed.html'), name='verification_failed'),
+    path('resend-verification/', views.resend_verification_email, name='resend_verification_email'),
     path('verify/', views.verify_account_code, name='verify_account_code'),
     # path('login/', views.login, name='login'),
+
     path('accounts/login/', views.login, name='login'),
-    path("user/<int:id>/", views.user_detail, name="user_detail"),
+    path("api/user/<int:id>/", views.user_detail, name="user_detail"),
+
+
     path("api/listings/", views.get_all_listings, name="get_all_listings"),
     path('listing/<int:listing_id>/', views.get_listing_by_id, name='get_listing'),
     path(
@@ -51,6 +55,9 @@ urlpatterns = [
     path('api/change-password/', views.change_password, name='change_password'),
     path('api/delete-account/', views.delete_account, name='delete_account'),
     path('api/update-user-settings/', views.update_user_settings, name='update_user_settings'),
+    path('profile/get/', views.get_profile, name='get_profile'),
+    path('profile/create/', views.create_profile, name='create_profile'),
+    path('profile/edit/', views.edit_profile, name='edit_profile'),
     path('api/create-listing/', views.create_listing, name='create_listing'),
     path('api/categories/', views.get_categories, name='get_categories'),
     path('api/tags/', views.get_tags, name='get_tags'),
@@ -58,6 +65,7 @@ urlpatterns = [
     path('change-password/', views.change_password_page, name='change_password_page'),
     path('delete-account/', views.delete_account_page, name='delete_account_page'),
     path('settings/', views.user_settings_page, name='user_settings_page'),
+    path('user/<int:id>/', views.user_detail_page, name='user_detail_page'),
     path('create-listing/', views.create_listing_page, name='create_listing_page'),
     
 

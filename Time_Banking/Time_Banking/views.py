@@ -6,13 +6,11 @@ from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from django.core.mail import send_mail
 import uuid
-from .models import Listing, User, ListingResponse, ListingAvailability, Tag, Category
-from .forms import RegisterForm, ProfileCreationForm
+from .models import Listing, User, ListingResponse, ListingAvailability
+from .forms import RegisterForm, ProfileCreationForm, ProfileEditForm
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
-from datetime import timedelta
-
 import random
 import json
 
@@ -49,27 +47,56 @@ def verify_account_code(request):
             user_data = request.session.get('user_data')
             
             if user_data:
-                # Create a new user with the saved data
-                user = User.objects.create(
-                    username=user_data['username'],
-                    email=user_data['email'],
-                    password=user_data['password1'],
-                    is_active=True,
-                    is_verified=True
-                )
-                user.set_password(user_data['password1'])  # Set the password correctly
-                user.save()
+                # delegate to create_profile
+                # # Create a new user with the saved data
+                # user = User.objects.create(
+                #     username=user_data['username'],
+                #     email=user_data['email'],
+                #     password=user_data['password1'],
+                #     is_active=True,
+                #     is_verified=True
+                # )
+                # user.set_password(user_data['password1'])  # Set the password correctly
+                # user.save()
+
+                request.session['verified_user_data'] = {
+                    'username': user_data['username'],
+                    'email': user_data['email'],
+                    'password': user_data['password1']
+                }
 
                 # Clear session data after successful verification
                 del request.session['user_data']
                 del request.session['verification_code']
 
-                return redirect('login')  # Redirect to login page after verification
+                # return redirect('login')  # Redirect to login page after verification
+                return redirect('create_profile') # redirect to profile page before login
         else:
             return render(request, 'registration/verification_failed.html')  # If code is incorrect
     
     return render(request, 'registration/verify_account_code.html')
 
+def resend_verification_email(request):
+    # Check if user data exists in the session
+    user_data = request.session.get('user_data')
+    
+    if user_data:
+        verification_code = random.randint(100000, 999999)  # Generate a new 6-digit code
+        request.session['verification_code'] = verification_code
+
+        # Send the verification code via email
+        send_mail(
+            'Verify your account',
+            f'Your new verification code is: {verification_code}',
+            'timebartersystem@gmail.com',
+            [user_data['email']],
+            fail_silently=False,
+        )
+
+        # Redirect to the verification page
+        return redirect('verify_account_code')
+    else:
+        return redirect('create_account')  # If user data doesn't exist, redirect to account creation
 
 def create_account(request):
     if request.method == 'GET':
@@ -108,10 +135,10 @@ def custom_login(request):
                 login(request, user)
                 return redirect('home')
             else:
-                return render(request, 'login.html', {'error': 'Please verify your email before logging in.'})
+                return render(request, 'registration/login.html', {'error': 'Please verify your email before logging in.'})
         else:
-            return render(request, 'login.html', {'error': 'Invalid username or password.'})
-    return render(request, 'login.html')
+            return render(request, 'registration/login.html', {'error': 'Invalid username or password.'})
+    return render(request, 'registration/login.html')
 
 
 """
@@ -234,14 +261,29 @@ def user_settings_page(request):
 
 def user_detail(request, id):
     user = get_object_or_404(User, pk=id)
-
-    # for demo purpose
     data = {
-        "username": user.username,
+        "email": user.email,  # Include email
         "multiplier": user.multiplier,
         "avg_rating": float(user.avg_rating),
+        "name": user.name,
+        "picture_url": user.picture.url if user.picture else "",
+        "title": user.title,
+        "location": user.location,
+        "bio": user.bio,
+        "link": user.link,
     }
     return JsonResponse(data)
+
+
+# Display User's information
+def user_detail_page(request, id):
+    try:
+        user = User.objects.get(pk=id)
+        # Pass the user object to the template context
+        return render(request, 'user_detail.html', {'user': user})
+    except User.DoesNotExist:
+        # Pass an error message to the template if user is not found
+        return render(request, 'user_detail.html', {'error': 'User not found'})
 
 
 def get_all_listings(request):
@@ -390,6 +432,27 @@ def create_listing(request):
 
     return JsonResponse({'error': 'POST request required'}, status=405)
 
+@csrf_exempt
+def get_profile(request):
+    try:
+        data = json.loads(request.body)
+        username = data.get('username')
+        user = User.objects.get(username=username)
+
+        profile = {
+            'name': user.name,
+            'picture': user.picture,
+            'title': user.title,
+            'location': user.location,
+            'bio': user.bio if user.bio else None,
+            'link': user.link if user.link else None,
+        }
+
+        return JsonResponse({"status": "success", "data": profile}, status=200)
+    except User.DoesNotExist:
+        return JsonResponse({'error': 'User not found'}, status=404)
+
+@csrf_exempt
 
 @login_required
 def create_listing_page(request):
@@ -414,15 +477,55 @@ def get_tags(request):
 
 
 def create_profile(request):
+    verified_user_data = request.session.get('verified_user_data')
+    if not verified_user_data:
+        return redirect('create_account')
+    
+    print("Verified user data:", verified_user_data)
+    
     if request.method=='POST':
-        form = ProfileCreationForm(request.POST, request.FILES, instance=request.user)
+        form = ProfileCreationForm(request.POST, request.FILES)
+        print("Form:", form)
+        if form.is_valid():
+            print("valid form")
+            user = User.objects.create(
+                username=verified_user_data['username'],
+                email=verified_user_data['email'],
+                password=verified_user_data['password1'],
+                is_active=True,
+                is_verified=True
+            )
+            user.set_password(verified_user_data['password1'])  # Set the password correctly
+            
+            user.name = form.cleaned_data['name']
+            user.title = form.cleaned_data['title']
+            user.location = form.cleaned_data['location']
+            user.picture = form.cleaned_data['picture']
+            user.bio = form.cleaned_data.get('bio', '')
+            user.link = form.cleaned_data.get('link', '')
+
+            user.save()
+            del request.session['verified_user_data']
+
+            return redirect('login')  # Redirect to login page
+        else:
+            print("invalid form")
+            return JsonResponse({"status": "error", "errors": form.errors}, status=400)
+    else:
+        form = ProfileCreationForm()
+    
+    return render(request, 'create_profile.html', {'form': form})
+
+@csrf_exempt
+def edit_profile(request):
+    if request.method=='POST':
+        form = ProfileEditForm(request.POST, request.FILES, instance=request.user)
         if form.is_valid():
             form.save()
-            return JsonResponse({"status": "success", "message": "Profile created successfully"})
+            return JsonResponse({"status": "success", "message": "Profile edited successfully"}, status=200)
         else:
             return JsonResponse({"status": "error", "errors": form.errors}, status=400)
     else:
-        form = ProfileCreationForm(instance=request.user)
-        return render(request, 'create_profile.html', {'form': form})  # pre-fill the form with current user data
-    # render frontend
- 
+        form = ProfileEditForm(instance=request.user)  # pre-fill the form with current user data
+    
+    # return render(request, 'edit_profile.html', {'form': form})
