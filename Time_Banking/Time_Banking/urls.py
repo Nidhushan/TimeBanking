@@ -34,6 +34,9 @@ urlpatterns = [
     path('verification-failed/', TemplateView.as_view(template_name='verification_failed.html'), name='verification_failed'),
     path('resend-verification/', views.resend_verification_email, name='resend_verification_email'),
     path('verify/', views.verify_account_code, name='verify_account_code'),
+    path('forgot-password/', views.forgot_password, name='forgot_password'),
+    path('verify-reset-code/', views.verify_reset_code, name='verify_reset_code'),
+    path('reset-password/', views.reset_password, name='reset_password'),
     # path('login/', views.login, name='login'),
 
     path('accounts/login/', views.login, name='login'),

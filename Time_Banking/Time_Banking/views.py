@@ -1,4 +1,6 @@
 from django.shortcuts import render, get_object_or_404, redirect
+from django.db import models
+from django.db.models import Q
 from django.http import JsonResponse, HttpResponseRedirect
 from django.contrib.auth.forms import *
 from django.contrib.auth import authenticate, login
@@ -21,12 +23,22 @@ def home(request):
     business_listings = Listing.objects.filter(category='BUSINESS')
     digitalm_listings = Listing.objects.filter(category='MARKETING')
 
+    # Handle search
+    query = request.GET.get('search', '')  # Capture the search query from the URL
+
+    if query:
+        listings = listings.filter(
+            Q(title__icontains=query) |  # Search in the title
+            Q(description__icontains=query)  # Search in the description
+        )
+
     context = {
         "listings": listings,
         'programming_listings': programming_listings,
         'writing_listings': writing_listings,
         'business_listings': business_listings,
         'digitalm_listings': digitalm_listings,
+        'query': query if query else '',
     }
 
     if request.GET.get('new_account', '') == 'true':
@@ -97,6 +109,70 @@ def resend_verification_email(request):
         return redirect('verify_account_code')
     else:
         return redirect('create_account')  # If user data doesn't exist, redirect to account creation
+    
+def forgot_password(request):
+    if request.method == 'POST':
+        email = request.POST.get('email')
+        user = User.objects.filter(email=email).first()
+
+        if user:
+            reset_code = random.randint(100000, 999999)
+            request.session['reset_code'] = reset_code
+            request.session['reset_email'] = email
+
+            # Send the code via email
+            send_mail(
+                'Password Reset Code',
+                f'Your password reset code is: {reset_code}',
+                'timebartersystem@gmail.com',  # Replace with your email
+                [email],
+                fail_silently=False,
+            )
+
+            return redirect('verify_reset_code')  # Redirect to code verification page
+        else:
+            return render(request, 'registration/forgot_password.html', {'error': 'Email not found.'})
+
+    return render(request, 'registration/forgot_password.html')
+
+def verify_reset_code(request):
+    if request.method == 'POST':
+        entered_code = request.POST.get('code')
+        stored_code = request.session.get('reset_code')
+
+        if entered_code == str(stored_code):
+            return redirect('reset_password')  # Redirect to reset password form
+        else:
+            return render(request, 'registration/verify_reset_code.html', {'error': 'Invalid code.'})
+
+    return render(request, 'registration/verify_reset_code.html')
+
+def reset_password(request):
+    if request.method == 'POST':
+        new_password = request.POST.get('new_password')
+        confirm_password = request.POST.get('confirm_password')
+
+        if new_password == confirm_password:
+            email = request.session.get('reset_email')
+            user = User.objects.filter(email=email).first()
+
+            if user:
+                try:
+                    validate_password(new_password, user=user)  # Validate password strength
+                    user.set_password(new_password)
+                    user.save()
+
+                    # Clear session data
+                    del request.session['reset_email']
+                    del request.session['reset_code']
+
+                    return redirect('login')
+                except ValidationError as e:
+                    return render(request, 'registration/reset_password.html', {'error': list(e.messages)})
+
+        return render(request, 'registration/reset_password.html', {'error': 'Passwords do not match.'})
+
+    return render(request, 'registration/reset_password.html')
 
 def create_account(request):
     if request.method == 'GET':
@@ -106,6 +182,11 @@ def create_account(request):
     if request.method == 'POST':
         form = RegisterForm(request.POST)
         if form.is_valid():
+            # Check if the email already exists
+            email = form.cleaned_data.get('email')
+            if User.objects.filter(email=email).exists():
+                return render(request, 'create-account.html', {'error': 'An account with this email already exists.'})
+
             # Temporarily store user data in session until verification is completed
             request.session['user_data'] = form.cleaned_data
             verification_code = random.randint(100000, 999999)  # Generate 6-digit code
