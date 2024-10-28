@@ -11,3 +11,8 @@ class ProfileCreationForm(forms.ModelForm):
     class Meta:
         model = User
         fields = ["name", "picture", "title", "location", "bio", "link"]
+
+class ProfileEditForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ["title", "location", "bio", "link"]

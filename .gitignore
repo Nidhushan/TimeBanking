@@ -4,4 +4,4 @@
 /Time_Banking/Time_Banking/migrations
 Time_Banking/.env
 Time_Banking/media/static
-Time_Banking/*.db
+Time_Banking/*.sqlite3
