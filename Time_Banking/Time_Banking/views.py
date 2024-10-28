@@ -1,3 +1,4 @@
+from datetime import timedelta
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import JsonResponse, HttpResponseRedirect
 from django.contrib.auth.forms import *
@@ -6,7 +7,7 @@ from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from django.core.mail import send_mail
 import uuid
-from .models import Listing, User, ListingResponse, ListingAvailability
+from .models import Listing, User, ListingResponse, ListingAvailability, Category, Tag
 from .forms import RegisterForm, ProfileCreationForm, ProfileEditForm
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
@@ -45,6 +46,7 @@ def verify_account_code(request):
         if code == str(stored_code):
             # Retrieve the stored user data
             user_data = request.session.get('user_data')
+            print("User data:", user_data)
             
             if user_data:
                 # delegate to create_profile
@@ -289,45 +291,47 @@ def user_detail_page(request, id):
 def get_all_listings(request):
     # should be modified if the database of listings is too large
     listings = Listing.objects.all()
+    
     data = []
     for listing in listings:
+        category_id = listing.category
         data.append(
-        data = {
-            'id': listing.id,
-            'creator': listing.creator.username,  # Assuming creator is a User object
-            'category': listing.category.name,  # Assuming Category has a 'name' field
-            'tags': [tag.name for tag in listing.tags.all()],  # Get all tags related to the listing
-            'title': listing.title,
-            'description': listing.description,
-            'image': listing.image.url if listing.image else None,  # Get the image URL
-            'listing_type': 'Offer' if listing.listing_type else 'Request',  # Convert Boolean to readable value
-            'duration': str(listing.duration),  # Convert DurationField to string format
-            'posted_at': listing.posted_at.strftime('%Y-%m-%d %H:%M:%S'),  # Format the posted_at timestamp
-            'edited_at': listing.edited_at.strftime('%Y-%m-%d %H:%M:%S'),  # Format the edited_at timestamp
-        }
+            {
+                'id': listing.id,
+                'creator': listing.creator.username,  
+                'category': Category(category_id).label,  
+                'tags': [tag.name for tag in listing.tags.all()], 
+                'title': listing.title,
+                'description': listing.description,
+                'image': listing.image.url if listing.image else None,  
+                'listing_type': 'Offer' if listing.listing_type else 'Request', 
+                'duration': str(listing.duration),  
+                'posted_at': listing.posted_at.strftime('%Y-%m-%d %H:%M:%S'),  
+                'edited_at': listing.edited_at.strftime('%Y-%m-%d %H:%M:%S'),  
+            }
         )
     return JsonResponse(data, safe=False)
+
 
 def get_listing_by_id(request, listing_id):
     try:
         # Fetch the listing by ID
         listing = get_object_or_404(Listing, id=listing_id)
+        category_id = listing.category
         
-        # Prepare the data to return as JSON
         data = {
             'id': listing.id,
-            'creator': listing.creator.username,  # Assuming creator is a User object
-            'category': listing.category.name,  # Assuming Category has a 'name' field
-            'tags': [tag.name for tag in listing.tags.all()],  # Get all tags related to the listing
+            'creator': listing.creator.username,  
+            'category': Category(category_id).label,  
+            'tags': [tag.name for tag in listing.tags.all()], 
             'title': listing.title,
             'description': listing.description,
-            'image': listing.image.url if listing.image else None,  # Get the image URL
-            'listing_type': 'Offer' if listing.listing_type else 'Request',  # Convert Boolean to readable value
-            'duration': str(listing.duration),  # Convert DurationField to string format
-            'posted_at': listing.posted_at.strftime('%Y-%m-%d %H:%M:%S'),  # Format the posted_at timestamp
-            'edited_at': listing.edited_at.strftime('%Y-%m-%d %H:%M:%S'),  # Format the edited_at timestamp
+            'image': listing.image.url if listing.image else None, 
+            'listing_type': 'Offer' if listing.listing_type else 'Request', 
+            'duration': str(listing.duration), 
+            'posted_at': listing.posted_at.strftime('%Y-%m-%d %H:%M:%S'),  
+            'edited_at': listing.edited_at.strftime('%Y-%m-%d %H:%M:%S'), 
         }
-
         return JsonResponse(data, status=200)
     
     except Exception as e:
@@ -382,13 +386,16 @@ def create_listing(request):
             description = request.POST.get('description')
             image = request.FILES.get('image')  # We can only have 1 image per listing
             listing_type = request.POST.get('listing_type')  # Expecting 'True' or 'False'
-            duration_in_hours = request.POST.get('duration')  # Expected format: "hours:minutes:seconds"
+            duration_in_hours = request.POST.get('duration')  # Expected format: integer (hours)
             tag_ids = request.POST.getlist('tags')  # Expecting a list of tag IDs
 
-            if not title or not category_id or not description or not image or not listing_type or not duration_str:
+            if not title or not category_id or not description or not image or not listing_type or not duration_in_hours:
                 return JsonResponse({'error': 'Missing required fields'}, status=400)
+            
+            if len(description) > 5000:
+                return JsonResponse({'error': 'Description is too long'}, status=400)
 
-            category = get_object_or_404(Category, id=category_id)
+            category = Category(category_id).label
 
             listing_type = listing_type.lower() == 'true'
 
@@ -396,21 +403,19 @@ def create_listing(request):
                 duration_in_hours = int(duration_in_hours)  # Ensure it's an integer
                 duration = timedelta(hours=duration_in_hours)  # Convert to timedelta
             except ValueError:
-                return JsonResponse({'error': 'Duration must be a valid number'}, status=400)
-
-
+                return JsonResponse({'error': 'Duration must be a valid integer'}, status=400)
 
             listing = Listing.objects.create(
                 creator=request.user,  
                 title=title,
-                category=category,
+                category=category_id,
                 description=description,
                 image=image,
                 listing_type=listing_type,
                 duration=duration
             )
             
-            listing.save()
+            listing.save() # save the listing to the database
 
             if tag_ids:
                 tags = Tag.objects.filter(id__in=tag_ids)
@@ -419,18 +424,26 @@ def create_listing(request):
             return JsonResponse({
                 'id': listing.id,
                 'title': listing.title,
-                'category': listing.category.name,  
+                'category': category,
                 'tags': [tag.name for tag in listing.tags.all()], 
                 'description': listing.description,
                 'image_url': listing.image.url if listing.image else None,
                 'listing_type': 'Offer' if listing.listing_type else 'Request',
                 'duration': str(listing.duration)
-            }, status=201)
+            }, status=201) # return the created listing
 
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=500)
 
     return JsonResponse({'error': 'POST request required'}, status=405)
+
+
+@login_required
+def create_listing_page(request):
+    categories = [{'id': choice.value, 'name': choice.label} for choice in Category]
+    tags = Tag.objects.all()
+    return render(request, 'create_listing.html', {'categories': categories, 'tags': tags})
+
 
 @csrf_exempt
 def get_profile(request):
@@ -451,15 +464,6 @@ def get_profile(request):
         return JsonResponse({"status": "success", "data": profile}, status=200)
     except User.DoesNotExist:
         return JsonResponse({'error': 'User not found'}, status=404)
-
-@csrf_exempt
-
-@login_required
-def create_listing_page(request):
-    categories = [{'id': choice.value, 'name': choice.label} for choice in Category]
-    tags = Tag.objects.all()
-    return render(request, 'create_listing.html', {'categories': categories, 'tags': tags})
-
 
 
 # Fetch the categories from the database
@@ -491,11 +495,11 @@ def create_profile(request):
             user = User.objects.create(
                 username=verified_user_data['username'],
                 email=verified_user_data['email'],
-                password=verified_user_data['password1'],
+                password=verified_user_data['password'],
                 is_active=True,
                 is_verified=True
             )
-            user.set_password(verified_user_data['password1'])  # Set the password correctly
+            user.set_password(verified_user_data['password'])  # Set the password correctly
             
             user.name = form.cleaned_data['name']
             user.title = form.cleaned_data['title']

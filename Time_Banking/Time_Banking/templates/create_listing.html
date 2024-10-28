@@ -10,6 +10,7 @@
 
     <!-- Listing Creation Form -->
     <form id="createListingForm" enctype="multipart/form-data">
+        {% csrf_token %}
         <label for="title">Title:</label>
         <input type="text" id="title" name="title" placeholder="Enter listing title" required><br><br>
 
@@ -78,10 +79,13 @@
 
             const formData = new FormData(this);  // Collect the form data
 
-            // Send the request to the create listing API
+            // Send the request to the create listing API with the CSRF token included
             fetch('/api/create-listing/', {
                 method: 'POST',
                 body: formData,  // Send the form data, including files
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',  // Inject the CSRF token from Django's template
+                },
             })
             .then(response => response.json())
             .then(data => {

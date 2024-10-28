@@ -53,10 +53,10 @@ class User(AbstractUser):
 # parent class of BOTH offers AND requests
 class Listing(models.Model):
     creator = models.ForeignKey(User, on_delete=models.CASCADE)
-    category = models.ForeignKey(Category, on_delete=models.CASCADE) 
+    category = models.CharField(max_length=20, choices=Category.choices) # enum for Category
     tags = models.ManyToManyField(Tag) # backend needs to check that tags belong to category
-    title = models.CharField() # use CharField
-    description = models.TextField()
+    title = models.CharField(max_length=50) # use CharField (adjust length as needed)
+    description = models.TextField(max_length=1000) # bound to 1000 characters (adjust as needed)
     image = models.ImageField(upload_to='static/images/listing')
     listing_type = models.BooleanField(choices=LISTING_TYPES)
     duration = models.DurationField() # how long the work is expected/preferred to take
