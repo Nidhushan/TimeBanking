@@ -38,7 +38,7 @@ def home(request):
         'writing_listings': writing_listings,
         'business_listings': business_listings,
         'digitalm_listings': digitalm_listings,
-        'query': query,
+        'query': query if query else '',
     }
 
     if request.GET.get('new_account', '') == 'true':
