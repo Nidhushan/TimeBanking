@@ -46,7 +46,6 @@ def verify_account_code(request):
         if code == str(stored_code):
             # Retrieve the stored user data
             user_data = request.session.get('user_data')
-            print("User data:", user_data)
             
             if user_data:
                 # delegate to create_profile
@@ -480,18 +479,15 @@ def get_tags(request):
     return JsonResponse(tag_list, safe=False, status=200)
 
 
+@csrf_exempt
 def create_profile(request):
     verified_user_data = request.session.get('verified_user_data')
     if not verified_user_data:
         return redirect('create_account')
     
-    print("Verified user data:", verified_user_data)
-    
     if request.method=='POST':
         form = ProfileCreationForm(request.POST, request.FILES)
-        print("Form:", form)
         if form.is_valid():
-            print("valid form")
             user = User.objects.create(
                 username=verified_user_data['username'],
                 email=verified_user_data['email'],
@@ -512,9 +508,6 @@ def create_profile(request):
             del request.session['verified_user_data']
 
             return redirect('login')  # Redirect to login page
-        else:
-            print("invalid form")
-            return JsonResponse({"status": "error", "errors": form.errors}, status=400)
     else:
         form = ProfileCreationForm()
     
