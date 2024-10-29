@@ -44,6 +44,7 @@ urlpatterns = [
 
 
     path("api/listings/", views.get_all_listings, name="get_all_listings"),
+    path('listing/<int:listing_id>/', views.get_listing_by_id, name='get_listing'),
     path(
         "api/listings/<int:listing_id>/responses/",
         views.get_responses_for_listing,
@@ -60,10 +61,15 @@ urlpatterns = [
     path('profile/get/', views.get_profile, name='get_profile'),
     path('profile/create/', views.create_profile, name='create_profile'),
     path('profile/edit/', views.edit_profile, name='edit_profile'),
+    path('api/create-listing/', views.create_listing, name='create_listing'),
+    path('api/categories/', views.get_categories, name='get_categories'),
+    path('api/tags/', views.get_tags, name='get_tags'),
+    path('create-profile/', views.create_profile, name='create_profile'),
     path('change-password/', views.change_password_page, name='change_password_page'),
     path('delete-account/', views.delete_account_page, name='delete_account_page'),
     path('settings/', views.user_settings_page, name='user_settings_page'),
     path('user/<int:id>/', views.user_detail_page, name='user_detail_page'),
+    path('create-listing/', views.create_listing_page, name='create_listing_page'),
     
 
 ]
