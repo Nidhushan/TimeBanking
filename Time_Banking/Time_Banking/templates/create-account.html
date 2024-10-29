@@ -20,7 +20,7 @@ Create Account - Time Banking
                         {% endif %}
                         {% if form.errors and form.errors.username %}   
                             {% for error in form.errors.username %}
-                                <p style="font-size: 13px;">
+                                <p style="font-size: 13px; color: red;">
                                     {{ error|escape }}
                                 </p>
                             {% endfor %}                
@@ -39,7 +39,7 @@ Create Account - Time Banking
                         <input type="password" class="form-control" id="password1" name="password1" placeholder="Enter password" required>
                         {% if form.errors and form.errors.password1 %}   
                             {% for error in form.errors.password1 %}
-                                <p style="font-size: 13px;">
+                                <p style="font-size: 13px; color: red;">
                                     {{ error|escape }}
                                 </p>
                             {% endfor %}                
@@ -51,7 +51,7 @@ Create Account - Time Banking
                         <input type="password" class="form-control" id="password2" name="password2" placeholder="Confirm your password" required>
                         {% if form.errors and form.errors.password2 %}   
                             {% for error in form.errors.password2 %}
-                                <p style="font-size: 13px;">
+                                <p style="font-size: 13px; color: red;">
                                     {{ error|escape }}
                                 </p>
                             {% endfor %}                

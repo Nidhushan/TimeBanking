@@ -1,3 +1,7 @@
+html {
+    scroll-behavior: smooth;
+}
+
 header {
     background-image: url('https://example.com/background-image.jpg');
     background-size: cover;
@@ -16,6 +20,10 @@ p {
 input.form-control {
     height: 50px;
     border-radius: 0;
+}
+
+span {
+    color: white;
 }
 
 /* Navbar -------------========================-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- */

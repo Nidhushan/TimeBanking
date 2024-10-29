@@ -1,4 +1,6 @@
 from django.shortcuts import render, get_object_or_404, redirect
+from django.db import models
+from django.db.models import Q
 from django.http import JsonResponse, HttpResponseRedirect
 from django.contrib.auth.forms import *
 from django.contrib.auth import authenticate, login
@@ -7,7 +9,7 @@ from django.core.exceptions import ValidationError
 from django.core.mail import send_mail
 import uuid
 from .models import Listing, User, ListingResponse, ListingAvailability
-from .forms import RegisterForm, ProfileCreationForm
+from .forms import RegisterForm, ProfileCreationForm, ProfileEditForm
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
@@ -21,12 +23,22 @@ def home(request):
     business_listings = Listing.objects.filter(category='BUSINESS')
     digitalm_listings = Listing.objects.filter(category='MARKETING')
 
+    # Handle search
+    query = request.GET.get('search', '')  # Capture the search query from the URL
+
+    if query:
+        listings = listings.filter(
+            Q(title__icontains=query) |  # Search in the title
+            Q(description__icontains=query)  # Search in the description
+        )
+
     context = {
         "listings": listings,
         'programming_listings': programming_listings,
         'writing_listings': writing_listings,
         'business_listings': business_listings,
         'digitalm_listings': digitalm_listings,
+        'query': query if query else '',
     }
 
     if request.GET.get('new_account', '') == 'true':
@@ -47,27 +59,120 @@ def verify_account_code(request):
             user_data = request.session.get('user_data')
             
             if user_data:
-                # Create a new user with the saved data
-                user = User.objects.create(
-                    username=user_data['username'],
-                    email=user_data['email'],
-                    password=user_data['password1'],
-                    is_active=True,
-                    is_verified=True
-                )
-                user.set_password(user_data['password1'])  # Set the password correctly
-                user.save()
+                # delegate to create_profile
+                # # Create a new user with the saved data
+                # user = User.objects.create(
+                #     username=user_data['username'],
+                #     email=user_data['email'],
+                #     password=user_data['password1'],
+                #     is_active=True,
+                #     is_verified=True
+                # )
+                # user.set_password(user_data['password1'])  # Set the password correctly
+                # user.save()
+
+                request.session['verified_user_data'] = {
+                    'username': user_data['username'],
+                    'email': user_data['email'],
+                    'password': user_data['password1']
+                }
 
                 # Clear session data after successful verification
                 del request.session['user_data']
                 del request.session['verification_code']
 
-                return redirect('login')  # Redirect to login page after verification
+                # return redirect('login')  # Redirect to login page after verification
+                return redirect('create_profile') # redirect to profile page before login
         else:
             return render(request, 'registration/verification_failed.html')  # If code is incorrect
     
     return render(request, 'registration/verify_account_code.html')
 
+def resend_verification_email(request):
+    # Check if user data exists in the session
+    user_data = request.session.get('user_data')
+    
+    if user_data:
+        verification_code = random.randint(100000, 999999)  # Generate a new 6-digit code
+        request.session['verification_code'] = verification_code
+
+        # Send the verification code via email
+        send_mail(
+            'Verify your account',
+            f'Your new verification code is: {verification_code}',
+            'timebartersystem@gmail.com',
+            [user_data['email']],
+            fail_silently=False,
+        )
+
+        # Redirect to the verification page
+        return redirect('verify_account_code')
+    else:
+        return redirect('create_account')  # If user data doesn't exist, redirect to account creation
+    
+def forgot_password(request):
+    if request.method == 'POST':
+        email = request.POST.get('email')
+        user = User.objects.filter(email=email).first()
+
+        if user:
+            reset_code = random.randint(100000, 999999)
+            request.session['reset_code'] = reset_code
+            request.session['reset_email'] = email
+
+            # Send the code via email
+            send_mail(
+                'Password Reset Code',
+                f'Your password reset code is: {reset_code}',
+                'timebartersystem@gmail.com',  # Replace with your email
+                [email],
+                fail_silently=False,
+            )
+
+            return redirect('verify_reset_code')  # Redirect to code verification page
+        else:
+            return render(request, 'registration/forgot_password.html', {'error': 'Email not found.'})
+
+    return render(request, 'registration/forgot_password.html')
+
+def verify_reset_code(request):
+    if request.method == 'POST':
+        entered_code = request.POST.get('code')
+        stored_code = request.session.get('reset_code')
+
+        if entered_code == str(stored_code):
+            return redirect('reset_password')  # Redirect to reset password form
+        else:
+            return render(request, 'registration/verify_reset_code.html', {'error': 'Invalid code.'})
+
+    return render(request, 'registration/verify_reset_code.html')
+
+def reset_password(request):
+    if request.method == 'POST':
+        new_password = request.POST.get('new_password')
+        confirm_password = request.POST.get('confirm_password')
+
+        if new_password == confirm_password:
+            email = request.session.get('reset_email')
+            user = User.objects.filter(email=email).first()
+
+            if user:
+                try:
+                    validate_password(new_password, user=user)  # Validate password strength
+                    user.set_password(new_password)
+                    user.save()
+
+                    # Clear session data
+                    del request.session['reset_email']
+                    del request.session['reset_code']
+
+                    return redirect('login')
+                except ValidationError as e:
+                    return render(request, 'registration/reset_password.html', {'error': list(e.messages)})
+
+        return render(request, 'registration/reset_password.html', {'error': 'Passwords do not match.'})
+
+    return render(request, 'registration/reset_password.html')
 
 def create_account(request):
     if request.method == 'GET':
@@ -77,6 +182,11 @@ def create_account(request):
     if request.method == 'POST':
         form = RegisterForm(request.POST)
         if form.is_valid():
+            # Check if the email already exists
+            email = form.cleaned_data.get('email')
+            if User.objects.filter(email=email).exists():
+                return render(request, 'create-account.html', {'error': 'An account with this email already exists.'})
+
             # Temporarily store user data in session until verification is completed
             request.session['user_data'] = form.cleaned_data
             verification_code = random.randint(100000, 999999)  # Generate 6-digit code
@@ -106,10 +216,10 @@ def custom_login(request):
                 login(request, user)
                 return redirect('home')
             else:
-                return render(request, 'login.html', {'error': 'Please verify your email before logging in.'})
+                return render(request, 'registration/login.html', {'error': 'Please verify your email before logging in.'})
         else:
-            return render(request, 'login.html', {'error': 'Invalid username or password.'})
-    return render(request, 'login.html')
+            return render(request, 'registration/login.html', {'error': 'Invalid username or password.'})
+    return render(request, 'registration/login.html')
 
 
 """
@@ -232,14 +342,29 @@ def user_settings_page(request):
 
 def user_detail(request, id):
     user = get_object_or_404(User, pk=id)
-
-    # for demo purpose
     data = {
-        "username": user.username,
+        "email": user.email,  # Include email
         "multiplier": user.multiplier,
         "avg_rating": float(user.avg_rating),
+        "name": user.name,
+        "picture_url": user.picture.url if user.picture else "",
+        "title": user.title,
+        "location": user.location,
+        "bio": user.bio,
+        "link": user.link,
     }
     return JsonResponse(data)
+
+
+# Display User's information
+def user_detail_page(request, id):
+    try:
+        user = User.objects.get(pk=id)
+        # Pass the user object to the template context
+        return render(request, 'user_detail.html', {'user': user})
+    except User.DoesNotExist:
+        # Pass an error message to the template if user is not found
+        return render(request, 'user_detail.html', {'error': 'User not found'})
 
 
 def get_all_listings(request):
@@ -331,17 +456,70 @@ def create_listing(request):
 
     return JsonResponse({'error': 'POST request required'}, status=405)
 
+@csrf_exempt
+def get_profile(request):
+    try:
+        data = json.loads(request.body)
+        username = data.get('username')
+        user = User.objects.get(username=username)
 
+        profile = {
+            'name': user.name,
+            'picture': user.picture,
+            'title': user.title,
+            'location': user.location,
+            'bio': user.bio if user.bio else None,
+            'link': user.link if user.link else None,
+        }
+
+        return JsonResponse({"status": "success", "data": profile}, status=200)
+    except User.DoesNotExist:
+        return JsonResponse({'error': 'User not found'}, status=404)
+
+@csrf_exempt
 def create_profile(request):
+    verified_user_data = request.session.get('verified_user_data')
+    if not verified_user_data:
+        return redirect('create_account')
+    
     if request.method=='POST':
-        form = ProfileCreationForm(request.POST, request.FILES, instance=request.user)
+        form = ProfileCreationForm(request.POST, request.FILES)
+        if form.is_valid():
+            user = User.objects.create(
+                username=verified_user_data['username'],
+                email=verified_user_data['email'],
+                password=verified_user_data['password'],
+                is_active=True,
+                is_verified=True
+            )
+            user.set_password(verified_user_data['password'])  # Set the password correctly
+            
+            user.name = form.cleaned_data['name']
+            user.title = form.cleaned_data['title']
+            user.location = form.cleaned_data['location']
+            user.picture = form.cleaned_data['picture']
+            user.bio = form.cleaned_data.get('bio', '')
+            user.link = form.cleaned_data.get('link', '')
+
+            user.save()
+            del request.session['verified_user_data']
+
+            return redirect('login')  # Redirect to login page
+    else:
+        form = ProfileCreationForm()
+    
+    return render(request, 'create_profile.html', {'form': form})
+
+@csrf_exempt
+def edit_profile(request):
+    if request.method=='POST':
+        form = ProfileEditForm(request.POST, request.FILES, instance=request.user)
         if form.is_valid():
             form.save()
-            return JsonResponse({"status": "success", "message": "Profile created successfully"})
+            return JsonResponse({"status": "success", "message": "Profile edited successfully"}, status=200)
         else:
             return JsonResponse({"status": "error", "errors": form.errors}, status=400)
     else:
-        form = ProfileCreationForm(instance=request.user)
-        return render(request, 'create_profile.html', {'form': form})  # pre-fill the form with current user data
-    # render frontend
- 
+        form = ProfileEditForm(instance=request.user)  # pre-fill the form with current user data
+    
+    # return render(request, 'edit_profile.html', {'form': form})
