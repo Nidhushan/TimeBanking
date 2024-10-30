@@ -192,6 +192,56 @@ span {
     font-size: 2rem; /* Increase the size of the icon */
 }
 
+/* -------------------------------------Sort Section Styling--------------------------------------------------------------- */
+
+/* Sort Section Styling */
+.sort-section {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    background-color: #f5f5f5;
+    border-radius: 5px;
+    margin-bottom: 20px;
+}
+
+.sort-title {
+    font-weight: bold;
+    color: #11407e;
+    font-size: 1rem;
+}
+
+.sort-link {
+    color: #11407e;
+    font-size: 1rem;
+    text-decoration: none;
+    font-weight: bold;
+    margin: 0 10px;
+}
+
+.sort-link.active {
+    color: #000c36;
+    text-decoration: underline;
+}
+
+.sort-link:hover {
+    color: #000c36;
+    text-decoration: underline;
+}
+
+.sort-dropdown {
+    padding: 5px;
+    font-size: 1rem;
+    color: #11407e;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background-color: #ffffff;
+}
+
+.sort-dropdown option {
+    color: #11407e;
+}
+
 .card-container {
     display: flex;
     flex-wrap: wrap;

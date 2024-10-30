@@ -24,8 +24,23 @@ def home(request):
     business_listings = Listing.objects.filter(category='BUSINESS')
     digitalm_listings = Listing.objects.filter(category='MARKETING')
 
-    # Handle search
-    query = request.GET.get('search', '')  # Capture the search query from the URL
+    query = request.GET.get('search', '')
+    sort_option = request.GET.get('sort', 'date')  # Default sort by date
+    sort_order = request.GET.get('order', 'asc')   # Default order ascending
+
+    # Base queryset filtered by search query
+    listings = Listing.objects.filter(title__icontains=query)
+
+    # Apply sorting based on the selected option
+    if sort_option == 'date':
+        listings = listings.order_by('posted_at' if sort_order == 'asc' else '-posted_at')
+    elif sort_option == 'cost':
+        listings = listings.order_by('duration' if sort_order == 'asc' else '-duration')
+    elif sort_option == 'category':
+        listings = listings.order_by('category' if sort_order == 'asc' else '-category')
+
+    # Fetch all categories for dropdown in sort section
+    categories = Category.choices
 
     if query:
         listings = listings.filter(
@@ -40,6 +55,9 @@ def home(request):
         'business_listings': business_listings,
         'digitalm_listings': digitalm_listings,
         'query': query if query else '',
+        'sort_option': sort_option,
+        'sort_order': sort_order,
+        'categories': categories,
     }
 
     if request.GET.get('new_account', '') == 'true':
