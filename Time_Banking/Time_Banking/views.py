@@ -2,6 +2,7 @@ from datetime import timedelta
 from django.shortcuts import render, get_object_or_404, redirect
 from django.db import models
 from django.db.models import Q
+from django.db.models import Case, When, Value
 from django.http import JsonResponse, HttpResponseRedirect
 from django.contrib.auth.forms import *
 from django.contrib.auth import authenticate, login
@@ -25,13 +26,17 @@ def home(request):
     digitalm_listings = Listing.objects.filter(category='MARKETING')
 
     query = request.GET.get('search', '')
-    sort_option = request.GET.get('sort', 'date')  # Default sort by date
-    sort_order = request.GET.get('order', 'asc')   # Default order ascending
+    sort_option = request.GET.get('sort', 'date')
+    sort_order = request.GET.get('order', 'asc')
+    selected_category = request.GET.get('category', '')  # Get selected category from URL parameter
 
-    # Base queryset filtered by search query
     listings = Listing.objects.filter(title__icontains=query)
 
-    # Apply sorting based on the selected option
+    # Filter by selected category, if provided
+    if selected_category:
+        listings = listings.filter(category=selected_category)
+
+    # Sort based on the selected option
     if sort_option == 'date':
         listings = listings.order_by('posted_at' if sort_order == 'asc' else '-posted_at')
     elif sort_option == 'cost':
@@ -39,7 +44,7 @@ def home(request):
     elif sort_option == 'category':
         listings = listings.order_by('category' if sort_order == 'asc' else '-category')
 
-    # Fetch all categories for dropdown in sort section
+    # Fetch all categories for dropdown
     categories = Category.choices
 
     if query:
@@ -57,6 +62,7 @@ def home(request):
         'query': query if query else '',
         'sort_option': sort_option,
         'sort_order': sort_order,
+        'selected_category': selected_category,
         'categories': categories,
     }
 
