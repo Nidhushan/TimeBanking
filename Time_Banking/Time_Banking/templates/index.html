@@ -56,11 +56,38 @@
 
 
     <!-- Front Page Vertical Sections -->
-    <div class="front-page-sections">
+    <div class="front-page-sections" id="search-results">
         
         {% if query %}
+        <div class="sort-section">
+            <span class="sort-title">Sort By:</span>
+            <a href="?search={{ query }}&sort=date&order={% if sort_option == 'date' and sort_order == 'asc' %}desc{% else %}asc{% endif %}#search-results"
+               class="sort-link {% if sort_option == 'date' %}active{% endif %}">
+                Date {% if sort_option == 'date' %}
+                    {% if sort_order == 'asc' %}↑{% else %}↓{% endif %}
+                {% endif %}
+            </a>
+            <a href="?search={{ query }}&sort=cost&order={% if sort_option == 'cost' and sort_order == 'asc' %}desc{% else %}asc{% endif %}#search-results"
+               class="sort-link {% if sort_option == 'cost' %}active{% endif %}">
+                Cost {% if sort_option == 'cost' %}
+                    {% if sort_order == 'asc' %}↑{% else %}↓{% endif %}
+                {% endif %}
+            </a>
+            <span class="sort-title">Category:</span>
+            <select class="sort-dropdown" onchange="location = this.value;">
+                <option value="?search={{ query }}&sort=category&order=asc#search-results" {% if not selected_category %}selected{% endif %}>
+                    All Categories
+                </option>
+                {% for key, category in categories %}
+                    <option value="?search={{ query }}&sort=category&order=asc&category={{ key }}#search-results"
+                            {% if selected_category == key %}selected{% endif %}>
+                        {{ category }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
             <!-- Display search results -->
-            <div class="section" id="search-results">
+            <div class="section">
                 <h2 class="section-title">Search Results for "{{ query }}"</h2>
                 <p class="section-description">Listings matching your search.</p>
                 <div class="card-container">
