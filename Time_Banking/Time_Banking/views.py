@@ -210,7 +210,7 @@ def create_account(request):
             # Check if the email already exists
             email = form.cleaned_data.get('email')
             if User.objects.filter(email=email).exists():
-                return render(request, 'create-account.html', {'error': 'An account with this email already exists.'})
+                return render(request, 'create-account.html', {'form': form, 'error': 'An account with this email already exists.'})
 
             # Temporarily store user data in session until verification is completed
             request.session['user_data'] = form.cleaned_data
@@ -228,7 +228,8 @@ def create_account(request):
 
             return redirect('verify_account_code')  # Redirect to verification code entry
         else:
-            return render(request, 'create-account.html', {'form': form})
+            # Pass form and errors back to the template if form is invalid
+            return render(request, 'create-account.html', {'form': form, 'errors': form.errors})
 
 
 def custom_login(request):
