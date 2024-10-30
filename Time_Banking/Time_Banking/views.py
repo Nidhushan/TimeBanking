@@ -237,6 +237,10 @@ def change_password(request):
             username = data.get('username')
             current_password = data.get('current_password')
             new_password = data.get('new_password')
+            confirm_password = data.get('confirm_password')
+            
+            if new_password != confirm_password:
+                return JsonResponse({'error': 'New passwords do not match'}, status=400)
 
             user = User.objects.get(username=username)
 
@@ -253,7 +257,7 @@ def change_password(request):
             user.set_password(new_password)
             user.save()
 
-            return JsonResponse({'status': 'Password changed successfully'}, status=200)
+            return JsonResponse({'status': 'success'}, status=200)
 
         except User.DoesNotExist:
             return JsonResponse({'error': 'User not found'}, status=404)
