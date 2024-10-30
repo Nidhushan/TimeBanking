@@ -169,11 +169,11 @@ def reset_password(request):
 
                     return redirect('login')
                 except ValidationError as e:
-                    return render(request, 'user_settings.html', {'error': list(e.messages)})
+                    return render(request, 'registration/reset_password.html', {'error': list(e.messages)})
 
-        return render(request, 'user_settings.html', {'error': 'Passwords do not match.'})
+        return render(request, 'registration/reset_password.html', {'error': 'Passwords do not match.'})
 
-    return render(request, 'user_settings.html')
+    return render(request, 'registration/reset_password.html')
 
 def create_account(request):
     if request.method == 'GET':
