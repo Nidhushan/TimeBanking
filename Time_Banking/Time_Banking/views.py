@@ -266,8 +266,8 @@ def change_password(request):
 
 
 # @login_required  # Ensures the user is logged in
-# def change_password_page(request):
-#     return render(request, 'user_settings.html')
+def change_password_page(request):
+    return render(request, 'user_settings.html')
 
 
 """
@@ -444,6 +444,19 @@ def get_availability_for_listing(request, listing_id):
     return JsonResponse(data, safe=False)
 
 
+# Fetch the categories from the database
+def get_categories(request):
+    # Fetch categories from the TextChoices enum
+    categories = [{'id': choice.value, 'name': choice.label} for choice in Category]
+    return JsonResponse(categories, safe=False, status=200)
+
+
+# Fetch the tags from the database
+def get_tags(request):
+    tags = Tag.objects.all()
+    tag_list = [{'id': tag.id, 'name': tag.name} for tag in tags]
+    return JsonResponse(tag_list, safe=False, status=200)
+
 
 """
 curl -X POST http://localhost:8000/api/create-listing/
@@ -470,7 +483,9 @@ def create_listing(request):
             tag_ids = request.POST.getlist('tags')  # Expecting a list of tag IDs
 
             if not title or not category_id or not description or not image or not listing_type or not duration_in_hours:
-                return JsonResponse({'error': 'Missing required fields'}, status=400)
+                missing_fields = [field for field in ['title', 'category', 'description', 'image', 'listing_type', 'duration'] if not request.POST.get(field)]
+                error_msg = f'Missing required fields: {", ".join(missing_fields)}'
+                return JsonResponse({'error': error_msg}, status=400)
             
             if len(description) > 5000:
                 return JsonResponse({'error': 'Description is too long'}, status=400)
@@ -494,7 +509,8 @@ def create_listing(request):
                 listing_type=listing_type,
                 duration=duration
             )
-            
+
+
             listing.save() # save the listing to the database
 
             if tag_ids:
@@ -517,16 +533,11 @@ def create_listing(request):
 
     return JsonResponse({'error': 'POST request required'}, status=405)
 
+
 @login_required  # Make sure the user is logged in to access this page
 def create_listing_page(request):
     return render(request, 'create_listing.html')
 
-
-@login_required
-def create_listing_page(request):
-    categories = [{'id': choice.value, 'name': choice.label} for choice in Category]
-    tags = Tag.objects.all()
-    return render(request, 'create_listing.html', {'categories': categories, 'tags': tags})
 
 
 @csrf_exempt
@@ -550,18 +561,7 @@ def get_profile(request):
         return JsonResponse({'error': 'User not found'}, status=404)
 
 
-# Fetch the categories from the database
-def get_categories(request):
-    # Fetch categories from the TextChoices enum
-    categories = [{'id': choice.value, 'name': choice.label} for choice in Category]
-    return JsonResponse(categories, safe=False, status=200)
 
-
-# Fetch the tags from the database
-def get_tags(request):
-    tags = Tag.objects.all()
-    tag_list = [{'id': tag.id, 'name': tag.name} for tag in tags]
-    return JsonResponse(tag_list, safe=False, status=200)
 
 
 @csrf_exempt
