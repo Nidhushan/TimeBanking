@@ -87,6 +87,7 @@
             <div class="title">Settings</div>
             <div class="gotoprofile">Need to update your public profile? <a class="link" hef="#">Go to My Profile</a></div>
         </div>
+        <div style="display: none;">
         <div class="subtitle">Account Information</div>
         <form id="userSettingsForm" action="#" method="POST">
             <!-- Name Section -->
@@ -172,6 +173,8 @@
             <div class="form-group" style="display: flex; justify-content: flex-end; margin-right: 40px;">
                 <button type="submit" class="sbt-btn">Save Changes</button>
             </div>
+            </form>
+        </div>
 
         <div class="seperator"></div>
         <!-- Security Section -->
@@ -435,7 +438,8 @@
 
                 // Get the form data
                 const currentPassword = document.getElementById('current_password').value;
-                const newPassword = document.getElementById('new_password').value;
+                const newPassword = document.getElementById('password1').value;
+                const confirm_password = document.getElementById('confirm_password').value;
 
                 // Send the request to the change-password API
                 fetch('/api/change-password/', {
@@ -447,20 +451,42 @@
                     body: JSON.stringify({
                         username: '{{ request.user.username }}',  // Get the logged-in user's username
                         current_password: currentPassword,
-                        new_password: newPassword
+                        new_password: newPassword,
+                        confirm_password: confirm_password
                     })
                 })
                 .then(response => response.json())
                 .then(data => {
                     // Display the response message
                     const responseMessage = document.getElementById('responseMessage');
-                    if (data.status) {
-                        responseMessage.innerText = data.status;
+                    responseMessage.innerText = '';
+        
+                    if (data.status === 'success') {
+                        responseMessage.style.color = 'green';
+                        responseMessage.innerText = "Password successfully changed. Redirecting to login...";
+                        
+                        // Log out the user and redirect to the login page
+                        setTimeout(() => {
+                            fetch('/logout/', {
+                                method: 'POST',
+                                headers: {
+                                    'X-CSRFToken': '{{ csrf_token }}',
+                                }
+                            }).then(() => {
+                                window.location.href = '/accounts/login/';
+                            });
+                        }, 5000);  // Delay for 2 seconds before logging out and redirecting
                     } else if (data.error) {
+                        responseMessage.style.color = 'red';  // Error message in red
                         responseMessage.innerText = data.error;
                     }
                 })
-                .catch(error => console.error('Error:', error));
+                .catch(error => {
+                    const responseMessage = document.getElementById('responseMessage');
+                    responseMessage.style.color = 'red';  // Error message in red
+                    responseMessage.innerText = 'An error occurred. Please try again later.';
+                    console.error('Error:', error);
+                });
             });
             document.getElementById('deleteAccountForm').addEventListener('submit', function(event) {
                 event.preventDefault();  // Prevent the default form submission
