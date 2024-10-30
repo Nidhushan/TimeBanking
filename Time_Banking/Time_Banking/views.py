@@ -456,6 +456,10 @@ def create_listing(request):
 
     return JsonResponse({'error': 'POST request required'}, status=405)
 
+@login_required  # Make sure the user is logged in to access this page
+def create_listing_page(request):
+    return render(request, 'create_listing.html')
+
 @csrf_exempt
 def get_profile(request):
     try:

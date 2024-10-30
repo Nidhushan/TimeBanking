@@ -1,0 +1,75 @@
+{% extends "master.html" %}
+{% load static %}
+
+{% block title %}
+Create listing - Time Banking
+{% endblock %}
+
+{% block extra_links %}
+<link rel="stylesheet" href="{% static 'css/createlisting.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5 mb-5">
+    <div class="row justify-content-center">
+        <div style="display: block;">
+            <div class="headline">Create a Service</div>
+            <form method="post">
+                {% csrf_token %}
+                <div class="form-group">
+                    <!-- Title -->
+                    <label for="title">Title</label>
+                    <input type="text" id="title" name="title" required>
+                </div>
+                <div class="form-group">
+                    <!-- Category -->
+                    <label for="category">Category:</label>
+                    <select id="category" name="category" required>
+                        <option value="Graphics & Design">Graphics & Design</option>
+                        <option value="Programming & Tech">Programming & Tech</option>
+                        <option value="Digital Marketing">Digital Marketing</option>
+                        <option value="Video & Animation">Video & Animation</option>
+                        <option value="Writing & Translation">Writing & Translation</option>
+                        <option value="Music & Audio">Music & Audio</option>
+                        <option value="Business">Business</option>
+                        <option value="Finance">Finance</option>
+                        <option value="AI Services">AI Services</option>
+                        <option value="Personal Growth">Personal Growth</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <!-- Image -->
+                    <label for="image">Image:</label>
+                    <input type="file" id="image" name="image" accept="image/*">
+                </div>
+                <div class="form-group">
+                    <!-- Type (Offer or Request) -->
+                    <label>Type:</label>
+                    <input type="radio" id="offer" name="type" value="offer" required>
+                    <label for="offer">Offer</label>
+                    <input type="radio" id="request" name="type" value="request">
+                    <label for="request">Request</label>
+                </div>
+                <div class="form-group">
+                    <!-- Duration -->
+                    <label for="duration">Duration (in hours):</label>
+                    <input type="number" id="duration" name="duration" min="1" required>
+                </div>
+                <div class="form-group">
+                    <!-- Description -->
+                    <label for="description">Description:</label>
+                    <textarea id="description" name="description" rows="4" required></textarea>
+                </div>
+                <div class="form-group">
+                    <!-- Tag -->
+                    <label for="tag">Tag:</label>
+                    <input type="text" id="tag" name="tag" placeholder="e.g., web development, logo design">
+                </div>
+                <button type="submit" class="btn btn-primary btn-block create-account">Create Service</button>
+            </form>
+        </div>
+       
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,19 @@
+label {
+    display: inline-block;
+    width: 15rem; /* Adjust width as needed */
+    vertical-align: top;
+}
+input[type="text"],
+input[type="number"],
+input[type="file"],
+select,
+textarea {
+    width: 40rem; /* Adjust width as needed */
+    padding: 8px;
+}
+.headline{
+    font-size: 2rem;
+    margin-bottom: 3rem;
+    border-bottom:solid 1px #cccccc;
+    padding-bottom: 15px;
+}
