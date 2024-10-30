@@ -168,11 +168,11 @@ def reset_password(request):
 
                     return redirect('login')
                 except ValidationError as e:
-                    return render(request, 'registration/reset_password.html', {'error': list(e.messages)})
+                    return render(request, 'user_settings.html', {'error': list(e.messages)})
 
-        return render(request, 'registration/reset_password.html', {'error': 'Passwords do not match.'})
+        return render(request, 'user_settings.html', {'error': 'Passwords do not match.'})
 
-    return render(request, 'registration/reset_password.html')
+    return render(request, 'user_settings.html')
 
 def create_account(request):
     if request.method == 'GET':
@@ -264,9 +264,9 @@ def change_password(request):
     return JsonResponse({'error': 'POST request required'}, status=405)
 
 
-@login_required  # Ensures the user is logged in
-def change_password_page(request):
-    return render(request, 'change_password.html')
+# @login_required  # Ensures the user is logged in
+# def change_password_page(request):
+#     return render(request, 'user_settings.html')
 
 
 """
