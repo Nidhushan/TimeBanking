@@ -37,6 +37,7 @@ urlpatterns = [
     path('forgot-password/', views.forgot_password, name='forgot_password'),
     path('verify-reset-code/', views.verify_reset_code, name='verify_reset_code'),
     path('reset-password/', views.reset_password, name='reset_password'),
+    path('create-listing/', views.create_listing_page, name='create_listing_page'),
     # path('login/', views.login, name='login'),
 
     path('accounts/login/', views.login, name='login'),
