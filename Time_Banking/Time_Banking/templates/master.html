@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="{% static 'images/Logo.png' %}">
     <title>
         {% block title %}
         Time Banking
@@ -12,7 +13,8 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
-    
+    {% block extra_links %}
+    {% endblock %}
 
 </head>
 <body>
@@ -21,9 +23,9 @@
             <a class="navbar-brand" href="/">
                 <img src="/static/images/Logo.png" alt="Logo" height="30">
             </a>
-            <form class="form-inline mx-auto">
+            <form action="/#search-results" method="GET" class="form-inline mx-auto">
                 <div class="input-group">
-                    <input class="searchbar" type="search" placeholder="What service are you looking for today?" aria-label="Search" style="width: 400px;">
+                    <input class="searchbar" type="search" name="search" placeholder="What service are you looking for today?" aria-label="Search" style="width: 400px;">
                     <div class="input-group-append">
                         <button class="btn btn-dark search" type="submit">
                             <i class="fa-solid fa-search"></i>

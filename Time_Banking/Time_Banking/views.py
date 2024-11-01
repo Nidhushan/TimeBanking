@@ -1,4 +1,8 @@
+from datetime import timedelta
 from django.shortcuts import render, get_object_or_404, redirect
+from django.db import models
+from django.db.models import Q
+from django.db.models import Case, When, Value
 from django.http import JsonResponse, HttpResponseRedirect
 from django.contrib.auth.forms import *
 from django.contrib.auth import authenticate, login
@@ -6,7 +10,7 @@ from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from django.core.mail import send_mail
 import uuid
-from .models import Listing, User, ListingResponse, ListingAvailability
+from .models import Listing, User, ListingResponse, ListingAvailability, Category, Tag
 from .forms import RegisterForm, ProfileCreationForm, ProfileEditForm
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
@@ -21,12 +25,45 @@ def home(request):
     business_listings = Listing.objects.filter(category='BUSINESS')
     digitalm_listings = Listing.objects.filter(category='MARKETING')
 
+    query = request.GET.get('search', '')
+    sort_option = request.GET.get('sort', 'date')
+    sort_order = request.GET.get('order', 'asc')
+    selected_category = request.GET.get('category', '')  # Get selected category from URL parameter
+
+    listings = Listing.objects.filter(title__icontains=query)
+
+    # Filter by selected category, if provided
+    if selected_category:
+        listings = listings.filter(category=selected_category)
+
+    # Sort based on the selected option
+    if sort_option == 'date':
+        listings = listings.order_by('posted_at' if sort_order == 'asc' else '-posted_at')
+    elif sort_option == 'cost':
+        listings = listings.order_by('duration' if sort_order == 'asc' else '-duration')
+    elif sort_option == 'category':
+        listings = listings.order_by('category' if sort_order == 'asc' else '-category')
+
+    # Fetch all categories for dropdown
+    categories = Category.choices
+
+    if query:
+        listings = listings.filter(
+            Q(title__icontains=query) |  # Search in the title
+            Q(description__icontains=query)  # Search in the description
+        )
+
     context = {
         "listings": listings,
         'programming_listings': programming_listings,
         'writing_listings': writing_listings,
         'business_listings': business_listings,
         'digitalm_listings': digitalm_listings,
+        'query': query if query else '',
+        'sort_option': sort_option,
+        'sort_order': sort_order,
+        'selected_category': selected_category,
+        'categories': categories,
     }
 
     if request.GET.get('new_account', '') == 'true':
@@ -97,6 +134,70 @@ def resend_verification_email(request):
         return redirect('verify_account_code')
     else:
         return redirect('create_account')  # If user data doesn't exist, redirect to account creation
+    
+def forgot_password(request):
+    if request.method == 'POST':
+        email = request.POST.get('email')
+        user = User.objects.filter(email=email).first()
+
+        if user:
+            reset_code = random.randint(100000, 999999)
+            request.session['reset_code'] = reset_code
+            request.session['reset_email'] = email
+
+            # Send the code via email
+            send_mail(
+                'Password Reset Code',
+                f'Your password reset code is: {reset_code}',
+                'timebartersystem@gmail.com',  # Replace with your email
+                [email],
+                fail_silently=False,
+            )
+
+            return redirect('verify_reset_code')  # Redirect to code verification page
+        else:
+            return render(request, 'registration/forgot_password.html', {'error': 'Email not found.'})
+
+    return render(request, 'registration/forgot_password.html')
+
+def verify_reset_code(request):
+    if request.method == 'POST':
+        entered_code = request.POST.get('code')
+        stored_code = request.session.get('reset_code')
+
+        if entered_code == str(stored_code):
+            return redirect('reset_password')  # Redirect to reset password form
+        else:
+            return render(request, 'registration/verify_reset_code.html', {'error': 'Invalid code.'})
+
+    return render(request, 'registration/verify_reset_code.html')
+
+def reset_password(request):
+    if request.method == 'POST':
+        new_password = request.POST.get('new_password')
+        confirm_password = request.POST.get('confirm_password')
+
+        if new_password == confirm_password:
+            email = request.session.get('reset_email')
+            user = User.objects.filter(email=email).first()
+
+            if user:
+                try:
+                    validate_password(new_password, user=user)  # Validate password strength
+                    user.set_password(new_password)
+                    user.save()
+
+                    # Clear session data
+                    del request.session['reset_email']
+                    del request.session['reset_code']
+
+                    return redirect('login')
+                except ValidationError as e:
+                    return render(request, 'registration/reset_password.html', {'error': list(e.messages)})
+
+        return render(request, 'registration/reset_password.html', {'error': 'Passwords do not match.'})
+
+    return render(request, 'registration/reset_password.html')
 
 def create_account(request):
     if request.method == 'GET':
@@ -106,6 +207,11 @@ def create_account(request):
     if request.method == 'POST':
         form = RegisterForm(request.POST)
         if form.is_valid():
+            # Check if the email already exists
+            email = form.cleaned_data.get('email')
+            if User.objects.filter(email=email).exists():
+                return render(request, 'create-account.html', {'form': form, 'error': 'An account with this email already exists.'})
+
             # Temporarily store user data in session until verification is completed
             request.session['user_data'] = form.cleaned_data
             verification_code = random.randint(100000, 999999)  # Generate 6-digit code
@@ -122,7 +228,8 @@ def create_account(request):
 
             return redirect('verify_account_code')  # Redirect to verification code entry
         else:
-            return render(request, 'create-account.html', {'form': form})
+            # Pass form and errors back to the template if form is invalid
+            return render(request, 'create-account.html', {'form': form, 'errors': form.errors})
 
 
 def custom_login(request):
@@ -155,6 +262,10 @@ def change_password(request):
             username = data.get('username')
             current_password = data.get('current_password')
             new_password = data.get('new_password')
+            confirm_password = data.get('confirm_password')
+            
+            if new_password != confirm_password:
+                return JsonResponse({'error': 'New passwords do not match'}, status=400)
 
             user = User.objects.get(username=username)
 
@@ -171,7 +282,7 @@ def change_password(request):
             user.set_password(new_password)
             user.save()
 
-            return JsonResponse({'status': 'Password changed successfully'}, status=200)
+            return JsonResponse({'status': 'success'}, status=200)
 
         except User.DoesNotExist:
             return JsonResponse({'error': 'User not found'}, status=404)
@@ -183,9 +294,9 @@ def change_password(request):
     return JsonResponse({'error': 'POST request required'}, status=405)
 
 
-@login_required  # Ensures the user is logged in
+# @login_required  # Ensures the user is logged in
 def change_password_page(request):
-    return render(request, 'change_password.html')
+    return render(request, 'user_settings.html')
 
 
 """
@@ -287,30 +398,53 @@ def user_detail_page(request, id):
 
 
 def get_all_listings(request):
+    # should be modified if the database of listings is too large
     listings = Listing.objects.all()
+    
     data = []
     for listing in listings:
+        category_id = listing.category
         data.append(
             {
-                "id": listing.id,
-                "title": listing.title,
-                "category": listing.category,
-                "description": listing.description,
-                "image": listing.image.url if listing.image else None,
+                'id': listing.id,
+                'creator': listing.creator.username,  
+                'category': Category(category_id).label,  
+                'tags': [tag.name for tag in listing.tags.all()], 
+                'title': listing.title,
+                'description': listing.description,
+                'image': listing.image.url if listing.image else None,  
+                'listing_type': 'Offer' if listing.listing_type else 'Request', 
+                'duration': str(listing.duration),  
+                'posted_at': listing.posted_at.strftime('%Y-%m-%d %H:%M:%S'),  
+                'edited_at': listing.edited_at.strftime('%Y-%m-%d %H:%M:%S'),  
             }
         )
     return JsonResponse(data, safe=False)
 
+
 def get_listing_by_id(request, listing_id):
-    listing = Listing.objects.get(id=listing_id)
-    data = {
-        "id": listing.id,
-        "title": listing.title,
-        "category": listing.category,
-        "description": listing.description,
-        "image": listing.image.url if listing.image else None,
-    }
-    return JsonResponse(data)
+    try:
+        # Fetch the listing by ID
+        listing = get_object_or_404(Listing, id=listing_id)
+        category_id = listing.category
+        
+        data = {
+            'id': listing.id,
+            'creator': listing.creator.username,  
+            'category': Category(category_id).label,  
+            'tags': [tag.name for tag in listing.tags.all()], 
+            'title': listing.title,
+            'description': listing.description,
+            'image': listing.image.url if listing.image else None, 
+            'listing_type': 'Offer' if listing.listing_type else 'Request', 
+            'duration': str(listing.duration), 
+            'posted_at': listing.posted_at.strftime('%Y-%m-%d %H:%M:%S'),  
+            'edited_at': listing.edited_at.strftime('%Y-%m-%d %H:%M:%S'), 
+        }
+        return JsonResponse(data, status=200)
+    
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
 
 
 def get_responses_for_listing(request, listing_id):
@@ -339,41 +473,101 @@ def get_availability_for_listing(request, listing_id):
     return JsonResponse(data, safe=False)
 
 
-@login_required  # Ensures the user must be logged in
+# Fetch the categories from the database
+def get_categories(request):
+    # Fetch categories from the TextChoices enum
+    categories = [{'id': choice.value, 'name': choice.label} for choice in Category]
+    return JsonResponse(categories, safe=False, status=200)
+
+
+# Fetch the tags from the database
+def get_tags(request):
+    tags = Tag.objects.all()
+    tag_list = [{'id': tag.id, 'name': tag.name} for tag in tags]
+    return JsonResponse(tag_list, safe=False, status=200)
+
+
+"""
+curl -X POST http://localhost:8000/api/create-listing/
+     -b "sessionid=<your_session_id>" 
+     -F 'title=My New Listing' 
+     -F 'category=1' 
+     -F 'description=This is a new listing description' 
+     -F 'listing_type=True' 
+     -F 'duration=2' # in hours
+     -F 'tags=1' -F 'tags=2'
+     -F 'image=@/path/to/image.jpg'
+"""
+@login_required  # Ensure the user is logged in
 def create_listing(request):
     if request.method == 'POST':
         try:
+            # Get the form data
             title = request.POST.get('title')
-            category = request.POST.get('category')
+            category_id = request.POST.get('category')  
             description = request.POST.get('description')
-            image = request.FILES.get('image') # We can only have 1 image per listing by now
+            image = request.FILES.get('image')  # We can only have 1 image per listing
+            listing_type = request.POST.get('listing_type')  # Expecting 'True' or 'False'
+            duration_in_hours = request.POST.get('duration')  # Expected format: integer (hours)
+            tag_ids = request.POST.getlist('tags')  # Expecting a list of tag IDs
 
-            # Ensure all required fields are provided
-            if not title or not category or not description or not image:
-                return JsonResponse({'error': 'Missing required fields'}, status=400)
+            if not title or not category_id or not description or not image or not listing_type or not duration_in_hours:
+                missing_fields = [field for field in ['title', 'category', 'description', 'image', 'listing_type', 'duration'] if not request.POST.get(field)]
+                error_msg = f'Missing required fields: {", ".join(missing_fields)}'
+                return JsonResponse({'error': error_msg}, status=400)
+            
+            if len(description) > 5000:
+                return JsonResponse({'error': 'Description is too long'}, status=400)
 
-            # Create the listing (user is associated with the request.user)
+            category = Category(category_id).label
+
+            listing_type = listing_type.lower() == 'true'
+
+            try:
+                duration_in_hours = int(duration_in_hours)  # Ensure it's an integer
+                duration = timedelta(hours=duration_in_hours)  # Convert to timedelta
+            except ValueError:
+                return JsonResponse({'error': 'Duration must be a valid integer'}, status=400)
+
             listing = Listing.objects.create(
-                # creator=request.user,
+                creator=request.user,  
                 title=title,
-                category=category,
+                category=category_id,
                 description=description,
-                image=image
+                image=image,
+                listing_type=listing_type,
+                duration=duration
             )
-            listing.save()
+
+
+            listing.save() # save the listing to the database
+
+            if tag_ids:
+                tags = Tag.objects.filter(id__in=tag_ids)
+                listing.tags.set(tags)
 
             return JsonResponse({
                 'id': listing.id,
                 'title': listing.title,
-                'category': listing.category,
+                'category': category,
+                'tags': [tag.name for tag in listing.tags.all()], 
                 'description': listing.description,
-                'image_url': listing.image.url
-            }, status=201)
+                'image_url': listing.image.url if listing.image else None,
+                'listing_type': 'Offer' if listing.listing_type else 'Request',
+                'duration': str(listing.duration)
+            }, status=201) # return the created listing
 
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=500)
 
     return JsonResponse({'error': 'POST request required'}, status=405)
+
+
+@login_required  # Make sure the user is logged in to access this page
+def create_listing_page(request):
+    return render(request, 'create_listing.html')
+
+
 
 @csrf_exempt
 def get_profile(request):
@@ -394,6 +588,10 @@ def get_profile(request):
         return JsonResponse({"status": "success", "data": profile}, status=200)
     except User.DoesNotExist:
         return JsonResponse({'error': 'User not found'}, status=404)
+
+
+
+
 
 @csrf_exempt
 def create_profile(request):
