@@ -2,7 +2,6 @@ from datetime import timedelta
 from django.shortcuts import render, get_object_or_404, redirect
 from django.db import models
 from django.db.models import Q
-from django.db.models import Case, When, Value
 from django.http import JsonResponse, HttpResponseRedirect
 from django.contrib.auth.forms import *
 from django.contrib.auth import authenticate, login
@@ -25,27 +24,8 @@ def home(request):
     business_listings = Listing.objects.filter(category='BUSINESS')
     digitalm_listings = Listing.objects.filter(category='MARKETING')
 
-    query = request.GET.get('search', '')
-    sort_option = request.GET.get('sort', 'date')
-    sort_order = request.GET.get('order', 'asc')
-    selected_category = request.GET.get('category', '')  # Get selected category from URL parameter
-
-    listings = Listing.objects.filter(title__icontains=query)
-
-    # Filter by selected category, if provided
-    if selected_category:
-        listings = listings.filter(category=selected_category)
-
-    # Sort based on the selected option
-    if sort_option == 'date':
-        listings = listings.order_by('posted_at' if sort_order == 'asc' else '-posted_at')
-    elif sort_option == 'cost':
-        listings = listings.order_by('duration' if sort_order == 'asc' else '-duration')
-    elif sort_option == 'category':
-        listings = listings.order_by('category' if sort_order == 'asc' else '-category')
-
-    # Fetch all categories for dropdown
-    categories = Category.choices
+    # Handle search
+    query = request.GET.get('search', '')  # Capture the search query from the URL
 
     if query:
         listings = listings.filter(
@@ -60,10 +40,6 @@ def home(request):
         'business_listings': business_listings,
         'digitalm_listings': digitalm_listings,
         'query': query if query else '',
-        'sort_option': sort_option,
-        'sort_order': sort_order,
-        'selected_category': selected_category,
-        'categories': categories,
     }
 
     if request.GET.get('new_account', '') == 'true':
@@ -210,7 +186,7 @@ def create_account(request):
             # Check if the email already exists
             email = form.cleaned_data.get('email')
             if User.objects.filter(email=email).exists():
-                return render(request, 'create-account.html', {'form': form, 'error': 'An account with this email already exists.'})
+                return render(request, 'create-account.html', {'error': 'An account with this email already exists.'})
 
             # Temporarily store user data in session until verification is completed
             request.session['user_data'] = form.cleaned_data
@@ -228,8 +204,7 @@ def create_account(request):
 
             return redirect('verify_account_code')  # Redirect to verification code entry
         else:
-            # Pass form and errors back to the template if form is invalid
-            return render(request, 'create-account.html', {'form': form, 'errors': form.errors})
+            return render(request, 'create-account.html', {'form': form})
 
 
 def custom_login(request):
