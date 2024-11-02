@@ -11,7 +11,6 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    working-directory: ./Time_Banking  # Change to the path where manage.py is located
 
 
     env:
@@ -36,5 +35,6 @@ jobs:
           python Time_Banking/manage.py migrate
 
       - name: Run tests
+        working-directory: Time_Banking
         run: |
-          python Time_Banking/manage.py test Time_Banking.tests
+          python manage.py test 
