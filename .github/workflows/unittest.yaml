@@ -36,6 +36,5 @@ jobs:
           python Time_Banking/manage.py migrate
 
       - name: Run tests
-        working-directory: ./Time_Banking  
         run: |
-          python manage.py test
+          python Time_Banking/manage.py test Time_Banking.tests
