@@ -26,6 +26,11 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r Time_Banking/requirements.txt
 
+      - name: Environment variables
+        run: |
+          echo "SECRET_KEY=django-insecure-$(openssl rand -base64 32)" >> .env
+
+
       - name: Run migrations
         run: |
           python Time_Banking/manage.py migrate
