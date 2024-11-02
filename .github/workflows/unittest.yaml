@@ -26,14 +26,10 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r Time_Banking/requirements.txt
 
-      - name: Go to the Django project directory
-        run: |
-          cd Time_Banking
-
       - name: Run migrations
         run: |
-          python manage.py migrate
+          python Time_Banking/manage.py migrate
 
       - name: Run tests
         run: |
-          python manage.py test
+          python Time_Banking/manage.py test
