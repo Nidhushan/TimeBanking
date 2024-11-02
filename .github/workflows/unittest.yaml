@@ -11,6 +11,8 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    working-directory: ./Time_Banking  # Change to the path where manage.py is located
+
 
     env:
       SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
@@ -34,5 +36,6 @@ jobs:
           python Time_Banking/manage.py migrate
 
       - name: Run tests
+        working-directory: ./Time_Banking  
         run: |
-          python Time_Banking/manage.py test
+          python manage.py test
