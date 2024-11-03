@@ -472,6 +472,38 @@ def get_availability_for_listing(request, listing_id):
         )
     return JsonResponse(data, safe=False)
 
+def view_listing(request, listing_id):
+    listing = get_object_or_404(Listing, id=listing_id)
+    context = {
+        'listing': listing
+    }
+    return render(request, 'view_listing.html', context)
+
+
+@login_required
+def accept_service(request, listing_id):
+    if request.method == 'POST':
+        # Retrieve the listing using the ID
+        listing = get_object_or_404(Listing, id=listing_id)
+
+        # Check if the listing creator is not the same as the current user
+        if listing.creator == request.user:
+            return JsonResponse({'error': 'You cannot accept your own service/request.'}, status=403)
+
+        # Create a response to mark the service/request as accepted
+        ListingResponse.objects.create(
+            listing=listing,
+            user=request.user,
+            message="Accepted",
+            status=1  # You can use an appropriate integer to indicate 'Accepted' status
+        )
+
+        # Logic to notify the listing creator (for example, by email or in-app notification)
+        # Here, we are just simulating a simple success response
+        return JsonResponse({'message': 'Service/Request accepted successfully!'}, status=200)
+
+    return JsonResponse({'error': 'Only POST requests are allowed.'}, status=405)
+
 
 # Fetch the categories from the database
 def get_categories(request):
