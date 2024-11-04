@@ -1,7 +1,9 @@
+
 from datetime import timezone
 from django.db import models
 import datetime
 from django.contrib.auth.models import AbstractUser
+from datetime import timedelta
 
 LISTING_TYPES = [
     (True, "Offer"),
@@ -42,36 +44,37 @@ class User(AbstractUser):
     verification_code = models.CharField(max_length=100, blank=True, null=True)  # Store verification code
     # TODO: profiles
     name = models.CharField(max_length=100)
-    picture = models.ImageField(upload_to='static/images/user')
-    title = models.CharField(max_length=100)
-    location = models.CharField(max_length=100)
+    picture = models.ImageField(upload_to='static/images/user', blank=True)
+    title = models.CharField(max_length=100,blank=True)
+    location = models.CharField(max_length=100,blank=True)
     bio = models.TextField(blank=True)  # optional
     link = models.URLField(blank=True)  # optional
     def __str__(self):
         return self.username
 
 # parent class of BOTH offers AND requests
-# class Listing(models.Model):
-#     creator = models.ForeignKey(User, on_delete=models.CASCADE)
-#     category = models.ForeignKey(Category)
-#     tags = models.ManyToManyField(Tag) # backend needs to check that tags belong to category
-#     title = models.CharField() # use CharField
-#     description = models.TextField()
-#     listing_type = models.BooleanField(choices=LISTING_TYPES)
-#     duration = models.DurationField() # how long the work is expected/preferred to take
-#     posted_at = models.DateTimeField(auto_now_add=True)
-#     edited_at = models.DateTimeField(auto_now=True)
-#     def __str__(self):
-#         return self.title
-
-# simple model for Week 5 demo
 class Listing(models.Model):
-    title = models.CharField(max_length=255) # use CharField
+    creator = models.ForeignKey(User, on_delete=models.CASCADE, default=1)
     category = models.CharField(max_length=20, choices=Category.choices) # enum for Category
+    tags = models.ManyToManyField(Tag) # backend needs to check that tags belong to category
+    title = models.CharField(max_length=50) # use CharField (adjust length as needed)
+    description = models.TextField(max_length=1000) # bound to 1000 characters (adjust as needed)
     image = models.ImageField(upload_to='static/images/listing')
-    description = models.TextField()
+    listing_type = models.CharField(max_length=100, null=True)
+    duration = models.DurationField(default=timedelta(hours=1)) # how long the work is expected/preferred to take
+    posted_at = models.DateTimeField(auto_now_add=True)
+    edited_at = models.DateTimeField(auto_now=True)
     def __str__(self):
         return self.title
+
+# simple model for Week 5 demo
+# class Listing(models.Model):
+#     title = models.CharField(max_length=255) # use CharField
+#     category = models.CharField(max_length=20, choices=Category.choices) # enum for Category
+#     image = models.ImageField(upload_to='static/images/listing')
+#     description = models.TextField()
+#     def __str__(self):
+#         return self.title
 
 # someone responds to an offer or a request
 class ListingResponse(models.Model):

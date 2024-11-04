@@ -1,0 +1,46 @@
+{% extends 'master.html' %}
+{% load static %}
+
+{% block title %}
+Edit Profile
+{% endblock %}
+
+{% block content %}
+<div id="profile-page">
+    <div class="profile-form-container">
+        <h1 class="profile-h1">Edit Your Profile</h1>
+        <form method="post" enctype="multipart/form-data" class="profile-form">
+            {% csrf_token %}
+            <div class="profile-picture" onclick="triggerFileInput()">
+                {% if user.picture %}
+                    <img id="profileImage" src="{{ user.picture.url }}" alt="Profile Picture">
+                {% else %}
+                    <img id="profileImage" src="{% static 'images/default-profile.png' %}" alt="Profile Picture">
+                {% endif %}
+                <input type="file" id="fileInput" name="picture" style="display:none;" onchange="previewImage(event)">
+            </div>
+            {{ form.name.label_tag }} {{ form.name }}
+            {{ form.title.label_tag }} {{ form.title }}
+            {{ form.location.label_tag }} {{ form.location }}
+            {{ form.bio.label_tag }} {{ form.bio }}
+            {{ form.link.label_tag }} {{ form.link }}
+            <button type="submit" class="profile-button">Save Changes</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    function triggerFileInput() {
+        document.getElementById('fileInput').click();
+    }
+    
+    function previewImage(event) {
+        const reader = new FileReader();
+        reader.onload = function(){
+            const output = document.getElementById('profileImage');
+            output.src = reader.result;
+        };
+        reader.readAsDataURL(event.target.files[0]);
+    }
+</script>
+{% endblock %}

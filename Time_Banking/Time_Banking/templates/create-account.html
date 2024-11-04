@@ -8,7 +8,18 @@ Create Account - Time Banking
     <div class="container mt-5">
         <div class="row justify-content-center">
             <div class="col-md-6">
-                <h2 class="text-center">Create an Account</h2>            
+                <h2 class="text-center">Create an Account</h2>
+                {% if error %}
+                    <p style="color: red;">{{ error }}</p>
+                {% endif %}
+
+                {% if errors %}
+                    <ul style="color: red;">
+                        {% for field, messages in errors.items %}
+                            <li>{{ field }}: {{ messages|join:", " }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
                 <form method="post">
                     {% csrf_token %}
                     <div class="form-group">
@@ -20,7 +31,7 @@ Create Account - Time Banking
                         {% endif %}
                         {% if form.errors and form.errors.username %}   
                             {% for error in form.errors.username %}
-                                <p style="font-size: 13px;">
+                                <p style="font-size: 13px; color: red;">
                                     {{ error|escape }}
                                 </p>
                             {% endfor %}                
@@ -39,7 +50,7 @@ Create Account - Time Banking
                         <input type="password" class="form-control" id="password1" name="password1" placeholder="Enter password" required>
                         {% if form.errors and form.errors.password1 %}   
                             {% for error in form.errors.password1 %}
-                                <p style="font-size: 13px;">
+                                <p style="font-size: 13px; color: red;">
                                     {{ error|escape }}
                                 </p>
                             {% endfor %}                
@@ -51,7 +62,7 @@ Create Account - Time Banking
                         <input type="password" class="form-control" id="password2" name="password2" placeholder="Confirm your password" required>
                         {% if form.errors and form.errors.password2 %}   
                             {% for error in form.errors.password2 %}
-                                <p style="font-size: 13px;">
+                                <p style="font-size: 13px; color: red;">
                                     {{ error|escape }}
                                 </p>
                             {% endfor %}                
