@@ -1,13 +1,12 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>Edit Profile</title>
+{% extends 'master.html' %}
 {% load static %}
-<link rel="stylesheet" href="{% static 'css/style.css' %}">
-</head>
-<body>
-    <div id="profile-page">
+
+{% block title %}
+Edit Profile
+{% endblock %}
+
+{% block content %}
+<div id="profile-page">
     <div class="profile-form-container">
         <h1 class="profile-h1">Edit Your Profile</h1>
         <form method="post" enctype="multipart/form-data" class="profile-form">
@@ -16,7 +15,7 @@
                 {% if user.picture %}
                     <img id="profileImage" src="{{ user.picture.url }}" alt="Profile Picture">
                 {% else %}
-                    <img id="profileImage" src="{% static 'default-profile.png' %}" alt="Profile Picture">
+                    <img id="profileImage" src="{% static 'images/default-profile.png' %}" alt="Profile Picture">
                 {% endif %}
                 <input type="file" id="fileInput" name="picture" style="display:none;" onchange="previewImage(event)">
             </div>
@@ -27,23 +26,21 @@
             {{ form.link.label_tag }} {{ form.link }}
             <button type="submit" class="profile-button">Save Changes</button>
         </form>
-</div>
+    </div>
 </div>
 
 <script>
-function triggerFileInput() {
-      document.getElementById('fileInput').click();
-}
-
-function previewImage(event) {
-      const reader = new FileReader();
-      reader.onload = function(){
-          const output = document.getElementById('profileImage');
-          output.src = reader.result;
-      };
-      reader.readAsDataURL(event.target.files[0]);
-}
+    function triggerFileInput() {
+        document.getElementById('fileInput').click();
+    }
+    
+    function previewImage(event) {
+        const reader = new FileReader();
+        reader.onload = function(){
+            const output = document.getElementById('profileImage');
+            output.src = reader.result;
+        };
+        reader.readAsDataURL(event.target.files[0]);
+    }
 </script>
-
-</body>
-</html>
+{% endblock %}
