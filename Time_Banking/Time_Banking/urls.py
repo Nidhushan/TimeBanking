@@ -38,9 +38,12 @@ urlpatterns = [
     path('verify-reset-code/', views.verify_reset_code, name='verify_reset_code'),
     path('reset-password/', views.reset_password, name='reset_password'),
     path('create-listing/', views.create_listing_page, name='create_listing_page'),
+    path('add-service/', views.add_service, name='add_service'),
+    path('request-service/', views.request_service, name='request_service'),
+    
     # path('login/', views.login, name='login'),
 
-    path('accounts/login/', views.login, name='login'),
+    path('accounts/login/', views.custom_login, name='login'),
     path("api/user/<int:id>/", views.user_detail, name="user_detail"),
 
 
@@ -59,13 +62,13 @@ urlpatterns = [
     path('api/change-password/', views.change_password, name='change_password'),
     path('api/delete-account/', views.delete_account, name='delete_account'),
     path('api/update-user-settings/', views.update_user_settings, name='update_user_settings'),
-    path('profile/get/', views.get_profile, name='get_profile'),
-    path('profile/create/', views.create_profile, name='create_profile'),
+    path('profile/', views.get_profile, name='profile_info'),
+    #path('profile/create/', views.create_profile, name='create_profile'),
     path('profile/edit/', views.edit_profile, name='edit_profile'),
     path('api/create-listing/', views.create_listing, name='create_listing'),
     path('api/categories/', views.get_categories, name='get_categories'),
     path('api/tags/', views.get_tags, name='get_tags'),
-    path('create-profile/', views.create_profile, name='create_profile'),
+    #path('create-profile/', views.create_profile, name='create_profile'),
     path('change-password/', views.change_password_page, name='change_password_page'),
     path('delete-account/', views.delete_account_page, name='delete_account_page'),
     path('settings/', views.user_settings_page, name='user_settings_page'),

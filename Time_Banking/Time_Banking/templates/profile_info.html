@@ -1,0 +1,64 @@
+{% extends 'master.html' %}
+{% load static %}
+
+{% block title %}
+Edit Profile
+{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/profile_info.css' %}">
+<div id="profile-info-page" class="container">
+    <div class="row">
+        <!-- Left Column: Profile Card -->
+        <div class="col-left">
+            <div class="profile-card">
+                <h1>Details</h1>
+                <div>
+                    {% if user.picture %}
+                        <img src="{{ user.picture.url }}" alt="Profile Picture" class="profile-picture">
+                    {% else %}
+                        <img src="{% static 'path/to/default/image.png' %}" alt="Default Profile Picture" class="profile-picture">
+                    {% endif %}
+                    <p>Name: {{ user.name }}</p>
+                    <p>Title: {{ user.title }}</p>
+                    <p><i class="fa fa-map-marker"></i> {{ user.location }}</p>
+                    <p><i class="fa fa-calendar"></i> Joined in {{ user.date_joined|date:"F Y" }}</p>
+                    <p>Bio: {{ user.bio }}</p>
+                    <p>Link: <a href="{{ user.link }}">{{ user.link }}</a></p>
+                </div>
+
+                <!-- Time Credits Section -->
+                <div class="time-credits">
+                    <h3>Time Credits Earned</h3>
+                    <p>{{ user.time_credits }} hours</p>
+                </div>
+
+                <!-- Buttons -->
+                <a href="{% url 'edit_profile' %}" class="button-primary">Edit Profile</a>
+                <a href="{% url 'add_service' %}" class="button-primary">Add Service</a> <!-- Add Service Button -->
+                <a href="{% url 'request_service' %}" class="button-secondary">Request Service</a>
+            </div>
+        </div>
+
+        <!-- Right Column -->
+        <div class="col-right">
+            <h2>Hi 👋 {{ user.name }}, complete your profile to earn more time credits!</h2>
+            <p>Get the most out of our platform by sharing more about yourself and how you prefer to offer services.</p>
+            
+
+            <!-- Checklist Section -->
+            <div class="checklist-item">
+                <h3>Add Your Skills</h3>
+                <p>Share the skills you offer to maximize your time credits.</p>
+                {% if not user.skills %}
+                    <span>Add Skills</span>
+                {% else %}
+                    <span>Completed</span>
+                {% endif %}
+            </div>
+            <h3>Reviews from Service Exchanges</h3>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
