@@ -19,6 +19,9 @@ import random
 import json
 from django.contrib.auth import login as auth_login
 from .forms import ProfileEditForm
+from django.http import HttpResponseNotAllowed
+
+
 def home(request):
     listings = Listing.objects.all()
     programming_listings = Listing.objects.filter(category='TECH')
@@ -459,6 +462,8 @@ def get_availability_for_listing(request, listing_id):
     return JsonResponse(data, safe=False)
 
 def view_listing(request, listing_id):
+    if request.method != 'GET':
+        return HttpResponseNotAllowed(['GET'])
     listing = get_object_or_404(Listing, id=listing_id)
     context = {
         'listing': listing
@@ -466,6 +471,7 @@ def view_listing(request, listing_id):
     return render(request, 'view_listing.html', context)
 
 
+@csrf_exempt
 @login_required
 def accept_service(request, listing_id):
     if request.method == 'POST':
