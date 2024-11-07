@@ -1,0 +1,40 @@
+name: Run Django Unit Tests
+
+on:
+  push:
+    branches: 
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+
+    env:
+      SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.12.7'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r Time_Banking/requirements.txt
+
+      - name: Run migrations
+        run: |
+          python Time_Banking/manage.py migrate
+
+      - name: Run tests
+        working-directory: Time_Banking
+        run: |
+          python manage.py test 
