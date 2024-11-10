@@ -16,6 +16,10 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
 import random
 import json
+from django.contrib.auth import login as auth_login
+from .forms import ProfileEditForm
+from django.http import HttpResponseNotAllowed
+
 
 def home(request):
     listings = Listing.objects.all()
@@ -54,39 +58,22 @@ def verify_account_code(request):
     if request.method == 'POST':
         code = request.POST.get('code')
         stored_code = request.session.get('verification_code')
-
         if code == str(stored_code):
-            # Retrieve the stored user data
             user_data = request.session.get('user_data')
-            
             if user_data:
-                # delegate to create_profile
-                # # Create a new user with the saved data
-                # user = User.objects.create(
-                #     username=user_data['username'],
-                #     email=user_data['email'],
-                #     password=user_data['password1'],
-                #     is_active=True,
-                #     is_verified=True
-                # )
-                # user.set_password(user_data['password1'])  # Set the password correctly
-                # user.save()
-
-                request.session['verified_user_data'] = {
-                    'username': user_data['username'],
-                    'email': user_data['email'],
-                    'password': user_data['password1']
-                }
-
-                # Clear session data after successful verification
+                user = User.objects.create_user(
+                    username=user_data['username'],
+                    email=user_data['email'],
+                    password=user_data['password1'],
+                    is_active=True,
+                    is_verified=True
+                )
                 del request.session['user_data']
                 del request.session['verification_code']
-
-                # return redirect('login')  # Redirect to login page after verification
-                return redirect('create_profile') # redirect to profile page before login
+                login(request, user)
+                return redirect('edit_profile')
         else:
-            return render(request, 'registration/verification_failed.html')  # If code is incorrect
-    
+            return render(request, 'registration/verification_failed.html')
     return render(request, 'registration/verify_account_code.html')
 
 def resend_verification_email(request):
@@ -214,7 +201,9 @@ def custom_login(request):
         user = authenticate(request, username=username, password=password)
         if user is not None:
             if user.is_verified:
-                login(request, user)
+                auth_login(request, user)
+                if not user.name or not user.title or not user.location:
+                    return redirect('edit_profile')
                 return redirect('home')
             else:
                 return render(request, 'registration/login.html', {'error': 'Please verify your email before logging in.'})
@@ -447,6 +436,41 @@ def get_availability_for_listing(request, listing_id):
         )
     return JsonResponse(data, safe=False)
 
+def view_listing(request, listing_id):
+    if request.method != 'GET':
+        return HttpResponseNotAllowed(['GET'])
+    listing = get_object_or_404(Listing, id=listing_id)
+    context = {
+        'listing': listing
+    }
+    return render(request, 'view_listing.html', context)
+
+
+@csrf_exempt
+@login_required
+def accept_service(request, listing_id):
+    if request.method == 'POST':
+        # Retrieve the listing using the ID
+        listing = get_object_or_404(Listing, id=listing_id)
+
+        # Check if the listing creator is not the same as the current user
+        if listing.creator == request.user:
+            return JsonResponse({'error': 'You cannot accept your own service/request.'}, status=403)
+
+        # Create a response to mark the service/request as accepted
+        ListingResponse.objects.create(
+            listing=listing,
+            user=request.user,
+            message="Accepted",
+            status=1  # You can use an appropriate integer to indicate 'Accepted' status
+        )
+
+        # Logic to notify the listing creator (for example, by email or in-app notification)
+        # Here, we are just simulating a simple success response
+        return JsonResponse({'message': 'Service/Request accepted successfully!'}, status=200)
+
+    return JsonResponse({'error': 'Only POST requests are allowed.'}, status=405)
+
 
 # Fetch the categories from the database
 def get_categories(request):
@@ -543,7 +567,7 @@ def create_listing_page(request):
     return render(request, 'create_listing.html')
 
 
-
+"""@login_required
 @csrf_exempt
 def get_profile(request):
     try:
@@ -553,7 +577,7 @@ def get_profile(request):
 
         profile = {
             'name': user.name,
-            'picture': user.picture,
+            'picture': user.picture.url if user.picture else None,
             'title': user.title,
             'location': user.location,
             'bio': user.bio if user.bio else None,
@@ -562,13 +586,13 @@ def get_profile(request):
 
         return JsonResponse({"status": "success", "data": profile}, status=200)
     except User.DoesNotExist:
-        return JsonResponse({'error': 'User not found'}, status=404)
+        return JsonResponse({'error': 'User not found'}, status=404)"""
 
 
 
 
 
-@csrf_exempt
+"""@csrf_exempt
 def create_profile(request):
     verified_user_data = request.session.get('verified_user_data')
     if not verified_user_data:
@@ -600,18 +624,29 @@ def create_profile(request):
     else:
         form = ProfileCreationForm()
     
-    return render(request, 'create_profile.html', {'form': form})
+    return render(request, 'create_profile.html', {'form': form})"""
 
+@login_required
 @csrf_exempt
 def edit_profile(request):
-    if request.method=='POST':
+    if request.method == 'POST':
         form = ProfileEditForm(request.POST, request.FILES, instance=request.user)
         if form.is_valid():
             form.save()
-            return JsonResponse({"status": "success", "message": "Profile edited successfully"}, status=200)
-        else:
-            return JsonResponse({"status": "error", "errors": form.errors}, status=400)
+            return redirect('profile_info')  # Make sure this matches your URL name
     else:
-        form = ProfileEditForm(instance=request.user)  # pre-fill the form with current user data
+        form = ProfileEditForm(instance=request.user)
+    return render(request, 'edit_profile.html', {'form': form})
+@login_required
+def get_profile(request):
+    return render(request, 'profile_info.html', {'user': request.user})
+
+
+
+def add_service(request):
+    # Logic for adding a service goes here
+    return render(request, 'add_service.html')
+def request_service(request):
+    # Logic for adding a service goes here
+    return render(request, 'request_service.html')
     
-    # return render(request, 'edit_profile.html', {'form': form})

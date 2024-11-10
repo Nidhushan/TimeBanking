@@ -66,13 +66,15 @@
                 <div class="card-container">
                     {% if listings %}
                         {% for listing in listings %}
-                            <div class="card">
-                                <img src="{{ listing.image.url }}" class="card-img-top" alt="{{ listing.title }}">
-                                <div class="card-body">
-                                    <h5 class="card-title">{{ listing.title }}</h5>
-                                    <p class="card-text">{{ listing.description }}</p>
+                            <a href="{% url 'view_listing' listing.id %}" class="card-link">
+                                <div class="card">
+                                    <img src="{{ listing.image.url }}" class="card-img-top" alt="{{ listing.title }}">
+                                    <div class="card-body">
+                                        <h5 class="card-title">{{ listing.title }}</h5>
+                                        <p class="card-text">{{ listing.description }}</p>
+                                    </div>
                                 </div>
-                            </div>
+                            </a>
                         {% endfor %}
                     {% else %}
                         <p style="color: white;">No listings found matching your search.</p>
@@ -88,13 +90,15 @@
                 <p class="section-description">Description or list of featured services.</p>
                 <div class="card-container">
                     {% for listing in listings %}
-                        <div class="card">
-                            <img src="{{ listing.image.url }}" class="card-img-top" alt="{{ listing.title }}">
-                            <div class="card-body">
-                                <h5 class="card-title">{{ listing.title }}</h5>
-                                <p class="card-text">{{ listing.description }}</p>
+                        <a href="{% url 'view_listing' listing.id %}" class="card-link">
+                            <div class="card">
+                                <img src="{{ listing.image.url }}" class="card-img-top" alt="{{ listing.title }}">
+                                <div class="card-body">
+                                    <h5 class="card-title">{{ listing.title }}</h5>
+                                    <p class="card-text">{{ listing.description }}</p>
+                                </div>
                             </div>
-                        </div>
+                        </a>
                     {% endfor %}
                 </div>
             </div>
@@ -105,13 +109,15 @@
                 <p class="section-description">Description or list of services under this category.</p>
                 <div class="card-container">
                     {% for listing in programming_listings %}
-                        <div class="card">
-                            <img src="{{ listing.image.url }}" class="card-img-top" alt="{{ listing.title }}">
-                            <div class="card-body">
-                                <h5 class="card-title">{{ listing.title }}</h5>
-                                <p class="card-text">{{ listing.description }}</p>
+                        <a href="{% url 'view_listing' listing.id %}" class="card-link">
+                            <div class="card">
+                                <img src="{{ listing.image.url }}" class="card-img-top" alt="{{ listing.title }}">
+                                <div class="card-body">
+                                    <h5 class="card-title">{{ listing.title }}</h5>
+                                    <p class="card-text">{{ listing.description }}</p>
+                                </div>
                             </div>
-                        </div>
+                        </a>
                     {% endfor %}
                 </div>
             </div>
@@ -122,13 +128,15 @@
                 <p class="section-description">Description or list of services under this category.</p>
                 <div class="card-container">
                     {% for listing in digitalm_listings %}
-                        <div class="card">
-                            <img src="{{ listing.image.url }}" class="card-img-top" alt="{{ listing.title }}">
-                            <div class="card-body">
-                                <h5 class="card-title">{{ listing.title }}</h5>
-                                <p class="card-text">{{ listing.description }}</p>
+                        <a href="{% url 'view_listing' listing.id %}" class="card-link">
+                            <div class="card">
+                                <img src="{{ listing.image.url }}" class="card-img-top" alt="{{ listing.title }}">
+                                <div class="card-body">
+                                    <h5 class="card-title">{{ listing.title }}</h5>
+                                    <p class="card-text">{{ listing.description }}</p>
+                                </div>
                             </div>
-                        </div>
+                        </a>
                     {% endfor %}
                 </div>
             </div>
@@ -139,13 +147,15 @@
                 <p class="section-description">Description or list of services under this category.</p>
                 <div class="card-container">
                     {% for listing in writing_listings %}
-                        <div class="card">
-                            <img src="{{ listing.image.url }}" class="card-img-top" alt="{{ listing.title }}">
-                            <div class="card-body">
-                                <h5 class="card-title">{{ listing.title }}</h5>
-                                <p class="card-text">{{ listing.description }}</p>
+                        <a href="{% url 'view_listing' listing.id %}" class="card-link">
+                            <div class="card">
+                                <img src="{{ listing.image.url }}" class="card-img-top" alt="{{ listing.title }}">
+                                <div class="card-body">
+                                    <h5 class="card-title">{{ listing.title }}</h5>
+                                    <p class="card-text">{{ listing.description }}</p>
+                                </div>
                             </div>
-                        </div>
+                        </a>
                     {% endfor %}
                 </div>
             </div>
@@ -156,13 +166,15 @@
                 <p class="section-description">Description or list of services under this category.</p>
                 <div class="card-container">
                     {% for listing in business_listings %}
-                        <div class="card">
-                            <img src="{{ listing.image.url }}" class="card-img-top" alt="{{ listing.title }}">
-                            <div class="card-body">
-                                <h5 class="card-title">{{ listing.title }}</h5>
-                                <p class="card-text">{{ listing.description }}</p>
+                        <a href="{% url 'view_listing' listing.id %}" class="card-link">
+                            <div class="card">
+                                <img src="{{ listing.image.url }}" class="card-img-top" alt="{{ listing.title }}">
+                                <div class="card-body">
+                                    <h5 class="card-title">{{ listing.title }}</h5>
+                                    <p class="card-text">{{ listing.description }}</p>
+                                </div>
                             </div>
-                        </div>
+                        </a>
                     {% endfor %}
                 </div>
             </div>
