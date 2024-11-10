@@ -131,7 +131,8 @@ Create listing - Time Banking
                             
                             // Wait for 5 seconds before redirecting
                             setTimeout(function() {
-                                window.location.href = '/'; // Redirect to the home page
+                                const redir_url = `/listing/${data.id}`;
+                                window.location.href = redir_url; 
                             }, 5000); 
                         } else if (data.error) {
                             // Show error message
