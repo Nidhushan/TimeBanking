@@ -1,0 +1,31 @@
+{% extends "master.html" %}
+
+{% block content %}
+<div class="listing-details">
+    <h1 class="listing-title">{{ listing.title }}</h1>
+    <p class="listing-category"><strong>Category:</strong> {{ listing.get_category_display }}</p>
+    <img src="{{ listing.image.url }}" alt="{{ listing.title }}" class="listing-image">
+
+    <div class="listing-description">
+        <h3>Description:</h3>
+        <p>{{ listing.description }}</p>
+    </div>
+
+    <div class="listing-info">
+        <p><strong>Duration:</strong> {{ listing.duration }}</p>
+        <p><strong>Posted At:</strong> {{ listing.posted_at }}</p>
+    </div>
+
+    <div class="listing-tags">
+        <strong>Tags:</strong>
+        {% for tag in listing.tags.all %}
+            <span class="tag">{{ tag.name }}</span>
+        {% endfor %}
+    </div>
+
+    <form method="POST" action="{% url 'accept_service' listing.id %}" class="accept-form">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-primary">Accept Service/Request</button>
+    </form>
+</div>
+{% endblock %}

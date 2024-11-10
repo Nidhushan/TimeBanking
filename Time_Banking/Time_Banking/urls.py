@@ -48,7 +48,9 @@ urlpatterns = [
 
 
     path("api/listings/", views.get_all_listings, name="get_all_listings"),
-    path('listing/<int:listing_id>/', views.get_listing_by_id, name='get_listing'),
+    # path('listing/<int:listing_id>/', views.get_listing_by_id, name='get_listing'),
+    path('listing/<int:listing_id>/', views.view_listing, name='view_listing'),
+    path('listing/<int:listing_id>/accept/', views.accept_service, name='accept_service'),
     path(
         "api/listings/<int:listing_id>/responses/",
         views.get_responses_for_listing,
