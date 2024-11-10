@@ -33,6 +33,9 @@
                     </div>
                 </div>
             </form>
+            <div class="create_listing">
+                <a href="{% url 'create_listing_page' %}" class="btn btn-primary" id="create_listing_btn">Create A Offer/Request</a>
+            </div>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ml-auto">
                     {% if user.is_authenticated %}
