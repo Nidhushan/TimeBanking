@@ -66,6 +66,7 @@ urlpatterns = [
     #path('profile/create/', views.create_profile, name='create_profile'),
     path('profile/edit/', views.edit_profile, name='edit_profile'),
     path('api/create-listing/', views.create_listing, name='create_listing'),
+    path('api/edit-listing/<int:listing_id>/', views.edit_listing, name='edit_listing'),
     path('api/categories/', views.get_categories, name='get_categories'),
     path('api/tags/', views.get_tags, name='get_tags'),
     #path('create-profile/', views.create_profile, name='create_profile'),
