@@ -72,7 +72,7 @@ Create listing - Time Banking
                         <!-- Tags will be populated here dynamically -->
                     </select>
                 </div><br>
-                <button type="submit" class="btn btn-primary btn-block create-account">Create Service</button>
+                <button type="submit" class="btn btn-primary btn-block create-account" id="submit-button">Create Service</button>
             </form>
 
             <div id="responseMessage"></div>
@@ -128,6 +128,9 @@ Create listing - Time Banking
                             responseMessage.classList.remove('error');
                             responseMessage.classList.add('success');
                             responseMessage.style.display = 'block';  
+                            
+                            const submitButton = document.getElementById('submit-button');
+                            // submitButton.disabled = true;
                             
                             // Wait for 5 seconds before redirecting
                             setTimeout(function() {
