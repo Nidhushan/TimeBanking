@@ -585,11 +585,70 @@ def create_listing(request):
 
     return JsonResponse({'error': 'POST request required'}, status=405)
 
-
 @login_required  # Make sure the user is logged in to access this page
 def create_listing_page(request):
     return render(request, 'create_listing.html')
 
+"""
+curl -X POST "http://localhost:8000/api/edit-listing/1/" \
+     -b "sessionid=<sessionid>" \
+     -F "title=Updated Listing Title" \
+     -F "description=Updated description for the listing" \
+     -F "category=TECH" \
+     -F "duration=3" \
+     -F "status=In Progress" \
+     -F "tags=2" -F "tags=3" \
+     -F "image=@<image_path>"
+"""
+@login_required
+def edit_listing(request, listing_id):
+    if request.method == 'POST':
+        try:
+            listing = get_object_or_404(Listing, id=listing_id, creator=request.user)
+
+            title = request.POST.get('title', listing.title)
+            description = request.POST.get('description', listing.description)
+            category_id = request.POST.get('category', listing.category)
+            duration_in_hours = request.POST.get('duration', listing.duration)
+            status = request.POST.get('status', listing.status)
+            tag_ids = request.POST.getlist('tags', listing.tags)
+            image = request.FILES.get('image', listing.image)
+
+            listing.title = title
+            listing.description = description
+            listing.category = Category(category_id).label
+            
+            try:
+                duration_in_hours = int(duration_in_hours)  # Ensure it's an integer
+                listing.duration = timedelta(hours=duration_in_hours)  # Convert to timedelta
+            except ValueError:
+                return JsonResponse({'error': 'Duration must be a valid integer'}, status=400)
+            
+            listing.status = status
+            
+            tags = Tag.objects.filter(id__in=tag_ids)
+            listing.tags.set(tags)
+
+            listing.image = image
+
+            listing.save()
+
+            return JsonResponse({
+                'id': listing.id,
+                'title': listing.title,
+                'description': listing.description,
+                'category': listing.category,
+                'tags': [tag.name for tag in listing.tags.all()],
+                'image_url': listing.image.url if listing.image else None,
+                'status': listing.status,
+                'duration': str(listing.duration),
+                'edited_at': listing.edited_at.isoformat(),
+            }, status=200)
+
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+
+    return JsonResponse({'error': 'POST request required'}, status=405)
 
 """@login_required
 @csrf_exempt
