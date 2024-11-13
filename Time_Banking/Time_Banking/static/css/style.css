@@ -541,3 +541,32 @@ label {
     object-fit: cover;
     border: 3px solid #11407e ;
 }
+
+
+#create_listing_btn {
+    margin-left: 20px; 
+    padding: 10px 20px; 
+    border-radius: 20px;
+    color: white; 
+    font-weight: bold; 
+    display: flex;
+    align-items: center;
+    gap: 8px; 
+    border: none; 
+}
+
+#create_listing_btn::before {
+    content: "+"; 
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    background-color: white; 
+    color: #11407e; 
+    font-size: 18px; 
+    font-weight: bold;
+    text-align: center;
+    line-height: 20px; 
+    border-radius: 50%;
+    line-height: 0.95;
+
+}

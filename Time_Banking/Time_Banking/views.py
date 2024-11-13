@@ -8,6 +8,7 @@ from django.contrib.auth import authenticate, login
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from django.core.mail import send_mail
+from django.conf import settings
 import uuid
 from .models import Listing, User, ListingResponse, ListingAvailability, Category, Tag
 from .forms import RegisterForm, ProfileCreationForm, ProfileEditForm
@@ -227,6 +228,9 @@ def change_password(request):
             current_password = data.get('current_password')
             new_password = data.get('new_password')
             confirm_password = data.get('confirm_password')
+            
+            if username != request.user.username:
+                return JsonResponse({'error': 'Not authorized to change password'}, status=403)
             
             if new_password != confirm_password:
                 return JsonResponse({'error': 'New passwords do not match'}, status=400)
@@ -527,6 +531,19 @@ def create_listing(request):
                 duration = timedelta(hours=duration_in_hours)  # Convert to timedelta
             except ValueError:
                 return JsonResponse({'error': 'Duration must be a valid integer'}, status=400)
+            
+        
+            
+            
+            # check listing is valid to create or not
+            user_listings_old = Listing.objects.filter(creator=request.user)
+            if len(user_listings_old) > 0:
+                if len(user_listings_old) > 299:
+                    return JsonResponse({'error': 'You have reached the maximum number of services.'}, status=400)
+                for user_listing in user_listings_old:
+                    if user_listing.title == title:
+                        return JsonResponse({'error': 'You are trying to create a service with duplicated title.'}, status=400)
+                latest_listing_posted_at = user_listings_old.latest('posted_at').posted_at
 
             listing = Listing.objects.create(
                 creator=request.user,  
@@ -537,8 +554,15 @@ def create_listing(request):
                 listing_type=listing_type,
                 duration=duration
             )
-
-
+            
+            # check if the user is creating services too quickly 30 seconds
+            if not getattr(settings, 'DISABLE_RATE_LIMIT_CHECK', False): # Disable rate limit check for test cases
+                if len(user_listings_old) > 0:
+                    if latest_listing_posted_at > listing.posted_at - timedelta(seconds=30):
+                        listing.delete()
+                        return JsonResponse({'error': 'You are creating services too quickly.'}, status=429)
+            
+            
             listing.save() # save the listing to the database
 
             if tag_ids:
