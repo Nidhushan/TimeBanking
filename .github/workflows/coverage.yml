@@ -1,5 +1,10 @@
 name: Obtain unit test coverage
 
+permissions:
+  checks: write
+  contents: write
+  pull-requests: write
+
 on:
   push:
     branches: 
