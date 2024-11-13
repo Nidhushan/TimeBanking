@@ -1,0 +1,60 @@
+name: Obtain unit test coverage
+
+on:
+  push:
+    branches: 
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.12.7'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r Time_Banking/requirements.txt
+
+      - name: Install dev dependencies
+        run: |
+          python -m pip install coverage
+
+      - name: Run migrations
+        run: |
+          python Time_Banking/manage.py migrate
+
+      - name: Run tests
+        working-directory: Time_Banking
+        run: |
+          coverage run manage.py test 
+
+      - name: Obtain coverage
+        working-directory: Time_Banking
+        run: |
+          coverage xml --include="Time_Banking/*.py"
+
+      - name: Produce the coverage report
+        uses: insightsengineering/coverage-action@v2
+        with:
+          path: Time_Banking/coverage.xml
+          # threshold: 60
+          fail: false
+          publish: true
+          diff: true
+          diff-branch: main
+          diff-storage: _xml_coverage_reports
+          coverage-summary-title: "Code Coverage Summary"
+          coverage-reduction-failure: true
+          togglable-report: true
