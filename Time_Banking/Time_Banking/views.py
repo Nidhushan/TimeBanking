@@ -637,16 +637,7 @@ def edit_profile(request):
     else:
         form = ProfileEditForm(instance=request.user)
     return render(request, 'edit_profile.html', {'form': form})
+
 @login_required
 def get_profile(request):
     return render(request, 'profile_info.html', {'user': request.user})
-
-
-
-def add_service(request):
-    # Logic for adding a service goes here
-    return render(request, 'add_service.html')
-def request_service(request):
-    # Logic for adding a service goes here
-    return render(request, 'request_service.html')
-    
