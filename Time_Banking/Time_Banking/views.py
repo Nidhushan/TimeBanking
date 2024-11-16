@@ -10,8 +10,8 @@ from django.core.exceptions import ValidationError
 from django.core.mail import send_mail
 from django.conf import settings
 import uuid
-from .models import Listing, User, ListingResponse, ListingAvailability, Category, Tag
-from .forms import RegisterForm, ProfileCreationForm, ProfileEditForm
+from .models import Listing, User, ListingResponse, ListingAvailability, Category, Tag, Skill
+from .forms import RegisterForm, ProfileCreationForm, ProfileEditForm, AddSkillForm
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
@@ -359,10 +359,10 @@ def user_detail_page(request, id):
     try:
         user = User.objects.get(pk=id)
         # Pass the user object to the template context
-        return render(request, 'user_detail.html', {'user': user})
+        return render(request, 'user_profile.html', {'user': user})
     except User.DoesNotExist:
         # Pass an error message to the template if user is not found
-        return render(request, 'user_detail.html', {'error': 'User not found'})
+        return render(request, 'user_profile.html', {'error': 'User not found'})
 
 
 def get_all_listings(request):
@@ -445,7 +445,8 @@ def view_listing(request, listing_id):
         return HttpResponseNotAllowed(['GET'])
     listing = get_object_or_404(Listing, id=listing_id)
     context = {
-        'listing': listing
+        'listing': listing,
+        'user': listing.creator
     }
     return render(request, 'view_listing.html', context)
 
@@ -522,9 +523,12 @@ def create_listing(request):
             if len(description) > 5000:
                 return JsonResponse({'error': 'Description is too long'}, status=400)
 
+            
+
+            if listing_type not in ['Offer', 'Request']:
+                return JsonResponse({'error': 'Invalid listing type.'}, status=400)
             category = Category(category_id).label
 
-            listing_type = listing_type.lower() == 'true'
 
             try:
                 duration_in_hours = int(duration_in_hours)  # Ensure it's an integer
@@ -589,67 +593,6 @@ def create_listing(request):
 @login_required  # Make sure the user is logged in to access this page
 def create_listing_page(request):
     return render(request, 'create_listing.html')
-
-
-"""@login_required
-@csrf_exempt
-def get_profile(request):
-    try:
-        data = json.loads(request.body)
-        username = data.get('username')
-        user = User.objects.get(username=username)
-
-        profile = {
-            'name': user.name,
-            'picture': user.picture.url if user.picture else None,
-            'title': user.title,
-            'location': user.location,
-            'bio': user.bio if user.bio else None,
-            'link': user.link if user.link else None,
-        }
-
-        return JsonResponse({"status": "success", "data": profile}, status=200)
-    except User.DoesNotExist:
-        return JsonResponse({'error': 'User not found'}, status=404)"""
-
-
-
-
-
-"""@csrf_exempt
-def create_profile(request):
-    verified_user_data = request.session.get('verified_user_data')
-    if not verified_user_data:
-        return redirect('create_account')
-    
-    if request.method=='POST':
-        form = ProfileCreationForm(request.POST, request.FILES)
-        if form.is_valid():
-            user = User.objects.create(
-                username=verified_user_data['username'],
-                email=verified_user_data['email'],
-                password=verified_user_data['password'],
-                is_active=True,
-                is_verified=True
-            )
-            user.set_password(verified_user_data['password'])  # Set the password correctly
-            
-            user.name = form.cleaned_data['name']
-            user.title = form.cleaned_data['title']
-            user.location = form.cleaned_data['location']
-            user.picture = form.cleaned_data['picture']
-            user.bio = form.cleaned_data.get('bio', '')
-            user.link = form.cleaned_data.get('link', '')
-
-            user.save()
-            del request.session['verified_user_data']
-
-            return redirect('login')  # Redirect to login page
-    else:
-        form = ProfileCreationForm()
-    
-    return render(request, 'create_profile.html', {'form': form})"""
-
 @login_required
 @csrf_exempt
 def edit_profile(request):
@@ -657,13 +600,57 @@ def edit_profile(request):
         form = ProfileEditForm(request.POST, request.FILES, instance=request.user)
         if form.is_valid():
             form.save()
-            return redirect('profile_info')  # Make sure this matches your URL name
+            return redirect('profile_info')  # Ensure this matches your URL name
     else:
         form = ProfileEditForm(instance=request.user)
     return render(request, 'edit_profile.html', {'form': form})
+
 @login_required
-def get_profile(request):
-    return render(request, 'profile_info.html', {'user': request.user})
+def profile_info(request, user_id=None):
+    user = get_object_or_404(User, id=user_id) if user_id else request.user
+
+    # Separate services into offers and requests
+    offered_services = Listing.objects.filter(creator=user, listing_type="Offer")
+    requested_services = Listing.objects.filter(creator=user, listing_type="Request")
+
+    # Fetch user's skills
+    skills = user.skills.all()
+
+    # Skill addition form
+    skill_form = AddSkillForm()
+    
+    if request.method == 'POST' and 'add_skill' in request.POST:
+        skill_names = request.POST.getlist('skills')
+        for skill_name in skill_names:
+            if skill_name.strip():
+                skill, _ = Skill.objects.get_or_create(name=skill_name.strip())
+                user.skills.add(skill)
+        return redirect('profile_info', user_id=user.id)
+
+    # Pass the data to the template
+    context = {
+        'user': user,
+        'offered_services': offered_services,
+        'requested_services': requested_services,
+        'skills': skills,
+        'skill_form': skill_form,
+    }
+    return render(request, 'profile_info.html', context)
+
+
+
+@login_required
+def delete_profile_picture(request):
+    if request.method == "POST":
+        user = request.user
+        if user.picture:
+            user.picture.delete()  # This deletes the file from storage
+            user.picture = None    # Set the picture field to None
+            user.save()
+            return JsonResponse({"success": True})
+        else:
+            return JsonResponse({"success": False, "error": "No profile picture to delete."})
+    return JsonResponse({"success": False, "error": "Invalid request method."})
 
 
 
@@ -673,4 +660,8 @@ def add_service(request):
 def request_service(request):
     # Logic for adding a service goes here
     return render(request, 'request_service.html')
-    
+@login_required
+def user_profile(request, user_id):
+    user = get_object_or_404(User, id=user_id)
+    listings = Listing.objects.filter(creator=user)
+    return render(request, 'user_profile.html', {'user': user, 'listings': listings})

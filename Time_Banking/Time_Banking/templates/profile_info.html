@@ -2,25 +2,24 @@
 {% load static %}
 
 {% block title %}
-Edit Profile
+{{ user.username }}'s Profile
 {% endblock %}
 
 {% block content %}
 <link rel="stylesheet" href="{% static 'css/profile_info.css' %}">
+
 <div id="profile-info-page" class="container">
     <div class="row">
         <!-- Left Column: Profile Card -->
         <div class="col-left">
             <div class="profile-card">
-                <h1>Details</h1>
                 <div>
                     {% if user.picture %}
                         <img src="{{ user.picture.url }}" alt="Profile Picture" class="profile-picture">
                     {% else %}
-                        <img src="{% static 'path/to/default/image.png' %}" alt="Default Profile Picture" class="profile-picture">
+                        <img src="{% static 'images/default-avatar-profile-icon-social-600nw-1677509740.jpg.webp' %}" alt="Default Profile Picture" class="profile-picture">
                     {% endif %}
-                    <p>Name: {{ user.name }}</p>
-                    <p>Title: {{ user.title }}</p>
+                    <p> {{ user.title }} {{ user.name }}</p>
                     <p><i class="fa fa-map-marker"></i> {{ user.location }}</p>
                     <p><i class="fa fa-calendar"></i> Joined in {{ user.date_joined|date:"F Y" }}</p>
                     <p>Bio: {{ user.bio }}</p>
@@ -30,35 +29,117 @@ Edit Profile
                 <!-- Time Credits Section -->
                 <div class="time-credits">
                     <h3>Time Credits Earned</h3>
-                    <p>{{ user.time_credits }} hours</p>
+                    <p>{{ user.time_credits|default:"0" }} hours</p>
                 </div>
 
-                <!-- Buttons -->
-                <a href="{% url 'edit_profile' %}" class="button-primary">Edit Profile</a>
-                <a href="{% url 'add_service' %}" class="button-primary">Add Service</a> <!-- Add Service Button -->
-                <a href="{% url 'request_service' %}" class="button-secondary">Request Service</a>
+                {% if user == request.user %}
+                    <a href="{% url 'edit_profile' %}" class="button-primary">Edit Profile</a>
+                    <a href="{% url 'create_listing_page' %}" class="button-primary">Create Listing</a>
+                {% endif %}
             </div>
         </div>
 
-        <!-- Right Column -->
+        <!-- Right Column: Skills and Services -->
         <div class="col-right">
             <h2>Hi 👋 {{ user.name }}, complete your profile to earn more time credits!</h2>
             <p>Get the most out of our platform by sharing more about yourself and how you prefer to offer services.</p>
-            
-
-            <!-- Checklist Section -->
+            <!-- Skills Section -->
             <div class="checklist-item">
                 <h3>Add Your Skills</h3>
                 <p>Share the skills you offer to maximize your time credits.</p>
-                {% if not user.skills %}
-                    <span>Add Skills</span>
-                {% else %}
-                    <span>Completed</span>
+                <ul class="skills-container">
+                    {% for skill in skills %}
+                        <li class="skill-item">{{ skill.name }}</li>
+                    {% empty %}
+                        <li class="skill-item">No skills added yet.</li>
+                    {% endfor %}
+                </ul>
+            
+                <!-- Add Skill Form (only for the profile owner) -->
+                {% if request.user == user %}
+                <form method="post" class="add-skill-form">
+                    {% csrf_token %}
+                    <input type="text" name="skills" placeholder="Enter a skill">
+                    <button type="submit" name="add_skill">+</button>
+                </form>
                 {% endif %}
             </div>
-            <h3>Reviews from Service Exchanges</h3>
+
+            
+
+            <!-- Services Section -->
+            <div class="services-section">
+                <h3>Services Offered by {{ user.username }}</h3>
+                {% if offered_services %}
+                    <div class="listings-grid">
+                        {% for listing in offered_services %}
+                            <a href="{% url 'view_listing' listing.id %}" class="card-link">
+                                <div class="listing-card">
+                                    {% if listing.image %}
+                                        <img src="{{ listing.image.url }}" alt="{{ listing.title }}" class="listing-image">
+                                    {% else %}
+                                        <img src="{% static 'images/default-listing-image.jpg' %}" alt="Default Listing Image" class="listing-image">
+                                    {% endif %}
+                                    <div class="listing-details">
+                                        <h5>{{ listing.title }} ({{ listing.listing_type }})</h5>
+                                        <p>{{ listing.description|truncatewords:15 }}</p>
+                                    </div>
+                                </div>
+                            </a>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p>No offered services found for {{ user.username }}.</p>
+                {% endif %}
+            </div>
+            
+            <div class="services-section">
+                <h3>Services Requested by {{ user.username }}</h3>
+                {% if requested_services %}
+                    <div class="listings-grid">
+                        {% for listing in requested_services %}
+                            <a href="{% url 'view_listing' listing.id %}" class="card-link">
+                                <div class="listing-card">
+                                    {% if listing.image %}
+                                        <img src="{{ listing.image.url }}" alt="{{ listing.title }}" class="listing-image">
+                                    {% else %}
+                                        <img src="{% static 'images/default-listing-image.jpg' %}" alt="Default Listing Image" class="listing-image">
+                                    {% endif %}
+                                    <div class="listing-details">
+                                        <h5>{{ listing.title }} ({{ listing.listing_type }})</h5>
+                                        <p>{{ listing.description|truncatewords:15 }}</p>
+                                    </div>
+                                </div>
+                            </a>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p>No requested services found for {{ user.username }}.</p>
+                {% endif %}
+            </div>
+            
         </div>
     </div>
 </div>
+<script>
+    function addSkillField() {
+    const skillFieldsContainer = document.getElementById('skill-fields');
+    const newField = document.createElement('div');
+    newField.className = 'skill-field';
+    newField.innerHTML = `
+        <input type="text" name="skills" placeholder="Enter a skill" class="skill-input">
+        <button type="button" class="remove-skill-button" onclick="removeSkillField(this)">-</button>
+    `;
+    skillFieldsContainer.appendChild(newField);
+}
+
+function removeSkillField(button) {
+    const fieldToRemove = button.parentElement;
+    fieldToRemove.remove();
+}
+
+
+</script>
 
 {% endblock %}
+
