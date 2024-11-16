@@ -50,7 +50,7 @@ urlpatterns = [
     path("api/listings/", views.get_all_listings, name="get_all_listings"),
     # path('listing/<int:listing_id>/', views.get_listing_by_id, name='get_listing'),
     path('listing/<int:listing_id>/', views.view_listing, name='view_listing'),
-    path('listing/<int:listing_id>/accept/', views.accept_service, name='accept_service'),
+    path('listing/<int:listing_id>/apply/', views.apply_service, name='apply_service'),
     path(
         "api/listings/<int:listing_id>/responses/",
         views.get_responses_for_listing,
@@ -76,7 +76,8 @@ urlpatterns = [
     path('settings/', views.user_settings_page, name='user_settings_page'),
     path('user/<int:id>/', views.user_detail_page, name='user_detail_page'),
     path('create-listing/', views.create_listing_page, name='create_listing_page'),
-    
+    path('myservices/', views.my_service, name='my_service'),
+    path('applicants/<int:listing_id>/', views.view_applicants, name='view_applicants'),
 
 ]
 

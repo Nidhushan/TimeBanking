@@ -1,0 +1,20 @@
+{% extends "master.html" %}
+{% load static %}
+
+{% block title %}
+My Service
+{% endblock %}
+
+{% block content %}
+{% for listing in listings %}
+    <a href="{% url 'view_applicants' listing.id %}" class="card-link">
+        <div class="card">
+            <img src="{{ listing.image.url }}" class="card-img-top" alt="{{ listing.title }}">
+            <div class="card-body">
+                <h5 class="card-title">{{ listing.title }}</h5>
+                <p class="card-text">{{ listing.description }}</p>
+            </div>
+        </div>
+    </a>
+{% endfor %}
+{% endblock %}

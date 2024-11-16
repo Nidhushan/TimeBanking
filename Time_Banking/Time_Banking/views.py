@@ -448,26 +448,30 @@ def view_listing(request, listing_id):
 
 @csrf_exempt
 @login_required
-def accept_service(request, listing_id):
+def apply_service(request, listing_id):
     if request.method == 'POST':
         # Retrieve the listing using the ID
         listing = get_object_or_404(Listing, id=listing_id)
 
         # Check if the listing creator is not the same as the current user
         if listing.creator == request.user:
-            return JsonResponse({'error': 'You cannot accept your own service/request.'}, status=403)
+            return JsonResponse({'error': 'You cannot apply your own service/request.'}, status=403)
+        
+        # Check for duplicate application
+        if ListingResponse.objects.filter(listing=listing, user=request.user).exists():
+            return JsonResponse({'error': 'You have already applied to this listing.'}, status=400)
 
         # Create a response to mark the service/request as accepted
         ListingResponse.objects.create(
             listing=listing,
             user=request.user,
-            message="Accepted",
+            message="Applied",
             status=1  # You can use an appropriate integer to indicate 'Accepted' status
         )
 
         # Logic to notify the listing creator (for example, by email or in-app notification)
         # Here, we are just simulating a simple success response
-        return JsonResponse({'message': 'Service/Request accepted successfully!'}, status=200)
+        return JsonResponse({'message': 'Service/Request apply successfully!'}, status=200)
 
     return JsonResponse({'error': 'Only POST requests are allowed.'}, status=405)
 
@@ -649,4 +653,16 @@ def add_service(request):
 def request_service(request):
     # Logic for adding a service goes here
     return render(request, 'request_service.html')
+
+@login_required    
+def my_service(request):
+    responses=[]
+    listings = Listing.objects.filter(creator=request.user)
     
+    return render(request, 'myservice.html', {'listings': listings})
+
+@login_required    
+def view_applicants(request, listing_id):
+    responses = ListingResponse.objects.filter(listing_id=listing_id)
+
+    return render(request, 'view_applicants.html', {'responses': responses})
