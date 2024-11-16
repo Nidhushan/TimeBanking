@@ -8,6 +8,7 @@ from django.contrib.auth import authenticate, login
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from django.core.mail import send_mail
+from django.conf import settings
 import uuid
 from .models import Listing, User, ListingResponse, ListingAvailability, Category, Tag
 from .forms import RegisterForm, ProfileCreationForm, ProfileEditForm
@@ -227,6 +228,9 @@ def change_password(request):
             current_password = data.get('current_password')
             new_password = data.get('new_password')
             confirm_password = data.get('confirm_password')
+            
+            if username != request.user.username:
+                return JsonResponse({'error': 'Not authorized to change password'}, status=403)
             
             if new_password != confirm_password:
                 return JsonResponse({'error': 'New passwords do not match'}, status=400)
@@ -531,6 +535,19 @@ def create_listing(request):
                 duration = timedelta(hours=duration_in_hours)  # Convert to timedelta
             except ValueError:
                 return JsonResponse({'error': 'Duration must be a valid integer'}, status=400)
+            
+        
+            
+            
+            # check listing is valid to create or not
+            user_listings_old = Listing.objects.filter(creator=request.user)
+            if len(user_listings_old) > 0:
+                if len(user_listings_old) > 299:
+                    return JsonResponse({'error': 'You have reached the maximum number of services.'}, status=400)
+                for user_listing in user_listings_old:
+                    if user_listing.title == title:
+                        return JsonResponse({'error': 'You are trying to create a service with duplicated title.'}, status=400)
+                latest_listing_posted_at = user_listings_old.latest('posted_at').posted_at
 
             listing = Listing.objects.create(
                 creator=request.user,  
@@ -541,8 +558,15 @@ def create_listing(request):
                 listing_type=listing_type,
                 duration=duration
             )
-
-
+            
+            # check if the user is creating services too quickly 30 seconds
+            if not getattr(settings, 'DISABLE_RATE_LIMIT_CHECK', False): # Disable rate limit check for test cases
+                if len(user_listings_old) > 0:
+                    if latest_listing_posted_at > listing.posted_at - timedelta(seconds=30):
+                        listing.delete()
+                        return JsonResponse({'error': 'You are creating services too quickly.'}, status=429)
+            
+            
             listing.save() # save the listing to the database
 
             if tag_ids:
@@ -565,11 +589,70 @@ def create_listing(request):
 
     return JsonResponse({'error': 'POST request required'}, status=405)
 
-
 @login_required  # Make sure the user is logged in to access this page
 def create_listing_page(request):
     return render(request, 'create_listing.html')
 
+"""
+curl -X POST "http://localhost:8000/api/edit-listing/1/" \
+     -b "sessionid=<sessionid>" \
+     -F "title=Updated Listing Title" \
+     -F "description=Updated description for the listing" \
+     -F "category=TECH" \
+     -F "duration=3" \
+     -F "status=In Progress" \
+     -F "tags=2" -F "tags=3" \
+     -F "image=@<image_path>"
+"""
+@login_required
+def edit_listing(request, listing_id):
+    if request.method == 'POST':
+        try:
+            listing = get_object_or_404(Listing, id=listing_id, creator=request.user)
+
+            title = request.POST.get('title', listing.title)
+            description = request.POST.get('description', listing.description)
+            category_id = request.POST.get('category', listing.category)
+            duration_in_hours = request.POST.get('duration', listing.duration)
+            status = request.POST.get('status', listing.status)
+            tag_ids = request.POST.getlist('tags', listing.tags)
+            image = request.FILES.get('image', listing.image)
+
+            listing.title = title
+            listing.description = description
+            listing.category = Category(category_id).label
+            
+            try:
+                duration_in_hours = int(duration_in_hours)  # Ensure it's an integer
+                listing.duration = timedelta(hours=duration_in_hours)  # Convert to timedelta
+            except ValueError:
+                return JsonResponse({'error': 'Duration must be a valid integer'}, status=400)
+            
+            listing.status = status
+            
+            tags = Tag.objects.filter(id__in=tag_ids)
+            listing.tags.set(tags)
+
+            listing.image = image
+
+            listing.save()
+
+            return JsonResponse({
+                'id': listing.id,
+                'title': listing.title,
+                'description': listing.description,
+                'category': listing.category,
+                'tags': [tag.name for tag in listing.tags.all()],
+                'image_url': listing.image.url if listing.image else None,
+                'status': listing.status,
+                'duration': str(listing.duration),
+                'edited_at': listing.edited_at.isoformat(),
+            }, status=200)
+
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+
+    return JsonResponse({'error': 'POST request required'}, status=405)
 
 """@login_required
 @csrf_exempt
@@ -641,6 +724,7 @@ def edit_profile(request):
     else:
         form = ProfileEditForm(instance=request.user)
     return render(request, 'edit_profile.html', {'form': form})
+
 @login_required
 def get_profile(request):
     return render(request, 'profile_info.html', {'user': request.user})
