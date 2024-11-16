@@ -589,10 +589,130 @@ def create_listing(request):
 
     return JsonResponse({'error': 'POST request required'}, status=405)
 
-
 @login_required  # Make sure the user is logged in to access this page
 def create_listing_page(request):
     return render(request, 'create_listing.html')
+
+"""
+curl -X POST "http://localhost:8000/api/edit-listing/1/" \
+     -b "sessionid=<sessionid>" \
+     -F "title=Updated Listing Title" \
+     -F "description=Updated description for the listing" \
+     -F "category=TECH" \
+     -F "duration=3" \
+     -F "status=In Progress" \
+     -F "tags=2" -F "tags=3" \
+     -F "image=@<image_path>"
+"""
+@login_required
+def edit_listing(request, listing_id):
+    if request.method == 'POST':
+        try:
+            listing = get_object_or_404(Listing, id=listing_id, creator=request.user)
+
+            title = request.POST.get('title', listing.title)
+            description = request.POST.get('description', listing.description)
+            category_id = request.POST.get('category', listing.category)
+            duration_in_hours = request.POST.get('duration', listing.duration)
+            status = request.POST.get('status', listing.status)
+            tag_ids = request.POST.getlist('tags', listing.tags)
+            image = request.FILES.get('image', listing.image)
+
+            listing.title = title
+            listing.description = description
+            listing.category = Category(category_id).label
+            
+            try:
+                duration_in_hours = int(duration_in_hours)  # Ensure it's an integer
+                listing.duration = timedelta(hours=duration_in_hours)  # Convert to timedelta
+            except ValueError:
+                return JsonResponse({'error': 'Duration must be a valid integer'}, status=400)
+            
+            listing.status = status
+            
+            tags = Tag.objects.filter(id__in=tag_ids)
+            listing.tags.set(tags)
+
+            listing.image = image
+
+            listing.save()
+
+            return JsonResponse({
+                'id': listing.id,
+                'title': listing.title,
+                'description': listing.description,
+                'category': listing.category,
+                'tags': [tag.name for tag in listing.tags.all()],
+                'image_url': listing.image.url if listing.image else None,
+                'status': listing.status,
+                'duration': str(listing.duration),
+                'edited_at': listing.edited_at.isoformat(),
+            }, status=200)
+
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+
+    return JsonResponse({'error': 'POST request required'}, status=405)
+
+"""@login_required
+@csrf_exempt
+def get_profile(request):
+    try:
+        data = json.loads(request.body)
+        username = data.get('username')
+        user = User.objects.get(username=username)
+
+        profile = {
+            'name': user.name,
+            'picture': user.picture.url if user.picture else None,
+            'title': user.title,
+            'location': user.location,
+            'bio': user.bio if user.bio else None,
+            'link': user.link if user.link else None,
+        }
+
+        return JsonResponse({"status": "success", "data": profile}, status=200)
+    except User.DoesNotExist:
+        return JsonResponse({'error': 'User not found'}, status=404)"""
+
+
+
+
+
+"""@csrf_exempt
+def create_profile(request):
+    verified_user_data = request.session.get('verified_user_data')
+    if not verified_user_data:
+        return redirect('create_account')
+    
+    if request.method=='POST':
+        form = ProfileCreationForm(request.POST, request.FILES)
+        if form.is_valid():
+            user = User.objects.create(
+                username=verified_user_data['username'],
+                email=verified_user_data['email'],
+                password=verified_user_data['password'],
+                is_active=True,
+                is_verified=True
+            )
+            user.set_password(verified_user_data['password'])  # Set the password correctly
+            
+            user.name = form.cleaned_data['name']
+            user.title = form.cleaned_data['title']
+            user.location = form.cleaned_data['location']
+            user.picture = form.cleaned_data['picture']
+            user.bio = form.cleaned_data.get('bio', '')
+            user.link = form.cleaned_data.get('link', '')
+
+            user.save()
+            del request.session['verified_user_data']
+
+            return redirect('login')  # Redirect to login page
+    else:
+        form = ProfileCreationForm()
+    
+    return render(request, 'create_profile.html', {'form': form})"""
+
 @login_required
 @csrf_exempt
 def edit_profile(request):
@@ -605,7 +725,11 @@ def edit_profile(request):
         form = ProfileEditForm(instance=request.user)
     return render(request, 'edit_profile.html', {'form': form})
 
+
 @login_required
+def get_profile(request):
+    return render(request, 'profile_info.html', {'user': request.user})
+
 def profile_info(request, user_id=None):
     user = get_object_or_404(User, id=user_id) if user_id else request.user
 

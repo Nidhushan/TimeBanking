@@ -4,11 +4,22 @@ from django.db import models
 import datetime
 from django.contrib.auth.models import AbstractUser
 from datetime import timedelta
+from django.core.exceptions import ValidationError
 
 LISTING_TYPES = [
     (True, "Offer"),
     (False, "Request")
 ]
+
+STATUS_CHOICES = [
+    ("Available", "Available"),
+    ("In Progress", "In Progress"),
+    ("Completed", "Completed"),
+    ("Fulfilled", "Fulfilled"),
+    ("Closed", "Closed"),
+]
+STATUS_CHOICES_OFFER = ["Available", "In Progress", "Completed"]
+STATUS_CHOICES_REQUEST = ["Available", "Fulfilled", "Closed"]
 
 # defines top-most category for offers & requests
 # class Category(models.Model):
@@ -75,6 +86,16 @@ class Listing(models.Model):
     duration = models.DurationField(default=timedelta(hours=1)) # how long the work is expected/preferred to take
     posted_at = models.DateTimeField(auto_now_add=True)
     edited_at = models.DateTimeField(auto_now=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="Available")
+
+    def clean(self):
+        valid_statuses = STATUS_CHOICES_OFFER if self.listing_type else STATUS_CHOICES_REQUEST
+        if self.status and self.status not in valid_statuses:
+            listing_type_label = "Offer" if self.listing_type else "Request"
+            raise ValidationError({
+                'status': f"Invalid status for {listing_type_label}. Valid options are: {', '.join(valid_statuses)}"
+            })
+
     def __str__(self):
         return self.title
 
