@@ -19,10 +19,10 @@ My Service
     text-align: center;">
         <div>
             <h5 class="card-title">{{ response.user }}</h5>
-            <form method="POST" action='#' class="accept-form">
+            <form method="POST" class="accept-form">
                 {% csrf_token %}
-                <button type="submit" class="btn btn-primary">Accept</button>
-                <button type="submit" class="btn btn-primary">Reject</button>
+                <button type="submit" class="btn btn-primary" value="accept">Accept</button>
+                <button type="submit" class="btn btn-primary" value="reject">Reject</button>
             </form>
         </div>
     </div>

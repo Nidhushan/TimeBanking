@@ -23,9 +23,40 @@
         {% endfor %}
     </div>
 
-    <form method="POST" action="{% url 'apply_service' listing.id %}" class="accept-form">
+    <form method="POST" action="{% url 'apply_service' listing.id %}" id= "applyform" class="accept-form">
         {% csrf_token %}
         <button type="submit" class="btn btn-primary">Apply Service/Request</button>
+        <div id="messageBox" style="display:none;"></div>
     </form>
 </div>
+
+{% endblock %}
+{% block extra_scripts %}
+<script>
+    document.getElementById('applyform').addEventListener('submit', function(event) {
+        event.preventDefault(); 
+
+        const formData = new FormData(this);
+
+        fetch(this.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': formData.get('csrfmiddlewaretoken') 
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            const messageBox = document.getElementById('messageBox');
+            if (data.success) {
+                messageBox.textContent = data.success;
+                messageBox.style.color = 'green';
+            } else {
+                messageBox.textContent = data.error;
+                messageBox.style.color = 'red';
+            }
+            messageBox.style.display = 'block';
+        })
+    });
+</script>
 {% endblock %}

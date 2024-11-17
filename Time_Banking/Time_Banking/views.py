@@ -20,6 +20,7 @@ import json
 from django.contrib.auth import login as auth_login
 from .forms import ProfileEditForm
 from django.http import HttpResponseNotAllowed
+from django.contrib import messages
 
 
 def home(request):
@@ -475,7 +476,7 @@ def apply_service(request, listing_id):
 
         # Logic to notify the listing creator (for example, by email or in-app notification)
         # Here, we are just simulating a simple success response
-        return JsonResponse({'message': 'Service/Request apply successfully!'}, status=200)
+        return JsonResponse({'success': 'Service/Request apply successfully!'}, status=200)
 
     return JsonResponse({'error': 'Only POST requests are allowed.'}, status=405)
 
@@ -740,7 +741,6 @@ def request_service(request):
 
 @login_required    
 def my_service(request):
-    responses=[]
     listings = Listing.objects.filter(creator=request.user)
     
     return render(request, 'myservice.html', {'listings': listings})

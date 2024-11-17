@@ -570,3 +570,7 @@ label {
     line-height: 0.95;
 
 }
+
+#responseMessage .alert {
+    margin-top: 15px;
+}
