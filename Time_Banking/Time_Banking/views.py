@@ -522,9 +522,10 @@ def create_listing(request):
             if len(description) > 5000:
                 return JsonResponse({'error': 'Description is too long'}, status=400)
 
-            category = Category(category_id).label
+            if listing_type not in ['Offer', 'Request']:
+                return JsonResponse({'error': 'Invalid listing type.'}, status=400)
 
-            listing_type = 'Offer' if listing_type.lower() == 'true' else 'Request'
+            category = Category(category_id).label
 
             try:
                 duration_in_hours = int(duration_in_hours)  # Ensure it's an integer
