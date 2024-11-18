@@ -381,7 +381,7 @@ def get_all_listings(request):
                 'title': listing.title,
                 'description': listing.description,
                 'image': listing.image.url if listing.image else None,  
-                'listing_type': 'Offer' if listing.listing_type else 'Request', 
+                'listing_type': listing.listing_type, 
                 'duration': str(listing.duration),  
                 'posted_at': listing.posted_at.strftime('%Y-%m-%d %H:%M:%S'),  
                 'edited_at': listing.edited_at.strftime('%Y-%m-%d %H:%M:%S'),  
@@ -404,7 +404,7 @@ def get_listing_by_id(request, listing_id):
             'title': listing.title,
             'description': listing.description,
             'image': listing.image.url if listing.image else None, 
-            'listing_type': 'Offer' if listing.listing_type else 'Request', 
+            'listing_type': listing.listing_type, 
             'duration': str(listing.duration), 
             'posted_at': listing.posted_at.strftime('%Y-%m-%d %H:%M:%S'),  
             'edited_at': listing.edited_at.strftime('%Y-%m-%d %H:%M:%S'), 
@@ -524,7 +524,7 @@ def create_listing(request):
 
             category = Category(category_id).label
 
-            listing_type = listing_type.lower() == 'true'
+            listing_type = 'Offer' if listing_type.lower() == 'true' else 'Request'
 
             try:
                 duration_in_hours = int(duration_in_hours)  # Ensure it's an integer
@@ -576,7 +576,7 @@ def create_listing(request):
                 'tags': [tag.name for tag in listing.tags.all()], 
                 'description': listing.description,
                 'image_url': listing.image.url if listing.image else None,
-                'listing_type': 'Offer' if listing.listing_type else 'Request',
+                'listing_type': listing.listing_type,
                 'duration': str(listing.duration)
             }, status=201) # return the created listing
 
