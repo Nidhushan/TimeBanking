@@ -30,7 +30,7 @@ class CreateListingViewTests(TestCase):
             'category': Category.GRAPHICS_DESIGN,  # Use TextChoices
             'description': 'This is a test description',
             'image': image,
-            'listing_type': 'True',
+            'listing_type': 'Offer',
             'duration': '2',
             'tags': [self.tag1.id, self.tag2.id],
         }
@@ -65,7 +65,7 @@ class CreateListingViewTests(TestCase):
             used_titles.append(title)
             category = random.choice(Category.choices)[0]
             description = 'This is a test description ' + str(random.randint(1, 10000000000))
-            listing_type = random.choice(['True', 'False'])
+            listing_type = random.choice(['Offer', 'Request'])
             duration = str(random.randint(1, 10))
             tags = [self.tag1.id, self.tag2.id]
             
@@ -88,7 +88,6 @@ class CreateListingViewTests(TestCase):
             self.assertIn('id', response.json())
             self.assertEqual(response.json()['title'], title)
             self.assertEqual(response.json()['description'], description)
-            listing_type = "Offer" if listing_type == 'True' else "Request"
             self.assertEqual(response.json()['listing_type'], listing_type)
             self.assertEqual(response.json()['duration'], str(timedelta(hours=int(duration))))
             self.assertQuerySetEqual(response.json()['tags'], [str(self.tag1), str(self.tag2)], ordered=False)
@@ -101,7 +100,7 @@ class CreateListingViewTests(TestCase):
         
         category = Category.GRAPHICS_DESIGN
         description = 'This is a test description'
-        listing_type = 'True'
+        listing_type = 'Offer'
         duration = '2'
         image = SimpleUploadedFile("test_image.jpg", b"file_content", content_type="image/jpeg")
         used_titles = []
@@ -147,7 +146,7 @@ class CreateListingViewTests(TestCase):
                 'title': titles,
                 'category': Category.PROGRAMMING_TECH,
                 'description': 'This is a test description',
-                'listing_type': 'True',
+                'listing_type': 'Offer',
                 'duration': duration,
                 'image': image,
             }
@@ -169,7 +168,7 @@ class CreateListingViewTests(TestCase):
                 'title': titles,
                 'category': Category.PROGRAMMING_TECH,
                 'description': 'This is a test description',
-                'listing_type': 'True',
+                'listing_type': 'Offer',
                 'duration': duration,
                 'image': image,
             }
@@ -191,7 +190,7 @@ class CreateListingViewTests(TestCase):
             'title': 'Test Listing',
             'category': Category.DIGITAL_MARKETING,
             'description': 'a' * 5001,  # Too long
-            'listing_type': 'True',
+            'listing_type': 'Offer',
             'duration': '2',
             'image': image,
         }
@@ -232,7 +231,7 @@ class CreateListingViewTests(TestCase):
                 'category': Category.GRAPHICS_DESIGN,  # Use TextChoices
                 'description': 'This is a test description',
                 'image': image,
-                'listing_type': 'True',
+                'listing_type': 'Offer',
                 'duration': '2',
                 'tags': [self.tag1.id, self.tag2.id],
             })
@@ -258,7 +257,7 @@ class CreateListingViewTests(TestCase):
             'category': Category.GRAPHICS_DESIGN,  # Use TextChoices
             'description': 'This is a test description',
             'image': image,
-            'listing_type': 'True',
+            'listing_type': 'Offer',
             'duration': '2',
             'tags': [self.tag1.id, self.tag2.id],
         }
@@ -294,7 +293,7 @@ class CreateListingViewTests(TestCase):
                 'title': titles,
                 'category': Category.GRAPHICS_DESIGN,  # Use TextChoices
                 'description': 'This is a test description',
-                'listing_type': 'True',
+                'listing_type': 'Offer',
                 'duration': '2',
                 'tags': [self.tag1.id, self.tag2.id],
                 'image': image,

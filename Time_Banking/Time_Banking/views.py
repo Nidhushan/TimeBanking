@@ -576,7 +576,7 @@ def create_listing(request):
                 'tags': [tag.name for tag in listing.tags.all()], 
                 'description': listing.description,
                 'image_url': listing.image.url if listing.image else None,
-                'listing_type': 'Offer' if listing.listing_type else 'Request',
+                'listing_type': listing.listing_type,
                 'duration': str(listing.duration)
             }, status=201) # return the created listing
 
