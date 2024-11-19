@@ -6,26 +6,30 @@ My Service
 {% endblock %}
 
 {% block content %}
-<div class="row" style="justify-content: center;">
-{% for response in responses %}
-    <div style="height: 150px;background-color: white;
-    border: 1px solid #ddd;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    padding: 20px;
-    margin: 10px;
-    width: 300px; 
-    box-sizing: border-box;
-    text-align: center;">
-        <div>
-            <h5 class="card-title">{{ response.user }}</h5>
-            <form method="POST" class="accept-form">
-                {% csrf_token %}
-                <button type="submit" class="btn btn-primary" value="accept">Accept</button>
-                <button type="submit" class="btn btn-primary" value="reject">Reject</button>
-            </form>
-        </div>
+    {% if response %}
+        <div>Successfully dealt!</div>
+        <h5 class="card-title">{{ response.user }}</h5>
+    {% endif %}
+    <div class="row" style="justify-content: center;">
+        {% for response in responses %}
+            <div style="height: 150px;background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin: 10px;
+            width: 300px; 
+            box-sizing: border-box;
+            text-align: center;">
+                <div>
+                    <h5 class="card-title">{{ response.user }}</h5>
+                    <form method="POST" class="accept-form">
+                        {% csrf_token %}
+                        <input type="hidden" name="response_id" value="{{ response.id }}">
+                        <button type="submit" class="btn btn-primary">Accept</button>
+                    </form>
+                </div>
+            </div>
+        {% endfor %}
     </div>
-{% endfor %}
-</div>
 {% endblock %}

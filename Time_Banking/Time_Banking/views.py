@@ -745,8 +745,25 @@ def my_service(request):
     
     return render(request, 'myservice.html', {'listings': listings})
 
-@login_required    
+@login_required   
+@csrf_exempt 
 def view_applicants(request, listing_id):
     responses = ListingResponse.objects.filter(listing_id=listing_id)
+    # This service is dealt
+    for response in responses:
+        if response.status == 2:
+            return render(request, 'view_applicants.html', {'response': response})
+
+    if request.method == 'POST':
+        response_id = request.POST.get('response_id')
+        
+        # 获取并更新特定的 ListingResponse
+        response = get_object_or_404(ListingResponse, id=response_id)
+        response.message = 'Accepted'  # 更新内容
+        response.status = 2
+        response.save()
+
+        # 提交后重定向到同一页面以查看更改
+        return redirect('view_applicants', listing_id=listing_id)
 
     return render(request, 'view_applicants.html', {'responses': responses})
