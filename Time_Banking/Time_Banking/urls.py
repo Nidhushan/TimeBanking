@@ -79,6 +79,7 @@ urlpatterns = [
     path('create-listing/', views.create_listing_page, name='create_listing_page'),
     path('myservices/', views.my_service, name='my_service'),
     path('applicants/<int:listing_id>/', views.view_applicants, name='view_applicants'),
+    path('get-notifications/', views.get_notifications, name='get_otifications'),
 
 ]
 

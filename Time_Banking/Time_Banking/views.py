@@ -10,7 +10,7 @@ from django.core.exceptions import ValidationError
 from django.core.mail import send_mail
 from django.conf import settings
 import uuid
-from .models import Listing, User, ListingResponse, ListingAvailability, Category, Tag
+from .models import Listing, User, ListingResponse, ListingAvailability, Category, Tag, Notification
 from .forms import RegisterForm, ProfileCreationForm, ProfileEditForm
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
@@ -474,6 +474,11 @@ def apply_service(request, listing_id):
             status=1  # You can use an appropriate integer to indicate 'Accepted' status
         )
 
+        Notification.objects.create(
+            user=request.user,
+            message="You've got a new applicant."
+        )
+
         # Logic to notify the listing creator (for example, by email or in-app notification)
         # Here, we are just simulating a simple success response
         return JsonResponse({'success': 'Service/Request apply successfully!'}, status=200)
@@ -757,13 +762,24 @@ def view_applicants(request, listing_id):
     if request.method == 'POST':
         response_id = request.POST.get('response_id')
         
-        # 获取并更新特定的 ListingResponse
         response = get_object_or_404(ListingResponse, id=response_id)
-        response.message = 'Accepted'  # 更新内容
+        response.message = 'Accepted'  
         response.status = 2
         response.save()
+        Notification.objects.create(
+            user=response.user,
+            message="You're accepted."
+        )
 
-        # 提交后重定向到同一页面以查看更改
         return redirect('view_applicants', listing_id=listing_id)
 
     return render(request, 'view_applicants.html', {'responses': responses})
+
+
+def get_notifications(request):
+    notifications = Notification.objects.filter(user=request.user).order_by('-created_at')
+    data = [
+        {"id": n.id, "message": n.message, "is_read": n.is_read, "created_at": n.created_at.strftime('%Y-%m-%d %H:%M:%S')}
+        for n in notifications
+    ]
+    return JsonResponse({"notifications": data})
