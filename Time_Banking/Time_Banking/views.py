@@ -17,7 +17,6 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
 import random
 import json
-from django.contrib.auth import login as auth_login
 from .forms import ProfileEditForm
 from django.http import HttpResponseNotAllowed
 
@@ -202,7 +201,7 @@ def custom_login(request):
         user = authenticate(request, username=username, password=password)
         if user is not None:
             if user.is_verified:
-                auth_login(request, user)
+                login(request, user)
                 if not user.name or not user.title or not user.location:
                     return redirect('edit_profile')
                 return redirect('home')
