@@ -109,6 +109,43 @@ class UserSettingsTests(TestCase):
         self.assertEqual(response.status_code, 403)
         self.assertEqual(response.json(), {'error': 'Not authorized to change password'})
         
+    def test_edit_user_settings(self):
+        image = SimpleUploadedFile("test_image.jpg", b"file_content", content_type="image/jpeg")
+        response = self.client.post(
+            reverse('update_user_settings'), 
+            {
+                "name": "Test User",
+                "title": "Test Title",
+                "location": "New York, NY",
+                # no change to link and bio
+                "picture": image
+            }
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), {'status': 'Profile updated successfully'})
+        user = User.objects.get(username="testuser")
+        self.assertEqual(user.name, "Test User")
+        self.assertEqual(user.title, "Test Title")
+        self.assertEqual(user.location, "New York, NY")
+        self.assertEqual(user.link, "")
+        self.assertEqual(user.bio, "")
+
+    def test_get_user_details(self):
+        response = self.client.get(
+            reverse('user_detail', args=[self.user.id])
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), {
+            "avg_rating": 0.0,
+            "bio": "",
+            "email": "",
+            "link": "",
+            "location": "",
+            "multiplier": 1.0,
+            "name": "",
+            "picture_url": "",
+            "title": ""
+        })
         
     def test_delete_account(self):
         response = self.client.post(reverse('delete_account'))
