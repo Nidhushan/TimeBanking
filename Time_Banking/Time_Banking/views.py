@@ -2,13 +2,13 @@ from datetime import timedelta
 from django.shortcuts import render, get_object_or_404, redirect
 from django.db import models
 from django.db.models import Q
-from django.db.models import Case, When, Value
 from django.http import JsonResponse, HttpResponseRedirect
 from django.contrib.auth.forms import *
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from django.core.mail import send_mail
+from django.conf import settings
 import uuid
 from .models import Listing, User, ListingResponse, ListingAvailability, Category, Tag
 from .forms import RegisterForm, ProfileCreationForm, ProfileEditForm
@@ -19,6 +19,9 @@ import random
 import json
 from django.contrib.auth import login as auth_login
 from .forms import ProfileEditForm
+from django.http import HttpResponseNotAllowed
+
+
 def home(request):
     listings = Listing.objects.all()
     programming_listings = Listing.objects.filter(category='TECH')
@@ -26,27 +29,8 @@ def home(request):
     business_listings = Listing.objects.filter(category='BUSINESS')
     digitalm_listings = Listing.objects.filter(category='MARKETING')
 
-    query = request.GET.get('search', '')
-    sort_option = request.GET.get('sort', 'date')
-    sort_order = request.GET.get('order', 'asc')
-    selected_category = request.GET.get('category', '')  # Get selected category from URL parameter
-
-    listings = Listing.objects.filter(title__icontains=query)
-
-    # Filter by selected category, if provided
-    if selected_category:
-        listings = listings.filter(category=selected_category)
-
-    # Sort based on the selected option
-    if sort_option == 'date':
-        listings = listings.order_by('posted_at' if sort_order == 'asc' else '-posted_at')
-    elif sort_option == 'cost':
-        listings = listings.order_by('duration' if sort_order == 'asc' else '-duration')
-    elif sort_option == 'category':
-        listings = listings.order_by('category' if sort_order == 'asc' else '-category')
-
-    # Fetch all categories for dropdown
-    categories = Category.choices
+    # Handle search
+    query = request.GET.get('search', '')  # Capture the search query from the URL
 
     if query:
         listings = listings.filter(
@@ -61,10 +45,6 @@ def home(request):
         'business_listings': business_listings,
         'digitalm_listings': digitalm_listings,
         'query': query if query else '',
-        'sort_option': sort_option,
-        'sort_order': sort_order,
-        'selected_category': selected_category,
-        'categories': categories,
     }
 
     if request.GET.get('new_account', '') == 'true':
@@ -194,7 +174,7 @@ def create_account(request):
             # Check if the email already exists
             email = form.cleaned_data.get('email')
             if User.objects.filter(email=email).exists():
-                return render(request, 'create-account.html', {'form': form, 'error': 'An account with this email already exists.'})
+                return render(request, 'create-account.html', {'error': 'An account with this email already exists.'})
 
             # Temporarily store user data in session until verification is completed
             request.session['user_data'] = form.cleaned_data
@@ -212,8 +192,7 @@ def create_account(request):
 
             return redirect('verify_account_code')  # Redirect to verification code entry
         else:
-            # Pass form and errors back to the template if form is invalid
-            return render(request, 'create-account.html', {'form': form, 'errors': form.errors})
+            return render(request, 'create-account.html', {'form': form})
 
 
 def custom_login(request):
@@ -249,6 +228,9 @@ def change_password(request):
             current_password = data.get('current_password')
             new_password = data.get('new_password')
             confirm_password = data.get('confirm_password')
+            
+            if username != request.user.username:
+                return JsonResponse({'error': 'Not authorized to change password'}, status=403)
             
             if new_password != confirm_password:
                 return JsonResponse({'error': 'New passwords do not match'}, status=400)
@@ -399,7 +381,7 @@ def get_all_listings(request):
                 'title': listing.title,
                 'description': listing.description,
                 'image': listing.image.url if listing.image else None,  
-                'listing_type': 'Offer' if listing.listing_type else 'Request', 
+                'listing_type': listing.listing_type, 
                 'duration': str(listing.duration),  
                 'posted_at': listing.posted_at.strftime('%Y-%m-%d %H:%M:%S'),  
                 'edited_at': listing.edited_at.strftime('%Y-%m-%d %H:%M:%S'),  
@@ -422,7 +404,7 @@ def get_listing_by_id(request, listing_id):
             'title': listing.title,
             'description': listing.description,
             'image': listing.image.url if listing.image else None, 
-            'listing_type': 'Offer' if listing.listing_type else 'Request', 
+            'listing_type': listing.listing_type, 
             'duration': str(listing.duration), 
             'posted_at': listing.posted_at.strftime('%Y-%m-%d %H:%M:%S'),  
             'edited_at': listing.edited_at.strftime('%Y-%m-%d %H:%M:%S'), 
@@ -457,6 +439,41 @@ def get_availability_for_listing(request, listing_id):
             {"from_time": availability.from_time, "to_time": availability.to_time}
         )
     return JsonResponse(data, safe=False)
+
+def view_listing(request, listing_id):
+    if request.method != 'GET':
+        return HttpResponseNotAllowed(['GET'])
+    listing = get_object_or_404(Listing, id=listing_id)
+    context = {
+        'listing': listing
+    }
+    return render(request, 'view_listing.html', context)
+
+
+@csrf_exempt
+@login_required
+def accept_service(request, listing_id):
+    if request.method == 'POST':
+        # Retrieve the listing using the ID
+        listing = get_object_or_404(Listing, id=listing_id)
+
+        # Check if the listing creator is not the same as the current user
+        if listing.creator == request.user:
+            return JsonResponse({'error': 'You cannot accept your own service/request.'}, status=403)
+
+        # Create a response to mark the service/request as accepted
+        ListingResponse.objects.create(
+            listing=listing,
+            user=request.user,
+            message="Accepted",
+            status=1  # You can use an appropriate integer to indicate 'Accepted' status
+        )
+
+        # Logic to notify the listing creator (for example, by email or in-app notification)
+        # Here, we are just simulating a simple success response
+        return JsonResponse({'message': 'Service/Request accepted successfully!'}, status=200)
+
+    return JsonResponse({'error': 'Only POST requests are allowed.'}, status=405)
 
 
 # Fetch the categories from the database
@@ -505,15 +522,29 @@ def create_listing(request):
             if len(description) > 5000:
                 return JsonResponse({'error': 'Description is too long'}, status=400)
 
-            category = Category(category_id).label
+            if listing_type not in ['Offer', 'Request']:
+                return JsonResponse({'error': 'Invalid listing type.'}, status=400)
 
-            listing_type = listing_type.lower() == 'true'
+            category = Category(category_id).label
 
             try:
                 duration_in_hours = int(duration_in_hours)  # Ensure it's an integer
                 duration = timedelta(hours=duration_in_hours)  # Convert to timedelta
             except ValueError:
                 return JsonResponse({'error': 'Duration must be a valid integer'}, status=400)
+            
+        
+            
+            
+            # check listing is valid to create or not
+            user_listings_old = Listing.objects.filter(creator=request.user)
+            if len(user_listings_old) > 0:
+                if len(user_listings_old) > 299:
+                    return JsonResponse({'error': 'You have reached the maximum number of services.'}, status=400)
+                for user_listing in user_listings_old:
+                    if user_listing.title == title:
+                        return JsonResponse({'error': 'You are trying to create a service with duplicated title.'}, status=400)
+                latest_listing_posted_at = user_listings_old.latest('posted_at').posted_at
 
             listing = Listing.objects.create(
                 creator=request.user,  
@@ -524,8 +555,15 @@ def create_listing(request):
                 listing_type=listing_type,
                 duration=duration
             )
-
-
+            
+            # check if the user is creating services too quickly 30 seconds
+            if not getattr(settings, 'DISABLE_RATE_LIMIT_CHECK', False): # Disable rate limit check for test cases
+                if len(user_listings_old) > 0:
+                    if latest_listing_posted_at > listing.posted_at - timedelta(seconds=30):
+                        listing.delete()
+                        return JsonResponse({'error': 'You are creating services too quickly.'}, status=429)
+            
+            
             listing.save() # save the listing to the database
 
             if tag_ids:
@@ -539,7 +577,7 @@ def create_listing(request):
                 'tags': [tag.name for tag in listing.tags.all()], 
                 'description': listing.description,
                 'image_url': listing.image.url if listing.image else None,
-                'listing_type': 'Offer' if listing.listing_type else 'Request',
+                'listing_type': listing.listing_type,
                 'duration': str(listing.duration)
             }, status=201) # return the created listing
 
@@ -683,16 +721,7 @@ def edit_profile(request):
     else:
         form = ProfileEditForm(instance=request.user)
     return render(request, 'edit_profile.html', {'form': form})
+
 @login_required
 def get_profile(request):
     return render(request, 'profile_info.html', {'user': request.user})
-
-
-
-def add_service(request):
-    # Logic for adding a service goes here
-    return render(request, 'add_service.html')
-def request_service(request):
-    # Logic for adding a service goes here
-    return render(request, 'request_service.html')
-    

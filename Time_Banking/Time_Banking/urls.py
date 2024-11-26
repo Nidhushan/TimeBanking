@@ -38,8 +38,8 @@ urlpatterns = [
     path('verify-reset-code/', views.verify_reset_code, name='verify_reset_code'),
     path('reset-password/', views.reset_password, name='reset_password'),
     path('create-listing/', views.create_listing_page, name='create_listing_page'),
-    path('add-service/', views.add_service, name='add_service'),
-    path('request-service/', views.request_service, name='request_service'),
+    # path('add-service/', views.add_service, name='add_service'),
+    # path('request-service/', views.request_service, name='request_service'),
     
     # path('login/', views.login, name='login'),
 
@@ -48,7 +48,9 @@ urlpatterns = [
 
 
     path("api/listings/", views.get_all_listings, name="get_all_listings"),
-    path('listing/<int:listing_id>/', views.get_listing_by_id, name='get_listing'),
+    # path('listing/<int:listing_id>/', views.get_listing_by_id, name='get_listing'),
+    path('listing/<int:listing_id>/', views.view_listing, name='view_listing'),
+    path('listing/<int:listing_id>/accept/', views.accept_service, name='accept_service'),
     path(
         "api/listings/<int:listing_id>/responses/",
         views.get_responses_for_listing,

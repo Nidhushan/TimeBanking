@@ -192,56 +192,6 @@ span {
     font-size: 2rem; /* Increase the size of the icon */
 }
 
-/* -------------------------------------Sort Section Styling--------------------------------------------------------------- */
-
-/* Sort Section Styling */
-.sort-section {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 10px;
-    background-color: #f5f5f5;
-    border-radius: 5px;
-    margin-bottom: 20px;
-}
-
-.sort-title {
-    font-weight: bold;
-    color: #11407e;
-    font-size: 1rem;
-}
-
-.sort-link {
-    color: #11407e;
-    font-size: 1rem;
-    text-decoration: none;
-    font-weight: bold;
-    margin: 0 10px;
-}
-
-.sort-link.active {
-    color: #000c36;
-    text-decoration: underline;
-}
-
-.sort-link:hover {
-    color: #000c36;
-    text-decoration: underline;
-}
-
-.sort-dropdown {
-    padding: 5px;
-    font-size: 1rem;
-    color: #11407e;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    background-color: #ffffff;
-}
-
-.sort-dropdown option {
-    color: #11407e;
-}
-
 .card-container {
     display: flex;
     flex-wrap: wrap;
@@ -296,6 +246,116 @@ span {
     padding: 3px 0px 0px 0px;
 }
 
+/* --------------------------------- View Listing styling --------------------------------------- */
+
+/* Make the entire card a clickable link */
+.card-link {
+    text-decoration: none;  /* Remove underline from the link */
+    color: inherit;  /* Inherit color from the parent element */
+    display: block;  /* Make the whole card clickable */
+}
+
+/* Override the default link styling */
+.card-link h5.card-title, .card-link p.card-text {
+    color: inherit;  /* Inherit the color from the card */
+    text-decoration: none;  /* Remove any text underline */
+}
+
+/* Prevent color change on hover */
+.card-link:hover h5.card-title, .card-link:hover p.card-text {
+    color: inherit;  /* Keep the text color the same on hover */
+}
+
+/* Add hover effect for the entire card if desired */
+.card:hover {
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);  /* Add a subtle shadow effect */
+    transform: translateY(-2px);  /* Slightly lift the card */
+    transition: all 0.3s ease;  /* Smooth transition effect */
+}
+
+/* Ensure the card image has a fixed size and does not stretch */
+.card-img-top {
+    width: 100%;  /* Make the image span the full width of the card */
+    height: 200px;  /* Set a fixed height for the image */
+    object-fit: cover;  /* Ensure the image covers the container without distortion */
+    border-radius: 10px 10px 0 0;  /* Keep rounded corners consistent */
+}
+
+.listing-details {
+    background-color: white;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    margin: 20px;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.listing-header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.listing-header h1 {
+    font-size: 2.5rem;
+    color: #11407e;
+}
+
+.category {
+    font-size: 1rem;
+    color: grey;
+}
+
+.listing-image {
+    width: 100%;
+    height: auto;
+    border-radius: 10px;
+    margin-bottom: 20px;
+}
+
+.description {
+    font-size: 1.2rem;
+    margin-bottom: 20px;
+}
+
+.duration, .posted-at {
+    font-size: 1rem;
+    color: grey;
+    margin-bottom: 10px;
+}
+
+.tags {
+    margin-top: 20px;
+}
+
+.tag {
+    display: inline-block;
+    background-color: #f5f5f5;
+    color: #11407e;
+    padding: 5px 10px;
+    border-radius: 5px;
+    margin: 5px;
+    font-size: 0.9rem;
+}
+
+.listing-actions {
+    text-align: center;
+    margin-top: 30px;
+}
+
+.listing-actions .btn {
+    padding: 10px 20px;
+    font-size: 1.2rem;
+    border-radius: 5px;
+    background-color: #11407e;
+    color: white;
+}
+
+.listing-actions .btn:hover {
+    background-color: #000c36;
+    color: white;
+}
 
 /* Footer container */
 .footer-container {
@@ -480,4 +540,33 @@ label {
     border-radius: 50%;
     object-fit: cover;
     border: 3px solid #11407e ;
+}
+
+
+#create_listing_btn {
+    margin-left: 20px; 
+    padding: 10px 20px; 
+    border-radius: 20px;
+    color: white; 
+    font-weight: bold; 
+    display: flex;
+    align-items: center;
+    gap: 8px; 
+    border: none; 
+}
+
+#create_listing_btn::before {
+    content: "+"; 
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    background-color: white; 
+    color: #11407e; 
+    font-size: 18px; 
+    font-weight: bold;
+    text-align: center;
+    line-height: 20px; 
+    border-radius: 50%;
+    line-height: 0.95;
+
 }

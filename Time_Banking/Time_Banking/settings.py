@@ -155,3 +155,6 @@ LOGOUT_REDIRECT_URL = "/"
 AUTH_USER_MODEL = "Time_Banking.User"
 
 CSRF_TRUSTED_ORIGINS = ["https://time-banking.bus-hit.me"]
+
+DISABLE_RATE_LIMIT_CHECK = False
+
