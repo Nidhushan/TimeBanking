@@ -1,3 +1,4 @@
+from unittest import mock
 from django.test import TestCase, Client, override_settings
 from ..models import Listing, User, ListingResponse, ListingAvailability, Category, Tag
 from django.urls import reverse
@@ -312,6 +313,47 @@ class CreateListingViewTests(TestCase):
         self.assertEqual(response.json()['error'], 'You have reached the maximum number of services.')
         Listing.objects.all().delete()
         
+        
+    @override_settings(DISABLE_RATE_LIMIT_CHECK=True)
+    def test_create_listing_invalid_listing_type(self):
+        image = SimpleUploadedFile("test_image.jpg", b"file_content", content_type="image/jpeg")
+        data = {
+            'title': 'Test Listing with invalid type',
+            'category': Category.GRAPHICS_DESIGN,  
+            'description': 'This is a test description',
+            'image': image,
+            'listing_type': 'InvalidType',  
+            'duration': '2',
+            'tags': [self.tag1.id, self.tag2.id],
+        }
+
+        response = self.client.post(reverse('create_listing'), data)
+        
+        self.assertEqual(response.status_code, 400)
+        self.assertIn('error', response.json())
+        self.assertEqual(response.json()['error'], 'Invalid listing type.')
+        
+        
+        
+    @override_settings(DISABLE_RATE_LIMIT_CHECK=True)
+    def test_create_listing_exception_handling(self):
+        with mock.patch('Time_Banking.models.Listing.objects.create', side_effect=Exception('Test exception')):
+            image = SimpleUploadedFile("test_image.jpg", b"file_content", content_type="image/jpeg")
+            data = {
+                'title': 'Test Listing with exception',
+                'category': Category.GRAPHICS_DESIGN,  
+                'description': 'This is a test description',
+                'image': image,
+                'listing_type': 'Offer',
+                'duration': '2',
+                'tags': [self.tag1.id, self.tag2.id],
+            }
+
+            response = self.client.post(reverse('create_listing'), data)
+            
+            self.assertEqual(response.status_code, 500)
+            self.assertIn('error', response.json())
+            self.assertEqual(response.json()['error'], 'Test exception')
         
     
         
