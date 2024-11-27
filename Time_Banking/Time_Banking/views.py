@@ -294,42 +294,42 @@ def delete_account(request):
 #     return render(request, 'delete_account.html')
 
 
-@login_required   # Ensures the user is logged in
-# @csrf_exempt  # For handling form submissions via AJAX, use CSRF protection in production
-def update_user_settings(request):
-    if request.method == 'POST':
-        try:
-            user = request.user 
+# @login_required   # Ensures the user is logged in
+# # @csrf_exempt  # For handling form submissions via AJAX, use CSRF protection in production
+# def update_user_settings(request):
+#     if request.method == 'POST':
+#         try:
+#             user = request.user 
 
-            # Get the updated fields from the form or JSON data
-            name = request.POST.get('name')
-            title = request.POST.get('title')
-            location = request.POST.get('location')
-            bio = request.POST.get('bio')
-            link = request.POST.get('link')
-            picture = request.FILES.get('picture')  
+#             # Get the updated fields from the form or JSON data
+#             name = request.POST.get('name')
+#             title = request.POST.get('title')
+#             location = request.POST.get('location')
+#             bio = request.POST.get('bio')
+#             link = request.POST.get('link')
+#             picture = request.FILES.get('picture')  
 
-            # Update user information only for the fields that are provided
-            if name is not None:
-                user.name = name
-            if title is not None:
-                user.title = title
-            if location is not None:
-                user.location = location
-            if bio is not None:
-                user.bio = bio
-            if link is not None:
-                user.link = link
-            if picture is not None:
-                user.picture = picture  
-            user.save()
+#             # Update user information only for the fields that are provided
+#             if name is not None:
+#                 user.name = name
+#             if title is not None:
+#                 user.title = title
+#             if location is not None:
+#                 user.location = location
+#             if bio is not None:
+#                 user.bio = bio
+#             if link is not None:
+#                 user.link = link
+#             if picture is not None:
+#                 user.picture = picture  
+#             user.save()
 
-            return JsonResponse({'status': 'Profile updated successfully'}, status=200)
+#             return JsonResponse({'status': 'Profile updated successfully'}, status=200)
 
-        except Exception as e:
-            return JsonResponse({'error': str(e)}, status=500)
+#         except Exception as e:
+#             return JsonResponse({'error': str(e)}, status=500)
 
-    return JsonResponse({'error': 'POST request required'}, status=405)
+#     return JsonResponse({'error': 'POST request required'}, status=405)
 
 
 @login_required   # Ensures the user is logged in

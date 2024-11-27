@@ -148,26 +148,26 @@ class UserSettingsTests(TestCase):
             
             
         
-    def test_edit_user_settings(self):
-        image = SimpleUploadedFile("test_image.jpg", b"file_content", content_type="image/jpeg")
-        response = self.client.post(
-            reverse('update_user_settings'), 
-            {
-                "name": "Test User",
-                "title": "Test Title",
-                "location": "New York, NY",
-                # no change to link and bio
-                "picture": image
-            }
-        )
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json(), {'status': 'Profile updated successfully'})
-        user = User.objects.get(username="testuser")
-        self.assertEqual(user.name, "Test User")
-        self.assertEqual(user.title, "Test Title")
-        self.assertEqual(user.location, "New York, NY")
-        self.assertEqual(user.link, "")
-        self.assertEqual(user.bio, "")
+    # def test_edit_user_settings(self):
+    #     image = SimpleUploadedFile("test_image.jpg", b"file_content", content_type="image/jpeg")
+    #     response = self.client.post(
+    #         reverse('update_user_settings'), 
+    #         {
+    #             "name": "Test User",
+    #             "title": "Test Title",
+    #             "location": "New York, NY",
+    #             # no change to link and bio
+    #             "picture": image
+    #         }
+    #     )
+    #     self.assertEqual(response.status_code, 200)
+    #     self.assertEqual(response.json(), {'status': 'Profile updated successfully'})
+    #     user = User.objects.get(username="testuser")
+    #     self.assertEqual(user.name, "Test User")
+    #     self.assertEqual(user.title, "Test Title")
+    #     self.assertEqual(user.location, "New York, NY")
+    #     self.assertEqual(user.link, "")
+    #     self.assertEqual(user.bio, "")
 
     def test_get_user_details(self):
         response = self.client.get(

@@ -64,7 +64,7 @@ urlpatterns = [
     # ),
     path('api/change-password/', views.change_password, name='change_password'),
     path('api/delete-account/', views.delete_account, name='delete_account'),
-    path('api/update-user-settings/', views.update_user_settings, name='update_user_settings'),
+    # path('api/update-user-settings/', views.update_user_settings, name='update_user_settings'),
     path('profile/', views.get_profile, name='profile_info'),
     #path('profile/create/', views.create_profile, name='create_profile'),
     path('profile/edit/', views.edit_profile, name='edit_profile'),
