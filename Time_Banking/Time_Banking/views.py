@@ -228,6 +228,9 @@ def change_password(request):
             new_password = data.get('new_password')
             confirm_password = data.get('confirm_password')
             
+            if not username or not current_password or not new_password or not confirm_password:
+                return JsonResponse({'error': 'Invalid input, missing fields'}, status=400)
+            
             if username != request.user.username:
                 return JsonResponse({'error': 'Not authorized to change password'}, status=403)
             
@@ -251,10 +254,7 @@ def change_password(request):
 
             return JsonResponse({'status': 'success'}, status=200)
 
-        except User.DoesNotExist:
-            return JsonResponse({'error': 'User not found'}, status=404)
-        except KeyError:
-            return JsonResponse({'error': 'Invalid input, missing fields'}, status=400)
+
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=500)
 
@@ -262,8 +262,8 @@ def change_password(request):
 
 
 # @login_required  # Ensures the user is logged in
-def change_password_page(request):
-    return render(request, 'user_settings.html')
+# def change_password_page(request):
+#     return render(request, 'user_settings.html')
 
 
 """
@@ -289,9 +289,9 @@ def delete_account(request):
     return JsonResponse({'error': 'POST request required'}, status=405)
 
 
-@login_required  # Make sure the user is logged in to access this page
-def delete_account_page(request):
-    return render(request, 'delete_account.html')
+# @login_required  # Make sure the user is logged in to access this page
+# def delete_account_page(request):
+#     return render(request, 'delete_account.html')
 
 
 @login_required   # Ensures the user is logged in
@@ -389,55 +389,55 @@ def get_all_listings(request):
     return JsonResponse(data, safe=False)
 
 
-def get_listing_by_id(request, listing_id):
-    try:
-        # Fetch the listing by ID
-        listing = get_object_or_404(Listing, id=listing_id)
-        category_id = listing.category
+# def get_listing_by_id(request, listing_id):
+#     try:
+#         # Fetch the listing by ID
+#         listing = get_object_or_404(Listing, id=listing_id)
+#         category_id = listing.category
         
-        data = {
-            'id': listing.id,
-            'creator': listing.creator.username,  
-            'category': Category(category_id).label,  
-            'tags': [tag.name for tag in listing.tags.all()], 
-            'title': listing.title,
-            'description': listing.description,
-            'image': listing.image.url if listing.image else None, 
-            'listing_type': listing.listing_type, 
-            'duration': str(listing.duration), 
-            'posted_at': listing.posted_at.strftime('%Y-%m-%d %H:%M:%S'),  
-            'edited_at': listing.edited_at.strftime('%Y-%m-%d %H:%M:%S'), 
-        }
-        return JsonResponse(data, status=200)
+#         data = {
+#             'id': listing.id,
+#             'creator': listing.creator.username,  
+#             'category': Category(category_id).label,  
+#             'tags': [tag.name for tag in listing.tags.all()], 
+#             'title': listing.title,
+#             'description': listing.description,
+#             'image': listing.image.url if listing.image else None, 
+#             'listing_type': listing.listing_type, 
+#             'duration': str(listing.duration), 
+#             'posted_at': listing.posted_at.strftime('%Y-%m-%d %H:%M:%S'),  
+#             'edited_at': listing.edited_at.strftime('%Y-%m-%d %H:%M:%S'), 
+#         }
+#         return JsonResponse(data, status=200)
     
-    except Exception as e:
-        return JsonResponse({'error': str(e)}, status=500)
+#     except Exception as e:
+#         return JsonResponse({'error': str(e)}, status=500)
 
 
-def get_responses_for_listing(request, listing_id):
-    listing = Listing.objects.get(id=listing_id)
-    responses = ListingResponse.objects.filter(listing=listing)
-    data = []
-    for response in responses:
-        data.append(
-            {
-                "user": response.user.username,
-                "message": response.message,
-                "status": response.status,
-            }
-        )
-    return JsonResponse(data, safe=False)
+# def get_responses_for_listing(request, listing_id):
+#     listing = Listing.objects.get(id=listing_id)
+#     responses = ListingResponse.objects.filter(listing=listing)
+#     data = []
+#     for response in responses:
+#         data.append(
+#             {
+#                 "user": response.user.username,
+#                 "message": response.message,
+#                 "status": response.status,
+#             }
+#         )
+#     return JsonResponse(data, safe=False)
 
 
-def get_availability_for_listing(request, listing_id):
-    listing = Listing.objects.get(id=listing_id)
-    availabilities = ListingAvailability.objects.filter(listing=listing)
-    data = []
-    for availability in availabilities:
-        data.append(
-            {"from_time": availability.from_time, "to_time": availability.to_time}
-        )
-    return JsonResponse(data, safe=False)
+# def get_availability_for_listing(request, listing_id):
+#     listing = Listing.objects.get(id=listing_id)
+#     availabilities = ListingAvailability.objects.filter(listing=listing)
+#     data = []
+#     for availability in availabilities:
+#         data.append(
+#             {"from_time": availability.from_time, "to_time": availability.to_time}
+#         )
+#     return JsonResponse(data, safe=False)
 
 def view_listing(request, listing_id):
     if request.method != 'GET':

@@ -3,10 +3,9 @@ from ..models import Listing, User, ListingResponse, ListingAvailability, Catego
 from django.urls import reverse
 from django.core.files.uploadedfile import SimpleUploadedFile
 from datetime import timedelta
-import tempfile
-import shutil
-import random
 import json
+from unittest.mock import patch
+
 
 
 class UserSettingsTests(TestCase):
@@ -48,7 +47,7 @@ class UserSettingsTests(TestCase):
             reverse('change_password'), 
             json.dumps({
                 "username": "testuser",
-                "current_password": self.New_password,
+                "current_password": self.Old_password,
                 "new_password": "12345678",
                 "confirm_password": "12345678",
             }),
@@ -83,7 +82,7 @@ class UserSettingsTests(TestCase):
             reverse('change_password'), 
             json.dumps({
                 "username": "testuser",
-                "current_password": self.New_password,
+                "current_password": self.Old_password,
                 "new_password": self.New_password,
                 "confirm_password": "12345678",
             }),
@@ -101,13 +100,53 @@ class UserSettingsTests(TestCase):
             json.dumps({
                 "username": "otheruser",
                 "current_password": "password",
-                "new_password": self.New_password,
+                "new_password": self.Old_password,
                 "confirm_password": self.New_password,
             }),
             content_type='application/json'  
         )
         self.assertEqual(response.status_code, 403)
         self.assertEqual(response.json(), {'error': 'Not authorized to change password'})
+        
+        
+        
+    def test_change_password_missing_fields(self):
+        data = {
+            'username': 'testuser',
+            'new_password': self.New_password,
+            'confirm_password': self.New_password
+        }  
+        response = self.client.post(
+            reverse('change_password'), 
+            json.dumps(data),
+            content_type='application/json'
+        )
+
+        self.assertEqual(response.status_code, 400)
+
+        self.assertEqual(response.json(), {'error': 'Invalid input, missing fields'})
+
+
+
+    def test_change_password_generic_exception(self):
+        with patch('Time_Banking.models.User.set_password', side_effect=Exception('Test exception')):
+            data = {
+                'username': 'testuser',
+                'current_password': self.Old_password,
+                'new_password': self.New_password,
+                'confirm_password': self.New_password
+            }
+            response = self.client.post(
+                reverse('change_password'), 
+                json.dumps(data),
+                content_type='application/json'
+            )
+
+            self.assertEqual(response.status_code, 500)
+
+            self.assertEqual(response.json(), {'error': 'Test exception'})
+            
+            
         
     def test_edit_user_settings(self):
         image = SimpleUploadedFile("test_image.jpg", b"file_content", content_type="image/jpeg")
@@ -159,4 +198,32 @@ class UserSettingsTests(TestCase):
         response = self.client.get(reverse('delete_account'))
         self.assertEqual(response.status_code, 405)
         
+        
+    def test_delete_account_exception_handling(self):
+        with patch('Time_Banking.models.User.delete', side_effect=Exception('Test exception')):
+
+            self.client.login(username='testuser', password='password123')
+            delete_account_url = reverse('delete_account')
+            response = self.client.post(delete_account_url)
+
+            self.assertEqual(response.status_code, 500)
+
+            self.assertIn('error', response.json())
+            self.assertEqual(response.json()['error'], 'Test exception')
+            
+            
+    def test_user_detail_page_user_found(self):
+        response = self.client.get(reverse('user_detail_page', args=[self.user.id]))
+        
+        self.assertEqual(response.status_code, 200)
+        
+        self.assertContains(response, self.user.username)
+
+    def test_user_detail_page_user_not_found(self):
+        non_existent_user_id = 999  
+        response = self.client.get(reverse('user_detail_page', args=[non_existent_user_id]))
+        
+        self.assertEqual(response.status_code, 200)
+        
+        self.assertContains(response, 'User not found')
         
