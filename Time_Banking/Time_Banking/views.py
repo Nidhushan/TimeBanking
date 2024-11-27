@@ -510,10 +510,10 @@ def create_listing(request):
             description = request.POST.get('description')
             image = request.FILES.get('image')  # We can only have 1 image per listing
             listing_type = request.POST.get('listing_type')  # Expecting 'True' or 'False'
-            duration_in_hours = request.POST.get('duration')  # Expected format: integer (hours)
+            duration_in_minutes = request.POST.get('duration')  # Expected format: integer (minutes)
             tag_ids = request.POST.getlist('tags')  # Expecting a list of tag IDs
 
-            if not title or not category_id or not description or not image or not listing_type or not duration_in_hours:
+            if not title or not category_id or not description or not image or not listing_type or not duration_in_minutes:
                 missing_fields = [field for field in ['title', 'category', 'description', 'image', 'listing_type', 'duration'] if not request.POST.get(field)]
                 error_msg = f'Missing required fields: {", ".join(missing_fields)}'
                 return JsonResponse({'error': error_msg}, status=400)
@@ -527,8 +527,8 @@ def create_listing(request):
             category = Category(category_id).label
 
             try:
-                duration_in_hours = int(duration_in_hours)  # Ensure it's an integer
-                duration = timedelta(hours=duration_in_hours)  # Convert to timedelta
+                duration_in_minutes = int(duration_in_minutes)  # Ensure it's an integer
+                duration = timedelta(minutes=duration_in_minutes)  # Convert to timedelta
             except ValueError:
                 return JsonResponse({'error': 'Duration must be a valid integer'}, status=400)
             

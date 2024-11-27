@@ -47,7 +47,7 @@ class CreateListingViewTests(TestCase):
         self.assertEqual(response.json()['description'], 'This is a test description')
     
         self.assertEqual(response.json()['listing_type'], 'Offer')
-        self.assertEqual(response.json()['duration'], '2:00:00')
+        self.assertEqual(response.json()['duration'], '0:02:00')
 
         self.assertQuerySetEqual(response.json()['tags'], [str(self.tag1), str(self.tag2)], ordered=False)
         Listing.objects.all().delete()
@@ -90,7 +90,7 @@ class CreateListingViewTests(TestCase):
             self.assertEqual(response.json()['title'], title)
             self.assertEqual(response.json()['description'], description)
             self.assertEqual(response.json()['listing_type'], listing_type)
-            self.assertEqual(response.json()['duration'], str(timedelta(hours=int(duration))))
+            self.assertEqual(response.json()['duration'], str(timedelta(minutes=int(duration))))
             self.assertQuerySetEqual(response.json()['tags'], [str(self.tag1), str(self.tag2)], ordered=False)
             
         Listing.objects.all().delete()
@@ -179,7 +179,7 @@ class CreateListingViewTests(TestCase):
             # Verify response status and error message
             self.assertEqual(response.status_code, 201)
             self.assertIn('id', response.json())
-            self.assertEqual(response.json()['duration'], str(timedelta(hours=int(duration))))
+            self.assertEqual(response.json()['duration'], str(timedelta(minutes=int(duration))))
         Listing.objects.all().delete()
             
             
