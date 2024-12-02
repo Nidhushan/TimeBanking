@@ -605,20 +605,31 @@ def edit_listing(request, listing_id):
     if request.method == 'POST':
         try:
             listing = get_object_or_404(Listing, id=listing_id, creator=request.user)
-            if listing.creator!=request.user:
-                return JsonResponse({'error': 'You can only edit your own service/request.'}, status=403)
 
             title = request.POST.get('title')
             description = request.POST.get('description')
             category_id = request.POST.get('category')
             duration_in_minutes = request.POST.get('duration')
+            listing_type = request.POST.get('listing_type')
             status = request.POST.get('status')
             tag_ids = request.POST.getlist('tags')
             image = request.FILES.get('image')
 
+            if not title or not description or not category_id or not duration_in_minutes or not listing_type or not status or not image:
+                missing_fields = [field for field in ['title', 'description', 'category', 'duration', 'listing_type', 'status', 'image'] if not request.POST.get(field)]
+                error_msg = f'Missing required fields: {", ".join(missing_fields)}'
+                return JsonResponse({'error': error_msg}, status=400)
+            
+            if len(description) > 1000:
+                return JsonResponse({'error': 'Description is too long'}, status=400)
+
+            if listing_type not in ['Offer', 'Request']:
+                return JsonResponse({'error': 'Invalid listing type.'}, status=400)
+
             listing.title = title
             listing.description = description
             listing.category = Category(category_id).label
+            listing.listing_type = listing_type
 
             try:
                 duration_in_minutes = int(duration_in_minutes)  # Ensure it's an integer
@@ -643,6 +654,7 @@ def edit_listing(request, listing_id):
                 'category': listing.category,
                 'tags': [tag.name for tag in listing.tags.all()],
                 'image_url': listing.image.url if listing.image else None,
+                'listing_type': listing.listing_type,
                 'status': listing.status,
                 'duration': str(listing.duration),
                 'edited_at': listing.edited_at.isoformat(),
@@ -654,10 +666,11 @@ def edit_listing(request, listing_id):
     return JsonResponse({'error': 'POST request required'}, status=405)
 
 @login_required  # Make sure the user is logged in to access this page
-# def edit_listing_page(request):
-#     @login_required
 def edit_listing_page(request, listing_id):
-    listing = get_object_or_404(Listing, id=listing_id, creator=request.user)
+    listing = get_object_or_404(Listing, id=listing_id)
+    if listing.creator!=request.user:
+        return JsonResponse({'error': 'You can only edit your own service/request.'}, status=403)
+    
     return render(request, 'edit_listing.html', {
         'listing': listing,
     })
