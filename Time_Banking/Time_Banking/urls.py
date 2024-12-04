@@ -52,7 +52,6 @@ urlpatterns = [
     # path('listing/<int:listing_id>/', views.get_listing_by_id, name='get_listing'),
     path('listing/<int:listing_id>/', views.view_listing, name='view_listing'),
     path('listing/<int:listing_id>/apply/', views.apply_service, name='apply_service'),
-    path('listing/<int:listing_id>/accept/', views.accept_service, name='accept_service'),
     path('listing/<int:listing_id>/edit/', views.edit_listing, name='edit_listing'),
     path('listing/<int:listing_id>/edit/page/', views.edit_listing_page, name='edit_listing_page'),
     # path(
