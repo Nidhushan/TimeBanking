@@ -65,9 +65,10 @@ urlpatterns = [
     path('api/change-password/', views.change_password, name='change_password'),
     path('api/delete-account/', views.delete_account, name='delete_account'),
     # path('api/update-user-settings/', views.update_user_settings, name='update_user_settings'),
-    path('profile/', views.get_profile, name='profile_info'),
+    path('profile/', views.profile_info, name='profile_info'),
     #path('profile/create/', views.create_profile, name='create_profile'),
     path('profile/edit/', views.edit_profile, name='edit_profile'),
+    path('delete-profile-picture/', views.delete_profile_picture, name='delete_profile_picture'),
     path('api/create-listing/', views.create_listing, name='create_listing'),
     path('api/edit-listing/<int:listing_id>/', views.edit_listing, name='edit_listing'),
     path('api/categories/', views.get_categories, name='get_categories'),
@@ -76,13 +77,16 @@ urlpatterns = [
     # path('change-password/', views.change_password_page, name='change_password_page'),
     # path('delete-account/', views.delete_account_page, name='delete_account_page'),
     path('settings/', views.user_settings_page, name='user_settings_page'),
-    path('user/<int:id>/', views.user_detail_page, name='user_detail_page'),
+    
     path('create-listing/', views.create_listing_page, name='create_listing_page'),
     path('myservices/', views.my_service, name='my_service'),
     path('applicants/<int:listing_id>/', views.view_applicants, name='view_applicants'),
     path('get-notifications/', views.get_notifications, name='get_otifications'),
     path('appliedservices/', views.applied_services, name='applied_services'),
     path('notifications/mark-as-read/<int:notification_id>/', views.mark_as_read, name='mark_as_read'),
+    path('user/<int:user_id>/', views.profile_info, name='user_profile'),
+    path('listing/<int:id>/', views.view_listing, name='view_listing'),
+    path('profile/<int:user_id>/', views.profile_info, name='profile_info'),
 ]
 
 

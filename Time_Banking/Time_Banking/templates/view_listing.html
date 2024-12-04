@@ -22,7 +22,7 @@
             <span class="tag">{{ tag.name }}</span>
         {% endfor %}
     </div>
-
+    <p>Created by: <a href="{% url 'profile_info' user_id=listing.creator.id %}">{{ listing.creator.username }}</a></p>
     <form method="POST" action="{% url 'apply_service' listing.id %}" id= "applyform" class="accept-form">
         {% csrf_token %}
         <button type="submit" class="btn btn-primary">Apply Service/Request</button>

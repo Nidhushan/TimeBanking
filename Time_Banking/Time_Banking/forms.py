@@ -1,5 +1,5 @@
 from django.contrib.auth.forms import UserCreationForm
-from .models import User
+from .models import User, Skill
 from django import forms
 from django import forms
 from django.contrib.auth import get_user_model
@@ -19,3 +19,13 @@ class ProfileEditForm(forms.ModelForm):
     class Meta:
         model = User
         fields = ["name", "picture", "title", "location", "bio", "link"]
+class AddSkillForm(forms.ModelForm):
+    class Meta:
+        model = Skill
+        fields = ['name']
+        labels = {
+            'name': 'Skill Name',
+        }
+        widgets = {
+            'name': forms.TextInput(attrs={'placeholder': 'Enter a skill'}),
+        }

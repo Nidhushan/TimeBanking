@@ -10,8 +10,8 @@ from django.core.exceptions import ValidationError
 from django.core.mail import send_mail
 from django.conf import settings
 import uuid
-from .models import Listing, User, ListingResponse, ListingAvailability, Category, Tag, Notification
-from .forms import RegisterForm, ProfileCreationForm, ProfileEditForm
+from .models import Listing, User, ListingResponse, ListingAvailability, Category, Tag, Skill, Notification
+from .forms import RegisterForm, ProfileCreationForm, ProfileEditForm, AddSkillForm
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
@@ -353,18 +353,6 @@ def user_detail(request, id):
     }
     return JsonResponse(data)
 
-
-# Display User's information
-def user_detail_page(request, id):
-    try:
-        user = User.objects.get(pk=id)
-        # Pass the user object to the template context
-        return render(request, 'user_detail.html', {'user': user})
-    except User.DoesNotExist:
-        # Pass an error message to the template if user is not found
-        return render(request, 'user_detail.html', {'error': 'User not found'})
-
-
 def get_all_listings(request):
     # should be modified if the database of listings is too large
     listings = Listing.objects.all()
@@ -445,7 +433,8 @@ def view_listing(request, listing_id):
         return HttpResponseNotAllowed(['GET'])
     listing = get_object_or_404(Listing, id=listing_id)
     context = {
-        'listing': listing
+        'listing': listing,
+        'user': listing.creator
     }
     return render(request, 'view_listing.html', context)
 
@@ -727,16 +716,61 @@ def edit_profile(request):
         form = ProfileEditForm(request.POST, request.FILES, instance=request.user)
         if form.is_valid():
             form.save()
-            return redirect('profile_info')  # Make sure this matches your URL name
+            return redirect('profile_info')  # Ensure this matches your URL name
     else:
         form = ProfileEditForm(instance=request.user)
     return render(request, 'edit_profile.html', {'form': form})
+
 
 @login_required
 def get_profile(request):
     return render(request, 'profile_info.html', {'user': request.user})
 
+def profile_info(request, user_id=None):
+    user = get_object_or_404(User, id=user_id) if user_id else request.user
 
+    # Separate services into offers and requests
+    offered_services = Listing.objects.filter(creator=user, listing_type="Offer")
+    requested_services = Listing.objects.filter(creator=user, listing_type="Request")
+
+    # Fetch user's skills
+    skills = user.skills.all()
+
+    # Skill addition form
+    skill_form = AddSkillForm()
+    
+    if request.method == 'POST' and 'add_skill' in request.POST:
+        skill_names = request.POST.getlist('skills')
+        for skill_name in skill_names:
+            if skill_name.strip():
+                skill, _ = Skill.objects.get_or_create(name=skill_name.strip())
+                user.skills.add(skill)
+        return redirect('profile_info', user_id=user.id)
+
+    # Pass the data to the template
+    context = {
+        'user': user,
+        'offered_services': offered_services,
+        'requested_services': requested_services,
+        'skills': skills,
+        'skill_form': skill_form,
+    }
+    return render(request, 'profile_info.html', context)
+
+
+
+@login_required
+def delete_profile_picture(request):
+    if request.method == "POST":
+        user = request.user
+        if user.picture:
+            user.picture.delete()  # This deletes the file from storage
+            user.picture = None    # Set the picture field to None
+            user.save()
+            return JsonResponse({"success": True})
+        else:
+            return JsonResponse({"success": False, "error": "No profile picture to delete."})
+    return JsonResponse({"success": False, "error": "Invalid request method."})
 
 def add_service(request):
     # Logic for adding a service goes here
@@ -811,3 +845,9 @@ def applied_services(request):
     responses = ListingResponse.objects.filter(user=request.user)
     
     return render(request, 'applied_services.html', {'responses': responses})
+
+@login_required
+def user_profile(request, user_id):
+    user = get_object_or_404(User, id=user_id)
+    listings = Listing.objects.filter(creator=user)
+    return render(request, 'user_profile.html', {'user': user, 'listings': listings})
