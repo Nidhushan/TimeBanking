@@ -433,8 +433,7 @@ def view_listing(request, listing_id):
         return HttpResponseNotAllowed(['GET'])
     listing = get_object_or_404(Listing, id=listing_id)
     context = {
-        'listing': listing,
-        'user': listing.creator
+        'listing': listing
     }
     return render(request, 'view_listing.html', context)
 
