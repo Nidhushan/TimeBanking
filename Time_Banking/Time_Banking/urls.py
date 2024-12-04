@@ -52,16 +52,16 @@ urlpatterns = [
     # path('listing/<int:listing_id>/', views.get_listing_by_id, name='get_listing'),
     path('listing/<int:listing_id>/', views.view_listing, name='view_listing'),
     path('listing/<int:listing_id>/apply/', views.apply_service, name='apply_service'),
-    path(
-        "api/listings/<int:listing_id>/responses/",
-        views.get_responses_for_listing,
-        name="get_responses_for_listing",
-    ),
-    path(
-        "api/listings/<int:listing_id>/availability/",
-        views.get_availability_for_listing,
-        name="get_availability_for_listing",
-    ),
+    # path(
+    #     "api/listings/<int:listing_id>/responses/",
+    #     views.get_responses_for_listing,
+    #     name="get_responses_for_listing",
+    # ),
+    # path(
+    #     "api/listings/<int:listing_id>/availability/",
+    #     views.get_availability_for_listing,
+    #     name="get_availability_for_listing",
+    # ),
     path('api/change-password/', views.change_password, name='change_password'),
     path('api/delete-account/', views.delete_account, name='delete_account'),
     # path('api/update-user-settings/', views.update_user_settings, name='update_user_settings'),
