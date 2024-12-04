@@ -20,13 +20,14 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from django.views.generic import TemplateView
+from django.contrib.auth import views as auth_views
 from . import views
 
 
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("", views.home, name="home"),
-    path("accounts/", include("django.contrib.auth.urls")),
+    path("accounts/logout/", auth_views.LogoutView.as_view(), name='logout'),
     path('create-account/', views.create_account, name='create_account'),
     # path('verify/<str:code>/', views.verify_account, name='verify_account'),
     path('verification-sent/', TemplateView.as_view(template_name='verification_sent.html'), name='verification_sent'),  # Verification URL
@@ -51,19 +52,19 @@ urlpatterns = [
     # path('listing/<int:listing_id>/', views.get_listing_by_id, name='get_listing'),
     path('listing/<int:listing_id>/', views.view_listing, name='view_listing'),
     path('listing/<int:listing_id>/accept/', views.accept_service, name='accept_service'),
-    path(
-        "api/listings/<int:listing_id>/responses/",
-        views.get_responses_for_listing,
-        name="get_responses_for_listing",
-    ),
-    path(
-        "api/listings/<int:listing_id>/availability/",
-        views.get_availability_for_listing,
-        name="get_availability_for_listing",
-    ),
+    # path(
+    #     "api/listings/<int:listing_id>/responses/",
+    #     views.get_responses_for_listing,
+    #     name="get_responses_for_listing",
+    # ),
+    # path(
+    #     "api/listings/<int:listing_id>/availability/",
+    #     views.get_availability_for_listing,
+    #     name="get_availability_for_listing",
+    # ),
     path('api/change-password/', views.change_password, name='change_password'),
     path('api/delete-account/', views.delete_account, name='delete_account'),
-    path('api/update-user-settings/', views.update_user_settings, name='update_user_settings'),
+    # path('api/update-user-settings/', views.update_user_settings, name='update_user_settings'),
     path('profile/', views.profile_info, name='profile_info'),
     #path('profile/create/', views.create_profile, name='create_profile'),
     path('profile/edit/', views.edit_profile, name='edit_profile'),
@@ -73,8 +74,8 @@ urlpatterns = [
     path('api/categories/', views.get_categories, name='get_categories'),
     path('api/tags/', views.get_tags, name='get_tags'),
     #path('create-profile/', views.create_profile, name='create_profile'),
-    path('change-password/', views.change_password_page, name='change_password_page'),
-    path('delete-account/', views.delete_account_page, name='delete_account_page'),
+    # path('change-password/', views.change_password_page, name='change_password_page'),
+    # path('delete-account/', views.delete_account_page, name='delete_account_page'),
     path('settings/', views.user_settings_page, name='user_settings_page'),
     
     path('create-listing/', views.create_listing_page, name='create_listing_page'),
