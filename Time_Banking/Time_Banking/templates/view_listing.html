@@ -28,6 +28,9 @@
         <button type="submit" class="btn btn-primary">Apply Service/Request</button>
         <div id="messageBox" style="display:none;"></div>
     </form>
+
+    <a href="{% url 'edit_listing_page' listing.id %}" class="btn btn-primary">Edit</a>
+    
 </div>
 
 {% endblock %}
