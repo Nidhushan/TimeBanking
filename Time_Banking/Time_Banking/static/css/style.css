@@ -643,3 +643,13 @@ label {
     border-radius: 8px;
     border: 1px solid #eee;  
 }
+
+.logout {
+    color: black;
+    text-decoration: none;
+    padding: 0;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+}
