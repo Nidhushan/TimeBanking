@@ -50,9 +50,9 @@ class Tag(models.Model):
 
 # user account
 class User(AbstractUser):
-    multiplier = models.FloatField(default=1.0) # or DecimalField?
-    avg_rating = models.DecimalField(max_digits=3, decimal_places=2, default=0.00) # 1.00 to 5.00, or 0.00
-    total_hours = models.FloatField(default=0.0)  # New field for total hours
+    multiplier = models.FloatField(default=1.0)
+    avg_rating = models.DecimalField(max_digits=3, decimal_places=2, default=0.00)
+    total_minutes = models.FloatField(default=0.0) 
     is_verified = models.BooleanField(default=False)  # Track if user is verified
     verification_code = models.CharField(max_length=100, blank=True, null=True)  # Store verification code
     # TODO: profiles
@@ -142,6 +142,15 @@ class Feedback(models.Model):
 
     def __str__(self):
         return f"Feedback for Transaction {self.transaction.id} by {self.requester}"
+
+def update_provider_metrics(feedback):
+    provider = feedback.provider
+    all_ratings = Feedback.objects.filter(provider=provider).values_list('rating', flat=True)
+    provider.avg_rating = sum(all_ratings) / len(all_ratings)
+    new_multiplier = provider.multiplier + (feedback.rating - 3) * 0.1
+    provider.multiplier = max(0.5, min(2.0, new_multiplier))
+    provider.total_minutes += feedback.transaction.duration.total_seconds() / 60  # Convert duration to minutes
+    provider.save()
 
 # images within a listing
 # class ListingImage(models.Model):

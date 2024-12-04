@@ -338,7 +338,7 @@ def update_provider_metrics(feedback):
     provider.avg_rating = sum(all_ratings) / len(all_ratings)
     new_multiplier = provider.multiplier + (feedback.rating - 3) * 0.1
     provider.multiplier = max(0.5, min(2.0, new_multiplier))
-    provider.total_hours += feedback.transaction.duration.total_seconds() / 3600  # Convert duration to hours
+    provider.total_minutes += feedback.transaction.duration.total_seconds() / 60  # Convert duration to minutes
     provider.save()
 
 # View to submit feedback
@@ -570,53 +570,70 @@ curl -X POST http://localhost:8000/api/create-listing/
      -F 'tags=1' -F 'tags=2'
      -F 'image=@/path/to/image.jpg'
 """
+
 @login_required  # Ensure the user is logged in
 def create_listing(request):
     if request.method == 'POST':
         try:
             # Get the form data
             title = request.POST.get('title')
-            category_id = request.POST.get('category')  
+            category_id = request.POST.get('category')
             description = request.POST.get('description')
-            image = request.FILES.get('image')  # We can only have 1 image per listing
-            listing_type = request.POST.get('listing_type')  # Expecting 'True' or 'False'
+            image = request.FILES.get('image')  # Only one image per listing
+            listing_type = request.POST.get('listing_type')  # Expecting 'Offer' or 'Request'
             duration_in_minutes = request.POST.get('duration')  # Expected format: integer (minutes)
             tag_ids = request.POST.getlist('tags')  # Expecting a list of tag IDs
 
-            if not title or not category_id or not description or not image or not listing_type or not duration_in_minutes:
-                missing_fields = [field for field in ['title', 'category', 'description', 'image', 'listing_type', 'duration'] if not request.POST.get(field)]
+            # Validate required fields
+            required_fields = {
+                'title': title,
+                'category': category_id,
+                'description': description,
+                'image': image,
+                'listing_type': listing_type,
+                'duration': duration_in_minutes,
+            }
+            missing_fields = [field for field, value in required_fields.items() if not value]
+            if missing_fields:
                 error_msg = f'Missing required fields: {", ".join(missing_fields)}'
                 return JsonResponse({'error': error_msg}, status=400)
-            
+
             if len(description) > 5000:
                 return JsonResponse({'error': 'Description is too long'}, status=400)
 
             if listing_type not in ['Offer', 'Request']:
                 return JsonResponse({'error': 'Invalid listing type.'}, status=400)
 
-            category = Category(category_id).label
+            try:
+                # Ensure category_id is valid
+                category = Category(category_id).label
+            except ValueError:
+                return JsonResponse({'error': 'Invalid category.'}, status=400)
 
             try:
-                duration_in_minutes = int(duration_in_minutes)  # Ensure it's an integer
-                duration = timedelta(minutes=duration_in_minutes)  # Convert to timedelta
+                duration_in_minutes = int(duration_in_minutes)
+                if duration_in_minutes <= 0:
+                    raise ValueError
+                duration = timedelta(minutes=duration_in_minutes)
             except ValueError:
-                return JsonResponse({'error': 'Duration must be a valid integer'}, status=400)
-            
-        
-            
-            
-            # check listing is valid to create or not
-            user_listings_old = Listing.objects.filter(creator=request.user)
-            if len(user_listings_old) > 0:
-                if len(user_listings_old) > 299:
-                    return JsonResponse({'error': 'You have reached the maximum number of services.'}, status=400)
-                for user_listing in user_listings_old:
-                    if user_listing.title == title:
-                        return JsonResponse({'error': 'You are trying to create a service with duplicated title.'}, status=400)
-                latest_listing_posted_at = user_listings_old.latest('posted_at').posted_at
+                return JsonResponse({'error': 'Duration must be a positive integer in minutes.'}, status=400)
 
+            # Check if the listing title is unique for the user
+            user_listings = Listing.objects.filter(creator=request.user)
+            if user_listings.count() >= 300:
+                return JsonResponse({'error': 'You have reached the maximum number of listings.'}, status=400)
+            if user_listings.filter(title=title).exists():
+                return JsonResponse({'error': 'You have already created a listing with this title.'}, status=400)
+
+            # Rate limiting: prevent creating listings too quickly
+            if not getattr(settings, 'DISABLE_RATE_LIMIT_CHECK', False):
+                recent_listing = user_listings.order_by('-posted_at').first()
+                if recent_listing and (timezone.now() - recent_listing.posted_at).total_seconds() < 30:
+                    return JsonResponse({'error': 'You are creating listings too quickly.'}, status=429)
+
+            # Create the listing
             listing = Listing.objects.create(
-                creator=request.user,  
+                creator=request.user,
                 title=title,
                 category=category_id,
                 description=description,
@@ -624,17 +641,8 @@ def create_listing(request):
                 listing_type=listing_type,
                 duration=duration
             )
-            
-            # check if the user is creating services too quickly 30 seconds
-            if not getattr(settings, 'DISABLE_RATE_LIMIT_CHECK', False): # Disable rate limit check for test cases
-                if len(user_listings_old) > 0:
-                    if latest_listing_posted_at > listing.posted_at - timedelta(seconds=30):
-                        listing.delete()
-                        return JsonResponse({'error': 'You are creating services too quickly.'}, status=429)
-            
-            
-            listing.save() # save the listing to the database
 
+            # Add tags to the listing
             if tag_ids:
                 tags = Tag.objects.filter(id__in=tag_ids)
                 listing.tags.set(tags)
@@ -643,17 +651,23 @@ def create_listing(request):
                 'id': listing.id,
                 'title': listing.title,
                 'category': category,
-                'tags': [tag.name for tag in listing.tags.all()], 
+                'tags': [tag.name for tag in listing.tags.all()],
                 'description': listing.description,
                 'image_url': listing.image.url if listing.image else None,
                 'listing_type': listing.listing_type,
                 'duration': str(listing.duration)
-            }, status=201) # return the created listing
+            }, status=201)
 
         except Exception as e:
-            return JsonResponse({'error': str(e)}, status=500)
+            # Log the exception (optional)
+            # import logging
+            # logger = logging.getLogger(__name__)
+            # logger.exception(e)
 
-    return JsonResponse({'error': 'POST request required'}, status=405)
+            return JsonResponse({'error': 'An unexpected error occurred.'}, status=500)
+
+    else:
+        return JsonResponse({'error': 'POST request required.'}, status=405)
 
 @login_required  # Make sure the user is logged in to access this page
 def create_listing_page(request):
