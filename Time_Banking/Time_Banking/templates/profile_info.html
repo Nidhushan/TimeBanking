@@ -45,8 +45,12 @@
             <p>Get the most out of our platform by sharing more about yourself and how you prefer to offer services.</p>
             <!-- Skills Section -->
             <div class="checklist-item">
-                <h3>Add Your Skills</h3>
-                <p>Share the skills you offer to maximize your time credits.</p>
+                {% if request.user == user %}
+                    <h3>Add Your Skills</h3>
+                    <p>Share the skills you offer to maximize your time credits.</p>
+                {% else %}
+                    <h3>Skills</h3>
+                {% endif %}
                 <ul class="skills-container">
                     {% for skill in skills %}
                         <li class="skill-item">{{ skill.name }}</li>
