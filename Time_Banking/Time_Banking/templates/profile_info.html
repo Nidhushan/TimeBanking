@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block title %}
-Edit Profile
+Profile Info
 {% endblock %}
 
 {% block content %}
@@ -25,12 +25,15 @@ Edit Profile
                     <p><i class="fa fa-calendar"></i> Joined in {{ user.date_joined|date:"F Y" }}</p>
                     <p>Bio: {{ user.bio }}</p>
                     <p>Link: <a href="{{ user.link }}">{{ user.link }}</a></p>
+                    <!-- New Fields -->
+                    <p>Average Rating: {{ user.avg_rating }}</p>
+                    <p>Quality Multiplier: {{ user.multiplier }}</p>
                 </div>
 
                 <!-- Time Credits Section -->
                 <div class="time-credits">
-                    <h3>Time Credits Earned</h3>
-                    <p>{{ user.time_credits }} hours</p>
+                    <h3>Total Hours Contributed</h3>
+                    <p>{{ user.total_hours }} hours</p>
                 </div>
 
                 <!-- Buttons -->
@@ -43,7 +46,6 @@ Edit Profile
         <div class="col-right">
             <h2>Hi 👋 {{ user.name }}, complete your profile to earn more time credits!</h2>
             <p>Get the most out of our platform by sharing more about yourself and how you prefer to offer services.</p>
-            
 
             <!-- Checklist Section -->
             <div class="checklist-item">
@@ -55,7 +57,20 @@ Edit Profile
                     <span>Completed</span>
                 {% endif %}
             </div>
+
+            <!-- Feedback Section -->
             <h3>Reviews from Service Exchanges</h3>
+            <ul class="feedback-list">
+                {% for feedback in feedbacks %}
+                    <li class="feedback-item">
+                        <strong>From {{ feedback.requester.username }}:</strong>
+                        <p>Rating: {{ feedback.rating }} out of 5</p>
+                        <p>Comment: {{ feedback.comment }}</p>
+                    </li>
+                {% empty %}
+                    <p>No feedback received yet.</p>
+                {% endfor %}
+            </ul>
         </div>
     </div>
 </div>

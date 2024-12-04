@@ -10,14 +10,13 @@ from django.core.exceptions import ValidationError
 from django.core.mail import send_mail
 from django.conf import settings
 import uuid
-from .models import Listing, User, ListingResponse, ListingAvailability, Category, Tag
-from .forms import RegisterForm, ProfileCreationForm, ProfileEditForm
+from .models import Listing, User, ListingResponse, ListingAvailability, Category, Tag, Feedback, ServiceTransaction
+from .forms import RegisterForm, ProfileCreationForm, ProfileEditForm, FeedbackForm
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
 import random
 import json
-from .forms import ProfileEditForm
 from django.http import HttpResponseNotAllowed
 
 
@@ -332,6 +331,64 @@ def delete_account(request):
 #     return JsonResponse({'error': 'POST request required'}, status=405)
 
 
+# Function to update provider metrics
+def update_provider_metrics(feedback):
+    provider = feedback.provider
+    all_ratings = Feedback.objects.filter(provider=provider).values_list('rating', flat=True)
+    provider.avg_rating = sum(all_ratings) / len(all_ratings)
+    new_multiplier = provider.multiplier + (feedback.rating - 3) * 0.1
+    provider.multiplier = max(0.5, min(2.0, new_multiplier))
+    provider.total_hours += feedback.transaction.duration.total_seconds() / 3600  # Convert duration to hours
+    provider.save()
+
+# View to submit feedback
+@login_required
+def submit_feedback(request, transaction_id):
+    transaction = get_object_or_404(ServiceTransaction, id=transaction_id, requester=request.user)
+
+    if request.method == 'POST':
+        form = FeedbackForm(request.POST)
+        if form.is_valid():
+            feedback = form.save(commit=False)
+            feedback.transaction = transaction
+            feedback.provider = transaction.provider
+            feedback.requester = request.user
+            feedback.save()
+
+            # Update provider metrics
+            update_provider_metrics(feedback)
+
+            # Mark transaction as feedback given
+            transaction.feedback_given = True
+            transaction.save()
+
+            return redirect('home')
+    else:
+        form = FeedbackForm()
+
+    context = {
+        'form': form,
+        'transaction': transaction,
+    }
+
+    return render(request, 'submit_feedback.html', context)
+
+# View to complete transaction
+@login_required
+def complete_transaction(request, transaction_id):
+    transaction = get_object_or_404(ServiceTransaction, id=transaction_id, provider=request.user)
+
+    if request.method == 'POST':
+        transaction.status = 'Completed'
+        transaction.save()
+        return redirect('home')
+
+    context = {
+        'transaction': transaction,
+    }
+
+    return render(request, 'complete_transaction.html', context)
+
 @login_required   # Ensures the user is logged in
 def user_settings_page(request):
     return render(request, 'user_settings.html')
@@ -453,23 +510,36 @@ def view_listing(request, listing_id):
 @login_required
 def accept_service(request, listing_id):
     if request.method == 'POST':
-        # Retrieve the listing using the ID
         listing = get_object_or_404(Listing, id=listing_id)
 
-        # Check if the listing creator is not the same as the current user
         if listing.creator == request.user:
             return JsonResponse({'error': 'You cannot accept your own service/request.'}, status=403)
 
-        # Create a response to mark the service/request as accepted
+        # Create a ListingResponse
         ListingResponse.objects.create(
             listing=listing,
             user=request.user,
             message="Accepted",
-            status=1  # You can use an appropriate integer to indicate 'Accepted' status
+            status=1
         )
 
-        # Logic to notify the listing creator (for example, by email or in-app notification)
-        # Here, we are just simulating a simple success response
+        # Determine provider and requester
+        if listing.listing_type == 'Offer':
+            provider = listing.creator
+            requester = request.user
+        else:
+            provider = request.user
+            requester = listing.creator
+
+        # Create a ServiceTransaction
+        ServiceTransaction.objects.create(
+            listing=listing,
+            provider=provider,
+            requester=requester,
+            duration=listing.duration,
+            status='Pending'
+        )
+
         return JsonResponse({'message': 'Service/Request accepted successfully!'}, status=200)
 
     return JsonResponse({'error': 'Only POST requests are allowed.'}, status=405)
@@ -721,6 +791,11 @@ def edit_profile(request):
         form = ProfileEditForm(instance=request.user)
     return render(request, 'edit_profile.html', {'form': form})
 
+# @login_required
+# def get_profile(request):
+#     return render(request, 'profile_info.html', {'user': request.user})
+
 @login_required
 def get_profile(request):
-    return render(request, 'profile_info.html', {'user': request.user})
+    feedbacks = Feedback.objects.filter(provider=request.user)
+    return render(request, 'profile_info.html', {'user': request.user, 'feedbacks': feedbacks})

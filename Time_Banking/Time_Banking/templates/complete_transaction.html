@@ -1,0 +1,10 @@
+{% extends "master.html" %}
+
+{% block content %}
+<h2>Mark Transaction {{ transaction.id }} as Completed</h2>
+<form method="post">
+    {% csrf_token %}
+    <p>Are you sure you want to mark this transaction as completed?</p>
+    <button type="submit">Yes, Mark as Completed</button>
+</form>
+{% endblock %}
