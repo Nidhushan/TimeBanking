@@ -352,18 +352,6 @@ def user_detail(request, id):
     }
     return JsonResponse(data)
 
-
-# Display User's information
-def user_detail_page(request, id):
-    try:
-        user = User.objects.get(pk=id)
-        # Pass the user object to the template context
-        return render(request, 'user_profile.html', {'user': user})
-    except User.DoesNotExist:
-        # Pass an error message to the template if user is not found
-        return render(request, 'user_profile.html', {'error': 'User not found'})
-
-
 def get_all_listings(request):
     # should be modified if the database of listings is too large
     listings = Listing.objects.all()
