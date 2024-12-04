@@ -475,8 +475,9 @@ def apply_service(request, listing_id):
         )
 
         Notification.objects.create(
-            user=request.user,
-            message="You've got a new applicant."
+            user=listing.creator,
+            message="You've got a new applicant.",
+            url="/myservices"
         )
 
         # Logic to notify the listing creator (for example, by email or in-app notification)
@@ -769,18 +770,45 @@ def view_applicants(request, listing_id):
         response.save()
         Notification.objects.create(
             user=response.user,
-            message="You're accepted."
+            message="You get an update on your applied service.",
+            url="/appliedservices"
         )
+        for rresponse in responses:
+            if rresponse != response:
+                rresponse.message = 'Rejected'  
+                rresponse.status = 3
+                rresponse.save()
+                Notification.objects.create(
+                    user=rresponse.user,
+                    message="You get an update on your applied service.",
+                    url="/appliedservices"
+                )
 
         return redirect('view_applicants', listing_id=listing_id)
 
     return render(request, 'view_applicants.html', {'responses': responses})
 
 
+@login_required   
 def get_notifications(request):
     notifications = Notification.objects.filter(user=request.user).order_by('-created_at')
     data = [
-        {"id": n.id, "message": n.message, "is_read": n.is_read, "created_at": n.created_at.strftime('%Y-%m-%d %H:%M:%S')}
+        {"id": n.id, "message": n.message, "is_read": n.is_read, "created_at": n.created_at.strftime('%Y-%m-%d %H:%M:%S'), "url":n.url}
         for n in notifications
     ]
     return JsonResponse({"notifications": data})
+
+@csrf_exempt 
+def mark_as_read(request, notification_id):
+    if request.method == "POST":
+        notification = get_object_or_404(Notification, id=notification_id)
+        notification.is_read = True
+        notification.save()
+        return JsonResponse({"status": "success"})
+    return JsonResponse({"status": "error"}, status=400)
+
+@login_required    
+def applied_services(request):
+    responses = ListingResponse.objects.filter(user=request.user)
+    
+    return render(request, 'applied_services.html', {'responses': responses})

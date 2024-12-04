@@ -80,7 +80,8 @@ urlpatterns = [
     path('myservices/', views.my_service, name='my_service'),
     path('applicants/<int:listing_id>/', views.view_applicants, name='view_applicants'),
     path('get-notifications/', views.get_notifications, name='get_otifications'),
-
+    path('appliedservices/', views.applied_services, name='applied_services'),
+    path('notifications/mark-as-read/<int:notification_id>/', views.mark_as_read, name='mark_as_read'),
 ]
 
 

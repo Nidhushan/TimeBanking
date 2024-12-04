@@ -1,0 +1,20 @@
+{% extends "master.html" %}
+{% load static %}
+
+{% block title %}
+Applied Service
+{% endblock %}
+
+{% block content %}
+<h3>Applied Services</h3>
+{% for response in responses %}
+    <div class="card">
+        <img src="{{ response.listing.image.url }}" class="card-img-top" alt="{{ response.listing.title }}">
+        <div class="card-body">
+            <h5 class="card-title">{{ response.listing.title }}</h5>
+            <p class="card-text">{{ response.listing.description }}</p>
+            <p class="card-text">Your applied status: {{ response.message }}</p>
+        </div>
+    </div>
+{% endfor %}
+{% endblock %}
