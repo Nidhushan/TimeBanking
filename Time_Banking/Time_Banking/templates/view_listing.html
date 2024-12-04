@@ -27,5 +27,8 @@
         {% csrf_token %}
         <button type="submit" class="btn btn-primary">Accept Service/Request</button>
     </form>
+
+    <a href="{% url 'edit_listing_page' listing.id %}" class="btn btn-primary">Edit</a>
+    
 </div>
 {% endblock %}

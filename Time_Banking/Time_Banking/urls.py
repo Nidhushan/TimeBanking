@@ -52,6 +52,8 @@ urlpatterns = [
     # path('listing/<int:listing_id>/', views.get_listing_by_id, name='get_listing'),
     path('listing/<int:listing_id>/', views.view_listing, name='view_listing'),
     path('listing/<int:listing_id>/accept/', views.accept_service, name='accept_service'),
+    path('listing/<int:listing_id>/edit/', views.edit_listing, name='edit_listing'),
+    path('listing/<int:listing_id>/edit/page/', views.edit_listing_page, name='edit_listing_page'),
     # path(
     #     "api/listings/<int:listing_id>/responses/",
     #     views.get_responses_for_listing,
@@ -70,7 +72,7 @@ urlpatterns = [
     path('profile/edit/', views.edit_profile, name='edit_profile'),
     path('delete-profile-picture/', views.delete_profile_picture, name='delete_profile_picture'),
     path('api/create-listing/', views.create_listing, name='create_listing'),
-    path('api/edit-listing/<int:listing_id>/', views.edit_listing, name='edit_listing'),
+    # path('api/edit-listing/<int:listing_id>/', views.edit_listing, name='edit_listing'),
     path('api/categories/', views.get_categories, name='get_categories'),
     path('api/tags/', views.get_tags, name='get_tags'),
     #path('create-profile/', views.create_profile, name='create_profile'),
@@ -82,10 +84,6 @@ urlpatterns = [
     path('user/<int:user_id>/', views.profile_info, name='user_profile'),
     path('listing/<int:id>/', views.view_listing, name='view_listing'),
     path('profile/<int:user_id>/', views.profile_info, name='profile_info'),
-
-
-    
-
 ]
 
 
