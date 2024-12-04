@@ -11,14 +11,23 @@ Edit Profile
         <h1 class="profile-h1">Edit Your Profile</h1>
         <form method="post" enctype="multipart/form-data" class="profile-form">
             {% csrf_token %}
-            <div class="profile-picture" onclick="triggerFileInput()">
+            
+            <!-- Profile Picture Section -->
+            <div class="profile-picture" onclick="toggleMenu()">
                 {% if user.picture %}
                     <img id="profileImage" src="{{ user.picture.url }}" alt="Profile Picture">
                 {% else %}
-                    <img id="profileImage" src="{% static 'images/default-profile.png' %}" alt="Profile Picture">
+                    <img id="profileImage" src="{% static 'images/default-avatar-profile-icon-social-600nw-1677509740.jpg.webp' %}" alt="Default Profile Picture">
                 {% endif %}
                 <input type="file" id="fileInput" name="picture" style="display:none;" onchange="previewImage(event)">
             </div>
+
+            <!-- Profile Picture Options Menu -->
+            <div id="pictureMenu" class="picture-menu" style="display: none;">
+                <button type="button" onclick="triggerFileInput()">Upload a Photo</button>
+                <button type="button" onclick="deleteProfilePicture()">Delete Photo</button>
+            </div>
+
             {{ form.name.label_tag }} {{ form.name }}
             {{ form.title.label_tag }} {{ form.title }}
             {{ form.location.label_tag }} {{ form.location }}
@@ -30,6 +39,11 @@ Edit Profile
 </div>
 
 <script>
+    function toggleMenu() {
+        const menu = document.getElementById('pictureMenu');
+        menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+    }
+    
     function triggerFileInput() {
         document.getElementById('fileInput').click();
     }
@@ -42,5 +56,35 @@ Edit Profile
         };
         reader.readAsDataURL(event.target.files[0]);
     }
+
+    function deleteProfilePicture() {
+        if (confirm("Are you sure you want to delete your profile picture?")) {
+            fetch("{% url 'delete_profile_picture' %}", {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": "{{ csrf_token }}",
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Reset to default profile picture
+                    document.getElementById('profileImage').src = "{% static 'images/default-avatar-profile-icon-social-600nw-1677509740.jpg.webp' %}";
+                } else {
+                    alert("Failed to delete profile picture.");
+                }
+            })
+            .catch(error => console.error("Error:", error));
+        }
+    }
+
+    // Hide the menu if clicked outside
+    document.addEventListener('click', function(event) {
+        const menu = document.getElementById('pictureMenu');
+        const profilePicture = document.querySelector('.profile-picture');
+        if (!profilePicture.contains(event.target) && !menu.contains(event.target)) {
+            menu.style.display = 'none';
+        }
+    });
 </script>
 {% endblock %}

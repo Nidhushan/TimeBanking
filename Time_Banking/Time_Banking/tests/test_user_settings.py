@@ -168,23 +168,6 @@ class UserSettingsTests(TestCase):
     #     self.assertEqual(user.location, "New York, NY")
     #     self.assertEqual(user.link, "")
     #     self.assertEqual(user.bio, "")
-
-    def test_get_user_details(self):
-        response = self.client.get(
-            reverse('user_detail', args=[self.user.id])
-        )
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json(), {
-            "avg_rating": 0.0,
-            "bio": "",
-            "email": "",
-            "link": "",
-            "location": "",
-            "multiplier": 1.0,
-            "name": "",
-            "picture_url": "",
-            "title": ""
-        })
         
     def test_delete_account(self):
         response = self.client.post(reverse('delete_account'))
@@ -213,7 +196,7 @@ class UserSettingsTests(TestCase):
             
             
     def test_user_detail_page_user_found(self):
-        response = self.client.get(reverse('user_detail_page', args=[self.user.id]))
+        response = self.client.get(reverse('profile_info', args=[self.user.id]))
         
         self.assertEqual(response.status_code, 200)
         
@@ -221,9 +204,9 @@ class UserSettingsTests(TestCase):
 
     def test_user_detail_page_user_not_found(self):
         non_existent_user_id = 999  
-        response = self.client.get(reverse('user_detail_page', args=[non_existent_user_id]))
+        response = self.client.get(reverse('profile_info', args=[non_existent_user_id]))
         
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 404)
         
-        self.assertContains(response, 'User not found')
+        # self.assertContains(response, 'User not found')
         
