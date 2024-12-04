@@ -673,6 +673,7 @@ def edit_listing_page(request, listing_id):
     
     return render(request, 'edit_listing.html', {
         'listing': listing,
+        'duration': listing.duration.seconds // 60,
     })
 
 """@login_required

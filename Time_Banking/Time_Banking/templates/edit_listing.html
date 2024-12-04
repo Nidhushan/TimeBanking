@@ -19,7 +19,7 @@ Edit listing - Time Banking
                 <div class="form-group">
                     <!-- Title -->
                     <label for="title">Title</label>
-                    <input type="text" id="title" name="title" required>
+                    <input type="text" id="title" name="title" value="{{ listing.title }}" required>
                 </div>
                 <div class="form-group">
                     <!-- Category -->
@@ -66,12 +66,12 @@ Edit listing - Time Banking
                 <div class="form-group">
                     <!-- Duration -->
                     <label for="duration">Duration (in minutes):</label>
-                    <input type="number" id="duration" name="duration" min="1" required>
+                    <input type="number" id="duration" name="duration" min="1" value="{{ duration }}" required>
                 </div>
                 <div class="form-group">
                     <!-- Description -->
                     <label for="description">Description:</label>
-                    <textarea id="description" name="description" rows="4" required></textarea>
+                    <textarea id="description" name="description" rows="4" required>{{ listing.description }}</textarea>
                 </div>
                 <div class="form-group-tags">
                     <!-- Tag -->
@@ -85,7 +85,8 @@ Edit listing - Time Banking
 
             <div id="responseMessage"></div>
 
-            <script>
+            <script data-category="{{ listing.category }}">
+                const data = document.currentScript.dataset;
                 // Fetch categories dynamically from the TextChoices enum and populate the dropdown
                 fetch('/api/categories/')
                     .then(response => response.json())
@@ -97,6 +98,7 @@ Edit listing - Time Banking
                             option.text = category.name;
                             categorySelect.add(option);
                         });
+                        categorySelect.value = data.category;
                     })
                     .catch(error => console.error('Error fetching categories:', error));
         
