@@ -4,7 +4,7 @@ from ..models import Listing, User, Tag, Category
 from django.core.files.uploadedfile import SimpleUploadedFile
 from datetime import timedelta
 from django.utils.formats import date_format
-
+import json
 
 class ViewListingTests(TestCase):
 
@@ -101,3 +101,27 @@ class ViewListingTests(TestCase):
         response = self.client.post(reverse('accept_service', args=[self.listing.id]))
         self.assertEqual(response.status_code, 200)
         self.assertJSONEqual(response.content, {'message': 'Service/Request accepted successfully!'})
+
+    def test_view_all_listings_api(self):
+        response = self.client.get(reverse("get_all_listings"))
+        r = json.loads(response.content)
+        self.assertEqual(r[0]["category"], self.listing.category.label)
+        self.assertEqual(r[0]["creator"], self.listing.creator.username)
+        self.assertEqual(r[0]["description"], self.listing.description)
+        self.assertEqual(r[0]["duration"], "2:00:00")
+        self.assertEqual(r[0]["image"], self.listing.image.url)
+        self.assertEqual(r[0]["listing_type"], "True")
+        self.assertEqual(r[0]["tags"], [self.tag1.name, self.tag2.name])
+        self.assertEqual(r[0]["title"], self.listing.title)
+
+    # def test_view_listing_api(self):
+    #     response = self.client.get(reverse("get_listing_by_id"))
+    #     r = json.loads(response.content)
+    #     self.assertEqual(r["category"], self.listing.category.label)
+    #     self.assertEqual(r["creator"], self.listing.creator.username)
+    #     self.assertEqual(r["description"], self.listing.description)
+    #     self.assertEqual(r["duration"], "2:00:00")
+    #     self.assertEqual(r["image"], self.listing.image.url)
+    #     self.assertEqual(r["listing_type"], "True")
+    #     self.assertEqual(r["tags"], [self.tag1.name, self.tag2.name])
+    #     self.assertEqual(r["title"], self.listing.title)

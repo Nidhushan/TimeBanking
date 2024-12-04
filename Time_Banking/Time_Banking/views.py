@@ -17,7 +17,6 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
 import random
 import json
-from django.contrib.auth import login as auth_login
 from .forms import ProfileEditForm
 from django.http import HttpResponseNotAllowed
 from django.contrib import messages
@@ -203,7 +202,7 @@ def custom_login(request):
         user = authenticate(request, username=username, password=password)
         if user is not None:
             if user.is_verified:
-                auth_login(request, user)
+                login(request, user)
                 if not user.name or not user.title or not user.location:
                     return redirect('edit_profile')
                 return redirect('home')
@@ -230,6 +229,9 @@ def change_password(request):
             new_password = data.get('new_password')
             confirm_password = data.get('confirm_password')
             
+            if not username or not current_password or not new_password or not confirm_password:
+                return JsonResponse({'error': 'Invalid input, missing fields'}, status=400)
+            
             if username != request.user.username:
                 return JsonResponse({'error': 'Not authorized to change password'}, status=403)
             
@@ -253,10 +255,7 @@ def change_password(request):
 
             return JsonResponse({'status': 'success'}, status=200)
 
-        except User.DoesNotExist:
-            return JsonResponse({'error': 'User not found'}, status=404)
-        except KeyError:
-            return JsonResponse({'error': 'Invalid input, missing fields'}, status=400)
+
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=500)
 
@@ -264,8 +263,8 @@ def change_password(request):
 
 
 # @login_required  # Ensures the user is logged in
-def change_password_page(request):
-    return render(request, 'user_settings.html')
+# def change_password_page(request):
+#     return render(request, 'user_settings.html')
 
 
 """
@@ -291,47 +290,47 @@ def delete_account(request):
     return JsonResponse({'error': 'POST request required'}, status=405)
 
 
-@login_required  # Make sure the user is logged in to access this page
-def delete_account_page(request):
-    return render(request, 'delete_account.html')
+# @login_required  # Make sure the user is logged in to access this page
+# def delete_account_page(request):
+#     return render(request, 'delete_account.html')
 
 
-@login_required   # Ensures the user is logged in
-# @csrf_exempt  # For handling form submissions via AJAX, use CSRF protection in production
-def update_user_settings(request):
-    if request.method == 'POST':
-        try:
-            user = request.user 
+# @login_required   # Ensures the user is logged in
+# # @csrf_exempt  # For handling form submissions via AJAX, use CSRF protection in production
+# def update_user_settings(request):
+#     if request.method == 'POST':
+#         try:
+#             user = request.user 
 
-            # Get the updated fields from the form or JSON data
-            name = request.POST.get('name')
-            title = request.POST.get('title')
-            location = request.POST.get('location')
-            bio = request.POST.get('bio')
-            link = request.POST.get('link')
-            picture = request.FILES.get('picture')  
+#             # Get the updated fields from the form or JSON data
+#             name = request.POST.get('name')
+#             title = request.POST.get('title')
+#             location = request.POST.get('location')
+#             bio = request.POST.get('bio')
+#             link = request.POST.get('link')
+#             picture = request.FILES.get('picture')  
 
-            # Update user information only for the fields that are provided
-            if name is not None:
-                user.name = name
-            if title is not None:
-                user.title = title
-            if location is not None:
-                user.location = location
-            if bio is not None:
-                user.bio = bio
-            if link is not None:
-                user.link = link
-            if picture is not None:
-                user.picture = picture  
-            user.save()
+#             # Update user information only for the fields that are provided
+#             if name is not None:
+#                 user.name = name
+#             if title is not None:
+#                 user.title = title
+#             if location is not None:
+#                 user.location = location
+#             if bio is not None:
+#                 user.bio = bio
+#             if link is not None:
+#                 user.link = link
+#             if picture is not None:
+#                 user.picture = picture  
+#             user.save()
 
-            return JsonResponse({'status': 'Profile updated successfully'}, status=200)
+#             return JsonResponse({'status': 'Profile updated successfully'}, status=200)
 
-        except Exception as e:
-            return JsonResponse({'error': str(e)}, status=500)
+#         except Exception as e:
+#             return JsonResponse({'error': str(e)}, status=500)
 
-    return JsonResponse({'error': 'POST request required'}, status=405)
+#     return JsonResponse({'error': 'POST request required'}, status=405)
 
 
 @login_required   # Ensures the user is logged in
@@ -391,55 +390,55 @@ def get_all_listings(request):
     return JsonResponse(data, safe=False)
 
 
-def get_listing_by_id(request, listing_id):
-    try:
-        # Fetch the listing by ID
-        listing = get_object_or_404(Listing, id=listing_id)
-        category_id = listing.category
+# def get_listing_by_id(request, listing_id):
+#     try:
+#         # Fetch the listing by ID
+#         listing = get_object_or_404(Listing, id=listing_id)
+#         category_id = listing.category
         
-        data = {
-            'id': listing.id,
-            'creator': listing.creator.username,  
-            'category': Category(category_id).label,  
-            'tags': [tag.name for tag in listing.tags.all()], 
-            'title': listing.title,
-            'description': listing.description,
-            'image': listing.image.url if listing.image else None, 
-            'listing_type': listing.listing_type, 
-            'duration': str(listing.duration), 
-            'posted_at': listing.posted_at.strftime('%Y-%m-%d %H:%M:%S'),  
-            'edited_at': listing.edited_at.strftime('%Y-%m-%d %H:%M:%S'), 
-        }
-        return JsonResponse(data, status=200)
+#         data = {
+#             'id': listing.id,
+#             'creator': listing.creator.username,  
+#             'category': Category(category_id).label,  
+#             'tags': [tag.name for tag in listing.tags.all()], 
+#             'title': listing.title,
+#             'description': listing.description,
+#             'image': listing.image.url if listing.image else None, 
+#             'listing_type': listing.listing_type, 
+#             'duration': str(listing.duration), 
+#             'posted_at': listing.posted_at.strftime('%Y-%m-%d %H:%M:%S'),  
+#             'edited_at': listing.edited_at.strftime('%Y-%m-%d %H:%M:%S'), 
+#         }
+#         return JsonResponse(data, status=200)
     
-    except Exception as e:
-        return JsonResponse({'error': str(e)}, status=500)
+#     except Exception as e:
+#         return JsonResponse({'error': str(e)}, status=500)
 
 
-def get_responses_for_listing(request, listing_id):
-    listing = Listing.objects.get(id=listing_id)
-    responses = ListingResponse.objects.filter(listing=listing)
-    data = []
-    for response in responses:
-        data.append(
-            {
-                "user": response.user.username,
-                "message": response.message,
-                "status": response.status,
-            }
-        )
-    return JsonResponse(data, safe=False)
+# def get_responses_for_listing(request, listing_id):
+#     listing = Listing.objects.get(id=listing_id)
+#     responses = ListingResponse.objects.filter(listing=listing)
+#     data = []
+#     for response in responses:
+#         data.append(
+#             {
+#                 "user": response.user.username,
+#                 "message": response.message,
+#                 "status": response.status,
+#             }
+#         )
+#     return JsonResponse(data, safe=False)
 
 
-def get_availability_for_listing(request, listing_id):
-    listing = Listing.objects.get(id=listing_id)
-    availabilities = ListingAvailability.objects.filter(listing=listing)
-    data = []
-    for availability in availabilities:
-        data.append(
-            {"from_time": availability.from_time, "to_time": availability.to_time}
-        )
-    return JsonResponse(data, safe=False)
+# def get_availability_for_listing(request, listing_id):
+#     listing = Listing.objects.get(id=listing_id)
+#     availabilities = ListingAvailability.objects.filter(listing=listing)
+#     data = []
+#     for availability in availabilities:
+#         data.append(
+#             {"from_time": availability.from_time, "to_time": availability.to_time}
+#         )
+#     return JsonResponse(data, safe=False)
 
 def view_listing(request, listing_id):
     if request.method != 'GET':
@@ -522,10 +521,10 @@ def create_listing(request):
             description = request.POST.get('description')
             image = request.FILES.get('image')  # We can only have 1 image per listing
             listing_type = request.POST.get('listing_type')  # Expecting 'True' or 'False'
-            duration_in_hours = request.POST.get('duration')  # Expected format: integer (hours)
+            duration_in_minutes = request.POST.get('duration')  # Expected format: integer (minutes)
             tag_ids = request.POST.getlist('tags')  # Expecting a list of tag IDs
 
-            if not title or not category_id or not description or not image or not listing_type or not duration_in_hours:
+            if not title or not category_id or not description or not image or not listing_type or not duration_in_minutes:
                 missing_fields = [field for field in ['title', 'category', 'description', 'image', 'listing_type', 'duration'] if not request.POST.get(field)]
                 error_msg = f'Missing required fields: {", ".join(missing_fields)}'
                 return JsonResponse({'error': error_msg}, status=400)
@@ -539,8 +538,8 @@ def create_listing(request):
             category = Category(category_id).label
 
             try:
-                duration_in_hours = int(duration_in_hours)  # Ensure it's an integer
-                duration = timedelta(hours=duration_in_hours)  # Convert to timedelta
+                duration_in_minutes = int(duration_in_minutes)  # Ensure it's an integer
+                duration = timedelta(minutes=duration_in_minutes)  # Convert to timedelta
             except ValueError:
                 return JsonResponse({'error': 'Duration must be a valid integer'}, status=400)
             
