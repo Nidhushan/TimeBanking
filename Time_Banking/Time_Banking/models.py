@@ -1,5 +1,5 @@
 
-from datetime import timezone
+from datetime import timezone, timedelta
 from django.db import models
 import datetime
 from django.contrib.auth.models import AbstractUser
@@ -50,8 +50,9 @@ class Tag(models.Model):
 
 # user account
 class User(AbstractUser):
-    multiplier = models.FloatField(default=1.0) # or DecimalField?
-    avg_rating = models.DecimalField(max_digits=3, decimal_places=2, default=0.00) # 1.00 to 5.00, or 0.00
+    multiplier = models.FloatField(default=1.0)
+    avg_rating = models.DecimalField(max_digits=3, decimal_places=2, default=0.00)
+    total_minutes = models.FloatField(default=0.0) 
     is_verified = models.BooleanField(default=False)  # Track if user is verified
     verification_code = models.CharField(max_length=100, blank=True, null=True)  # Store verification code
     # TODO: profiles
@@ -110,6 +111,46 @@ class ListingAvailability(models.Model):
     listing = models.ForeignKey(Listing, on_delete=models.CASCADE)
     from_time = models.DateTimeField()
     to_time = models.DateTimeField()
+
+# New model for service transactions
+class ServiceTransaction(models.Model):
+    listing = models.ForeignKey(Listing, on_delete=models.CASCADE)
+    provider = models.ForeignKey(User, on_delete=models.CASCADE, related_name='provided_services')
+    requester = models.ForeignKey(User, on_delete=models.CASCADE, related_name='requested_services')
+    duration = models.DurationField()
+    status = models.CharField(
+        max_length=20,
+        choices=[
+            ('Pending', 'Pending'),
+            ('Completed', 'Completed'),
+            ('Cancelled', 'Cancelled'),
+        ],
+        default='Pending'
+    )
+    feedback_given = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"Transaction {self.id}: {self.requester} -> {self.provider}"
+    
+# New model for feedback
+class Feedback(models.Model):
+    transaction = models.OneToOneField(ServiceTransaction, on_delete=models.CASCADE)
+    provider = models.ForeignKey(User, on_delete=models.CASCADE, related_name='feedback_received')
+    requester = models.ForeignKey(User, on_delete=models.CASCADE, related_name='feedback_given')
+    rating = models.IntegerField()
+    comment = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return f"Feedback for Transaction {self.transaction.id} by {self.requester}"
+
+def update_provider_metrics(feedback):
+    provider = feedback.provider
+    all_ratings = Feedback.objects.filter(provider=provider).values_list('rating', flat=True)
+    provider.avg_rating = sum(all_ratings) / len(all_ratings)
+    new_multiplier = provider.multiplier + (feedback.rating - 3) * 0.1
+    provider.multiplier = max(0.5, min(2.0, new_multiplier))
+    provider.total_minutes += feedback.transaction.duration.total_seconds() / 60  # Convert duration to minutes
+    provider.save()
 
 # images within a listing
 # class ListingImage(models.Model):
