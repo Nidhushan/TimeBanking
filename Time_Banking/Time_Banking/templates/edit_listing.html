@@ -1,0 +1,204 @@
+{% extends "master.html" %}
+{% load static %}
+
+{% block title %}
+Edit listing - Time Banking
+{% endblock %}
+
+{% block extra_links %}
+<link rel="stylesheet" href="{% static 'css/createlisting.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5 mb-5">
+    <div class="row justify-content-center">
+        <div style="display: block;">
+            <div class="headline">Edit an Existing Service</div>
+            <form id="editListingForm" method="post" action="{% url 'edit_listing' listing.id %}" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="form-group">
+                    <!-- Title -->
+                    <label for="title">Title</label>
+                    <input type="text" id="title" name="title" value="{{ listing.title }}" required>
+                </div>
+                <div class="form-group">
+                    <!-- Category -->
+                    <label for="category">Category:</label>
+                    <select id="category" name="category" required >
+                        <!-- Category will be populated here dynamically -->
+                        <option value="">Select a category</option>
+                    </select>
+                    <!-- <select id="category" name="category" required>
+                        <option value="" disabled selected>Please Select Category</option>
+                        <option value="Graphics & Design">Graphics & Design</option>
+                        <option value="Programming & Tech">Programming & Tech</option>
+                        <option value="Digital Marketing">Digital Marketing</option>
+                        <option value="Video & Animation">Video & Animation</option>
+                        <option value="Writing & Translation">Writing & Translation</option>
+                        <option value="Music & Audio">Music & Audio</option>
+                        <option value="Business">Business</option>
+                        <option value="Finance">Finance</option>
+                        <option value="AI Services">AI Services</option>
+                        <option value="Personal Growth">Personal Growth</option>
+                    </select> -->
+                </div>
+                <div class="form-group">
+                    <!-- Image -->
+                    <label for="image">Image:</label>
+                    <input type="file" id="image" name="image" accept="image/*">
+                </div>
+                <div class="form-group">
+                    <!-- Type (Offer or Request) -->
+                    <label>Type:</label>
+                    <input type="radio" id="offer" name="listing_type" value="Offer" {% if listing.listing_type == "Offer" %}checked{% endif %} required>
+                    <label for="offer">Offer</label>
+                    <input type="radio" id="request" name="listing_type" value="Request" {% if listing.listing_type == "Request" %}checked{% endif %}>
+                    <label for="request">Request</label>
+                </div>
+                <div class="form-group">
+                    <!-- Status -->
+                    <label for="status">Status:</label>
+                    <select id="status" name="status" required>
+                        <option value="">Select a status</option>
+                        <!-- Options populated dynamically -->
+                    </select>
+                </div>
+                <div class="form-group">
+                    <!-- Duration -->
+                    <label for="duration">Duration (in minutes):</label>
+                    <input type="number" id="duration" name="duration" min="1" value="{{ duration }}" required>
+                </div>
+                <div class="form-group">
+                    <!-- Description -->
+                    <label for="description">Description:</label>
+                    <textarea id="description" name="description" rows="4" required>{{ listing.description }}</textarea>
+                </div>
+                <div class="form-group-tags">
+                    <!-- Tag -->
+                    <label for="tags">Tags: (multiple)</label>
+                    <select id="tags" name="tags" multiple>
+                        <!-- Tags will be populated here dynamically -->
+                    </select>
+                </div><br>
+                <button type="submit" class="btn btn-primary btn-block create-account" id="submit-button">Save Changes</button>
+            </form>
+
+            <div id="responseMessage"></div>
+
+            <script data-category="{{ listing.category }}">
+                const data = document.currentScript.dataset;
+                // Fetch categories dynamically from the TextChoices enum and populate the dropdown
+                fetch('/api/categories/')
+                    .then(response => response.json())
+                    .then(categories => {
+                        const categorySelect = document.getElementById('category');
+                        categories.forEach(category => {
+                            const option = document.createElement('option');
+                            option.value = category.id;
+                            option.text = category.name;
+                            categorySelect.add(option);
+                        });
+                        categorySelect.value = data.category;
+                    })
+                    .catch(error => console.error('Error fetching categories:', error));
+        
+                // Fetch tags dynamically from the database and populate the multiple select dropdown
+                fetch('/api/tags/')
+                    .then(response => response.json())
+                    .then(tags => {
+                        const tagsSelect = document.getElementById('tags');
+                        tags.forEach(tag => {
+                            const option = document.createElement('option');
+                            option.value = tag.id;
+                            option.text = tag.name;
+                            tagsSelect.add(option);
+                        });
+                    })
+                    .catch(error => console.error('Error fetching tags:', error));
+                
+                    const STATUS_CHOICES_OFFER = ["Available", "In Progress", "Completed"];
+                    const STATUS_CHOICES_REQUEST = ["Available", "Fulfilled", "Closed"];
+
+                    document.addEventListener("DOMContentLoaded", function () {
+                        const statusSelect = document.getElementById("status");
+                        const listingTypeRadios = document.getElementsByName("listing_type");
+
+                        function updateStatusOptions() {
+                            const selectedType = Array.from(listingTypeRadios).find(radio => radio.checked)?.value;
+                            statusSelect.innerHTML = ""; // Clear current options
+                            const choices =
+                                selectedType === "Offer"
+                                    ? STATUS_CHOICES_OFFER
+                                    : STATUS_CHOICES_REQUEST;
+
+                            // Add options dynamically
+                            choices.forEach(choice => {
+                                const option = document.createElement("option");
+                                option.value = choice;
+                                option.text = choice;
+                                if (choice === "{{ listing.status }}") {
+                                    option.selected = true; // Preselect the existing status
+                                }
+                                statusSelect.add(option);
+                            });
+                        }
+
+                        // Update status options when listing_type changes
+                        listingTypeRadios.forEach(radio => {
+                            radio.addEventListener("change", updateStatusOptions);
+                        });
+
+                        // Initial population of status options
+                        updateStatusOptions();
+                    });
+
+                document.getElementById('editListingForm').addEventListener('submit', function(event) {
+                    event.preventDefault(); // Prevent the default form submission
+                    
+                    const formData = new FormData(this); // Collect the form data
+
+                    fetch(this.action, { // Use the form's action URL (edit_listing endpoint)
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-CSRFToken': '{{ csrf_token }}', // Include the CSRF token
+                        },
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        const responseMessage = document.getElementById('responseMessage');
+                        
+                        if (data.id) {
+                            // Show success message
+                            responseMessage.innerText = 'Listing edited successfully! Redirecting in 5 seconds...';
+                            responseMessage.classList.remove('error');
+                            responseMessage.classList.add('success');
+                            responseMessage.style.display = 'block';  
+                            
+                            // Wait for 5 seconds before redirecting
+                            setTimeout(function() {
+                                const redir_url = `/listing/${data.id}`;
+                                window.location.href = redir_url; 
+                            }, 5000); 
+                        } else if (data.error) {
+                            // Show error message
+                            responseMessage.innerText = `Error: ${data.error}`;
+                            responseMessage.classList.remove('success');
+                            responseMessage.classList.add('error');
+                            responseMessage.style.display = 'block';  
+                        }
+                    })
+                    .catch(error => {
+                        const responseMessage = document.getElementById('responseMessage');
+                        responseMessage.innerText = 'An error occurred. Please try again.';
+                        responseMessage.classList.remove('success');
+                        responseMessage.classList.add('error');
+                        responseMessage.style.display = 'block';  
+                        console.error('Error:', error);
+                    });
+                });
+            </script>
+        </div>
+    </div>
+</div>
+{% endblock %}
