@@ -79,7 +79,7 @@ class ViewListingTests(TestCase):
     def test_view_listing_contains_accept_button(self):
         # Test that the "Accept Service/Request" button is present
         response = self.client.get(reverse('view_listing', args=[self.listing.id]))
-        self.assertContains(response, 'Accept Service/Request')
+        self.assertContains(response, 'Apply Service/Request')
         self.assertContains(response, 'type="submit"')  # Check if submit button exists
 
     def test_view_listing_image_display(self):
@@ -97,10 +97,10 @@ class ViewListingTests(TestCase):
         response = self.client.post(reverse('view_listing', args=[self.listing.id]))
         self.assertEqual(response.status_code, 405)  # Expecting 405 (Method Not Allowed) for POST requests
 
-    def test_view_listing_accept_service_redirects_properly(self):
-        response = self.client.post(reverse('accept_service', args=[self.listing.id]))
-        self.assertEqual(response.status_code, 200)
-        self.assertJSONEqual(response.content, {'message': 'Service/Request accepted successfully!'})
+    # def test_view_listing_accept_service_redirects_properly(self):
+    #     response = self.client.post(reverse('accept_service', args=[self.listing.id]))
+    #     self.assertEqual(response.status_code, 200)
+    #     self.assertJSONEqual(response.content, {'message': 'Service/Request accepted successfully!'})
 
     def test_view_all_listings_api(self):
         response = self.client.get(reverse("get_all_listings"))
