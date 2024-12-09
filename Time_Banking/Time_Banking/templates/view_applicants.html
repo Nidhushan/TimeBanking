@@ -1,35 +1,157 @@
-{% extends "master.html" %}
-{% load static %}
+    {% extends "master.html" %}
+    {% load static %}
 
-{% block title %}
-My Service
-{% endblock %}
+    {% block title %}
+    My Service
+    {% endblock %}
 
-{% block content %}
-    {% if response %}
-        <div>Your selection has been confirmed.</div>
-        <h5 class="card-title">Your chosen applicant: {{ response.user }}</h5>
-    {% endif %}
-    <div class="row" style="justify-content: center;">
-        {% for response in responses %}
-            <div style="height: 150px;background-color: white;
-            border: 1px solid #ddd;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            padding: 20px;
-            margin: 10px;
-            width: 300px; 
-            box-sizing: border-box;
-            text-align: center;">
-                <div>
-                    <h5 class="card-title">{{ response.user }}</h5>
-                    <form method="POST" class="accept-form">
-                        {% csrf_token %}
-                        <input type="hidden" name="response_id" value="{{ response.id }}">
-                        <button type="submit" class="btn btn-primary">Accept</button>
-                    </form>
+    {% block content %}
+    <div class="container mt-4">
+        {% if response %}
+        <div class="confirmation-wrapper">
+            <div class="confirmation-message" id="confirmationMessage">
+                <div class="check-icon">
+                    <i class="fas fa-check-circle"></i>
                 </div>
+                <div class="confirmation-content">
+                    <h4 class="confirmation-title">Selection confirmed successfully!</h4>
+                    <p class="confirmation-detail">
+                        Your chosen applicant: 
+                        <a href="{% url 'profile_info' user_id=response.user_id %}" class="applicant-link">{{ response.user }}</a>
+                    </p>
+                </div>
+                
+                <a href="{% url 'my_service' %}" class="btn btn-success">View My Services</a>
             </div>
-        {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="applicants-container">
+            <h3 class="section-title mb-4">Available Applicants</h3>
+            <div class="row" style="justify-content: center;">
+                {% for response in responses %}
+                <div class="applicant-card">
+                    <div class="applicant-content">
+                        <h5 class="card-title">{{ response.user }}</h5>
+                        <form method="POST" class="accept-form">
+                            {% csrf_token %}
+                            <input type="hidden" name="response_id" value="{{ response.id }}">
+                            <button type="submit" class="btn btn-primary accept-btn">Accept</button>
+                        </form>
+                    </div>
+                </div>
+                {% empty %}
+                <p class="no-applicants">No applicants available at the moment.</p>
+                {% endfor %}
+            </div>
+        </div>
     </div>
-{% endblock %}
+
+    <style>
+    .confirmation-wrapper {
+        margin-bottom: 30px;
+    }
+
+    .confirmation-message {
+        background-color: #e8f5e9;
+        border-radius: 8px;
+        padding: 20px;
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        animation: slideDown 0.5s ease-out;
+    }
+
+    .check-icon {
+        color: #28a745;
+        font-size: 24px;
+    }
+
+    .confirmation-content {
+        flex-grow: 1;
+    }
+
+    .confirmation-title {
+        color: #2e7d32;
+        margin-bottom: 5px;
+        font-size: 1.2rem;
+    }
+
+    .confirmation-detail {
+        color: #1b5e20;
+        margin: 0;
+    }
+
+    .applicants-container {
+        margin-top: 20px;
+    }
+
+    .section-title {
+        color: #333;
+        font-size: 1.5rem;
+        margin-bottom: 20px;
+    }
+
+    .applicant-card {
+        height: 150px;
+        background-color: white;
+        border: 1px solid #ddd;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+        margin: 10px;
+        width: 300px;
+        box-sizing: border-box;
+        text-align: center;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .applicant-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .applicant-content {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        height: 100%;
+    }
+
+    .card-title {
+        font-size: 1.1rem;
+        color: #333;
+        margin-bottom: 15px;
+    }
+
+    .accept-btn {
+        background-color: #11407e;
+        border: none;
+        padding: 8px 25px;
+        transition: background-color 0.3s ease;
+    }
+
+    .accept-btn:hover {
+        background-color: #000c36;
+    }
+
+    @keyframes slideDown {
+        from {
+            transform: translateY(-20px);
+            opacity: 0;
+        }
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+
+    .no-applicants {
+        text-align: center;
+        color: #666;
+        font-style: italic;
+        padding: 20px;
+    }
+    </style>
+    {% endblock %}
