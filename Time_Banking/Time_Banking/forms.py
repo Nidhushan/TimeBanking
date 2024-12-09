@@ -1,8 +1,8 @@
 from django.contrib.auth.forms import UserCreationForm
-from .models import User
+from .models import User, Skill
+from django import forms
 from django import forms
 from django.contrib.auth import get_user_model
-from .models import Feedback
 
 User = get_user_model()
 class RegisterForm(UserCreationForm):
@@ -19,12 +19,13 @@ class ProfileEditForm(forms.ModelForm):
     class Meta:
         model = User
         fields = ["name", "picture", "title", "location", "bio", "link"]
-
-
-class FeedbackForm(forms.ModelForm):
-    rating = forms.IntegerField(min_value=1, max_value=5, label='Rating (1-5)')
-    comment = forms.CharField(widget=forms.Textarea(attrs={'rows': 4}), required=False)
-
+class AddSkillForm(forms.ModelForm):
     class Meta:
-        model = Feedback
-        fields = ['rating', 'comment']
+        model = Skill
+        fields = ['name']
+        labels = {
+            'name': 'Skill Name',
+        }
+        widgets = {
+            'name': forms.TextInput(attrs={'placeholder': 'Enter a skill'}),
+        }

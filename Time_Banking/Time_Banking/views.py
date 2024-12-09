@@ -10,14 +10,16 @@ from django.core.exceptions import ValidationError
 from django.core.mail import send_mail
 from django.conf import settings
 import uuid
-from .models import Listing, User, ListingResponse, ListingAvailability, Category, Tag, Feedback, ServiceTransaction
-from .forms import RegisterForm, ProfileCreationForm, ProfileEditForm, FeedbackForm
+from .models import Listing, User, ListingResponse, ListingAvailability, Category, Tag, Skill, Notification
+from .forms import RegisterForm, ProfileCreationForm, ProfileEditForm, AddSkillForm
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
 import random
 import json
+from .forms import ProfileEditForm
 from django.http import HttpResponseNotAllowed
+from django.contrib import messages
 
 
 def home(request):
@@ -331,64 +333,6 @@ def delete_account(request):
 #     return JsonResponse({'error': 'POST request required'}, status=405)
 
 
-# Function to update provider metrics
-def update_provider_metrics(feedback):
-    provider = feedback.provider
-    all_ratings = Feedback.objects.filter(provider=provider).values_list('rating', flat=True)
-    provider.avg_rating = sum(all_ratings) / len(all_ratings)
-    new_multiplier = provider.multiplier + (feedback.rating - 3) * 0.1
-    provider.multiplier = max(0.5, min(2.0, new_multiplier))
-    provider.total_minutes += feedback.transaction.duration.total_seconds() / 60  # Convert duration to minutes
-    provider.save()
-
-# View to submit feedback
-@login_required
-def submit_feedback(request, transaction_id):
-    transaction = get_object_or_404(ServiceTransaction, id=transaction_id, requester=request.user)
-
-    if request.method == 'POST':
-        form = FeedbackForm(request.POST)
-        if form.is_valid():
-            feedback = form.save(commit=False)
-            feedback.transaction = transaction
-            feedback.provider = transaction.provider
-            feedback.requester = request.user
-            feedback.save()
-
-            # Update provider metrics
-            update_provider_metrics(feedback)
-
-            # Mark transaction as feedback given
-            transaction.feedback_given = True
-            transaction.save()
-
-            return redirect('home')
-    else:
-        form = FeedbackForm()
-
-    context = {
-        'form': form,
-        'transaction': transaction,
-    }
-
-    return render(request, 'submit_feedback.html', context)
-
-# View to complete transaction
-@login_required
-def complete_transaction(request, transaction_id):
-    transaction = get_object_or_404(ServiceTransaction, id=transaction_id, provider=request.user)
-
-    if request.method == 'POST':
-        transaction.status = 'Completed'
-        transaction.save()
-        return redirect('home')
-
-    context = {
-        'transaction': transaction,
-    }
-
-    return render(request, 'complete_transaction.html', context)
-
 @login_required   # Ensures the user is logged in
 def user_settings_page(request):
     return render(request, 'user_settings.html')
@@ -408,18 +352,6 @@ def user_detail(request, id):
         "link": user.link,
     }
     return JsonResponse(data)
-
-
-# Display User's information
-def user_detail_page(request, id):
-    try:
-        user = User.objects.get(pk=id)
-        # Pass the user object to the template context
-        return render(request, 'user_detail.html', {'user': user})
-    except User.DoesNotExist:
-        # Pass an error message to the template if user is not found
-        return render(request, 'user_detail.html', {'error': 'User not found'})
-
 
 def get_all_listings(request):
     # should be modified if the database of listings is too large
@@ -508,39 +440,36 @@ def view_listing(request, listing_id):
 
 @csrf_exempt
 @login_required
-def accept_service(request, listing_id):
+def apply_service(request, listing_id):
     if request.method == 'POST':
+        # Retrieve the listing using the ID
         listing = get_object_or_404(Listing, id=listing_id)
 
+        # Check if the listing creator is not the same as the current user
         if listing.creator == request.user:
-            return JsonResponse({'error': 'You cannot accept your own service/request.'}, status=403)
+            return JsonResponse({'error': 'You cannot apply your own service/request.'}, status=403)
+        
+        # Check for duplicate application
+        if ListingResponse.objects.filter(listing=listing, user=request.user).exists():
+            return JsonResponse({'error': 'You have already applied to this listing.'}, status=400)
 
-        # Create a ListingResponse
+        # Create a response to mark the service/request as accepted
         ListingResponse.objects.create(
             listing=listing,
             user=request.user,
-            message="Accepted",
-            status=1
+            message="Applied",
+            status=1  # You can use an appropriate integer to indicate 'Accepted' status
         )
 
-        # Determine provider and requester
-        if listing.listing_type == 'Offer':
-            provider = listing.creator
-            requester = request.user
-        else:
-            provider = request.user
-            requester = listing.creator
-
-        # Create a ServiceTransaction
-        ServiceTransaction.objects.create(
-            listing=listing,
-            provider=provider,
-            requester=requester,
-            duration=listing.duration,
-            status='Pending'
+        Notification.objects.create(
+            user=listing.creator,
+            message="You've got a new applicant.",
+            url="/myservices"
         )
 
-        return JsonResponse({'message': 'Service/Request accepted successfully!'}, status=200)
+        # Logic to notify the listing creator (for example, by email or in-app notification)
+        # Here, we are just simulating a simple success response
+        return JsonResponse({'success': 'Service/Request apply successfully!'}, status=200)
 
     return JsonResponse({'error': 'Only POST requests are allowed.'}, status=405)
 
@@ -570,70 +499,53 @@ curl -X POST http://localhost:8000/api/create-listing/
      -F 'tags=1' -F 'tags=2'
      -F 'image=@/path/to/image.jpg'
 """
-
 @login_required  # Ensure the user is logged in
 def create_listing(request):
     if request.method == 'POST':
         try:
             # Get the form data
             title = request.POST.get('title')
-            category_id = request.POST.get('category')
+            category_id = request.POST.get('category')  
             description = request.POST.get('description')
-            image = request.FILES.get('image')  # Only one image per listing
-            listing_type = request.POST.get('listing_type')  # Expecting 'Offer' or 'Request'
+            image = request.FILES.get('image')  # We can only have 1 image per listing
+            listing_type = request.POST.get('listing_type')  # Expecting 'True' or 'False'
             duration_in_minutes = request.POST.get('duration')  # Expected format: integer (minutes)
             tag_ids = request.POST.getlist('tags')  # Expecting a list of tag IDs
 
-            # Validate required fields
-            required_fields = {
-                'title': title,
-                'category': category_id,
-                'description': description,
-                'image': image,
-                'listing_type': listing_type,
-                'duration': duration_in_minutes,
-            }
-            missing_fields = [field for field, value in required_fields.items() if not value]
-            if missing_fields:
+            if not title or not category_id or not description or not image or not listing_type or not duration_in_minutes:
+                missing_fields = [field for field in ['title', 'category', 'description', 'image', 'listing_type', 'duration'] if not request.POST.get(field)]
                 error_msg = f'Missing required fields: {", ".join(missing_fields)}'
                 return JsonResponse({'error': error_msg}, status=400)
-
+            
             if len(description) > 5000:
                 return JsonResponse({'error': 'Description is too long'}, status=400)
 
             if listing_type not in ['Offer', 'Request']:
                 return JsonResponse({'error': 'Invalid listing type.'}, status=400)
 
-            try:
-                # Ensure category_id is valid
-                category = Category(category_id).label
-            except ValueError:
-                return JsonResponse({'error': 'Invalid category.'}, status=400)
+            category = Category(category_id).label
 
             try:
-                duration_in_minutes = int(duration_in_minutes)
-                if duration_in_minutes <= 0:
-                    raise ValueError
-                duration = timedelta(minutes=duration_in_minutes)
+                duration_in_minutes = int(duration_in_minutes)  # Ensure it's an integer
+                duration = timedelta(minutes=duration_in_minutes)  # Convert to timedelta
             except ValueError:
-                return JsonResponse({'error': 'Duration must be a positive integer in minutes.'}, status=400)
+                return JsonResponse({'error': 'Duration must be a valid integer'}, status=400)
+            
+        
+            
+            
+            # check listing is valid to create or not
+            user_listings_old = Listing.objects.filter(creator=request.user)
+            if len(user_listings_old) > 0:
+                if len(user_listings_old) > 299:
+                    return JsonResponse({'error': 'You have reached the maximum number of services.'}, status=400)
+                for user_listing in user_listings_old:
+                    if user_listing.title == title:
+                        return JsonResponse({'error': 'You are trying to create a service with duplicated title.'}, status=400)
+                latest_listing_posted_at = user_listings_old.latest('posted_at').posted_at
 
-            # Check if the listing title is unique for the user
-            user_listings = Listing.objects.filter(creator=request.user)
-            if user_listings.count() >= 300:
-                return JsonResponse({'error': 'You have reached the maximum number of listings.'}, status=400)
-            if user_listings.filter(title=title).exists():
-                return JsonResponse({'error': 'You have already created a listing with this title.'}, status=400)
-
-            # Rate limiting: prevent creating listings too quickly
-            if not getattr(settings, 'DISABLE_RATE_LIMIT_CHECK', False):
-                recent_listing = user_listings.order_by('-posted_at').first()
-                if recent_listing and (timezone.now() - recent_listing.posted_at).total_seconds() < 30:
-                    return JsonResponse({'error': 'You are creating listings too quickly.'}, status=429)
-
-            # Create the listing
             listing = Listing.objects.create(
-                creator=request.user,
+                creator=request.user,  
                 title=title,
                 category=category_id,
                 description=description,
@@ -641,8 +553,17 @@ def create_listing(request):
                 listing_type=listing_type,
                 duration=duration
             )
+            
+            # check if the user is creating services too quickly 30 seconds
+            if not getattr(settings, 'DISABLE_RATE_LIMIT_CHECK', False): # Disable rate limit check for test cases
+                if len(user_listings_old) > 0:
+                    if latest_listing_posted_at > listing.posted_at - timedelta(seconds=30):
+                        listing.delete()
+                        return JsonResponse({'error': 'You are creating services too quickly.'}, status=429)
+            
+            
+            listing.save() # save the listing to the database
 
-            # Add tags to the listing
             if tag_ids:
                 tags = Tag.objects.filter(id__in=tag_ids)
                 listing.tags.set(tags)
@@ -651,23 +572,17 @@ def create_listing(request):
                 'id': listing.id,
                 'title': listing.title,
                 'category': category,
-                'tags': [tag.name for tag in listing.tags.all()],
+                'tags': [tag.name for tag in listing.tags.all()], 
                 'description': listing.description,
                 'image_url': listing.image.url if listing.image else None,
                 'listing_type': listing.listing_type,
                 'duration': str(listing.duration)
-            }, status=201)
+            }, status=201) # return the created listing
 
         except Exception as e:
-            # Log the exception (optional)
-            # import logging
-            # logger = logging.getLogger(__name__)
-            # logger.exception(e)
+            return JsonResponse({'error': str(e)}, status=500)
 
-            return JsonResponse({'error': 'An unexpected error occurred.'}, status=500)
-
-    else:
-        return JsonResponse({'error': 'POST request required.'}, status=405)
+    return JsonResponse({'error': 'POST request required'}, status=405)
 
 @login_required  # Make sure the user is logged in to access this page
 def create_listing_page(request):
@@ -690,28 +605,42 @@ def edit_listing(request, listing_id):
         try:
             listing = get_object_or_404(Listing, id=listing_id, creator=request.user)
 
-            title = request.POST.get('title', listing.title)
-            description = request.POST.get('description', listing.description)
-            category_id = request.POST.get('category', listing.category)
-            duration_in_hours = request.POST.get('duration', listing.duration)
-            status = request.POST.get('status', listing.status)
-            tag_ids = request.POST.getlist('tags', listing.tags)
-            image = request.FILES.get('image', listing.image)
+            title = request.POST.get('title')
+            description = request.POST.get('description')
+            category_id = request.POST.get('category')
+            duration_in_minutes = request.POST.get('duration')
+            listing_type = request.POST.get('listing_type')
+            status = request.POST.get('status')
+            tag_ids = request.POST.getlist('tags')
+            image = request.FILES.get('image')
+
+            if not title or not description or not category_id or not duration_in_minutes or not listing_type or not status or not image:
+                missing_fields = [field for field in ['title', 'description', 'category', 'duration', 'listing_type', 'status', 'image'] if not request.POST.get(field)]
+                error_msg = f'Missing required fields: {", ".join(missing_fields)}'
+                return JsonResponse({'error': error_msg}, status=400)
+            
+            if len(description) > 1000:
+                return JsonResponse({'error': 'Description is too long'}, status=400)
+
+            if listing_type not in ['Offer', 'Request']:
+                return JsonResponse({'error': 'Invalid listing type.'}, status=400)
 
             listing.title = title
             listing.description = description
             listing.category = Category(category_id).label
-            
+            listing.listing_type = listing_type
+
             try:
-                duration_in_hours = int(duration_in_hours)  # Ensure it's an integer
-                listing.duration = timedelta(hours=duration_in_hours)  # Convert to timedelta
+                duration_in_minutes = int(duration_in_minutes)  # Ensure it's an integer
+                listing.duration = timedelta(minutes=duration_in_minutes)  # Convert to timedelta
             except ValueError:
                 return JsonResponse({'error': 'Duration must be a valid integer'}, status=400)
             
             listing.status = status
             
-            tags = Tag.objects.filter(id__in=tag_ids)
-            listing.tags.set(tags)
+            if tag_ids:
+                tags = Tag.objects.filter(id__in=tag_ids)
+                listing.tags.set(tags)
 
             listing.image = image
 
@@ -724,6 +653,7 @@ def edit_listing(request, listing_id):
                 'category': listing.category,
                 'tags': [tag.name for tag in listing.tags.all()],
                 'image_url': listing.image.url if listing.image else None,
+                'listing_type': listing.listing_type,
                 'status': listing.status,
                 'duration': str(listing.duration),
                 'edited_at': listing.edited_at.isoformat(),
@@ -733,6 +663,17 @@ def edit_listing(request, listing_id):
             return JsonResponse({'error': str(e)}, status=500)
 
     return JsonResponse({'error': 'POST request required'}, status=405)
+
+@login_required  # Make sure the user is logged in to access this page
+def edit_listing_page(request, listing_id):
+    listing = get_object_or_404(Listing, id=listing_id)
+    if listing.creator!=request.user:
+        return JsonResponse({'error': 'You can only edit your own service/request.'}, status=403)
+    
+    return render(request, 'edit_listing.html', {
+        'listing': listing,
+        'duration': listing.duration.seconds // 60,
+    })
 
 """@login_required
 @csrf_exempt
@@ -800,16 +741,138 @@ def edit_profile(request):
         form = ProfileEditForm(request.POST, request.FILES, instance=request.user)
         if form.is_valid():
             form.save()
-            return redirect('profile_info')  # Make sure this matches your URL name
+            return redirect('profile_info')  # Ensure this matches your URL name
     else:
         form = ProfileEditForm(instance=request.user)
     return render(request, 'edit_profile.html', {'form': form})
 
-# @login_required
-# def get_profile(request):
-#     return render(request, 'profile_info.html', {'user': request.user})
 
 @login_required
 def get_profile(request):
-    feedbacks = Feedback.objects.filter(provider=request.user)
-    return render(request, 'profile_info.html', {'user': request.user, 'feedbacks': feedbacks})
+    return render(request, 'profile_info.html', {'user': request.user})
+
+def profile_info(request, user_id=None):
+    user = get_object_or_404(User, id=user_id) if user_id else request.user
+
+    # Separate services into offers and requests
+    offered_services = Listing.objects.filter(creator=user, listing_type="Offer")
+    requested_services = Listing.objects.filter(creator=user, listing_type="Request")
+
+    # Fetch user's skills
+    skills = user.skills.all()
+
+    # Skill addition form
+    skill_form = AddSkillForm()
+    
+    if request.method == 'POST' and 'add_skill' in request.POST:
+        skill_names = request.POST.getlist('skills')
+        for skill_name in skill_names:
+            if skill_name.strip():
+                skill, _ = Skill.objects.get_or_create(name=skill_name.strip())
+                user.skills.add(skill)
+        return redirect('profile_info', user_id=user.id)
+
+    # Pass the data to the template
+    context = {
+        'user': user,
+        'offered_services': offered_services,
+        'requested_services': requested_services,
+        'skills': skills,
+        'skill_form': skill_form,
+    }
+    return render(request, 'profile_info.html', context)
+
+
+
+@login_required
+def delete_profile_picture(request):
+    if request.method == "POST":
+        user = request.user
+        if user.picture:
+            user.picture.delete()  # This deletes the file from storage
+            user.picture = None    # Set the picture field to None
+            user.save()
+            return JsonResponse({"success": True})
+        else:
+            return JsonResponse({"success": False, "error": "No profile picture to delete."})
+    return JsonResponse({"success": False, "error": "Invalid request method."})
+
+def add_service(request):
+    # Logic for adding a service goes here
+    return render(request, 'add_service.html')
+def request_service(request):
+    # Logic for adding a service goes here
+    return render(request, 'request_service.html')
+
+@login_required    
+def my_service(request):
+    listings = Listing.objects.filter(creator=request.user)
+    
+    return render(request, 'myservice.html', {'listings': listings})
+
+@login_required   
+@csrf_exempt 
+def view_applicants(request, listing_id):
+    responses = ListingResponse.objects.filter(listing_id=listing_id)
+    # This service is dealt
+    for response in responses:
+        if response.status == 2:
+            return render(request, 'view_applicants.html', {'response': response})
+
+    if request.method == 'POST':
+        response_id = request.POST.get('response_id')
+        
+        response = get_object_or_404(ListingResponse, id=response_id)
+        response.message = 'Accepted'  
+        response.status = 2
+        response.save()
+        Notification.objects.create(
+            user=response.user,
+            message="You get an update on your applied service.",
+            url="/appliedservices"
+        )
+        for rresponse in responses:
+            if rresponse != response:
+                rresponse.message = 'Rejected'  
+                rresponse.status = 3
+                rresponse.save()
+                Notification.objects.create(
+                    user=rresponse.user,
+                    message="You get an update on your applied service.",
+                    url="/appliedservices"
+                )
+
+        return redirect('view_applicants', listing_id=listing_id)
+
+    return render(request, 'view_applicants.html', {'responses': responses})
+
+
+@login_required   
+def get_notifications(request):
+    notifications = Notification.objects.filter(user=request.user).order_by('-created_at')
+    data = [
+        {"id": n.id, "message": n.message, "is_read": n.is_read, "created_at": n.created_at.strftime('%Y-%m-%d %H:%M:%S'), "url":n.url}
+        for n in notifications
+    ]
+    return JsonResponse({"notifications": data})
+
+@csrf_exempt 
+def mark_as_read(request, notification_id):
+    if request.method == "POST":
+        notification = get_object_or_404(Notification, id=notification_id)
+        notification.is_read = True
+        notification.save()
+        return JsonResponse({"status": "success"})
+    return JsonResponse({"status": "error"}, status=400)
+
+@login_required    
+def applied_services(request):
+    responses = ListingResponse.objects.filter(user=request.user)
+    
+    return render(request, 'applied_services.html', {'responses': responses})
+
+@login_required
+def user_profile(request, user_id):
+    user = get_object_or_404(User, id=user_id)
+    listings = Listing.objects.filter(creator=user)
+    return render(request, 'user_profile.html', {'user': user, 'listings': listings})
