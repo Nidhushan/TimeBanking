@@ -260,3 +260,18 @@
     text-align: center; /* Center the text inside the skill box */
     box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
 }
+
+.skillbar {
+    border-radius: 15px 0 0 15px;
+    height: 30px;
+    padding: 10px 10px;
+    width: 200px;
+}
+
+.addskill {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 15px;
+    background-color: #11407e;
+}
