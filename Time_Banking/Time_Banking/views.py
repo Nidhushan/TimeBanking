@@ -760,17 +760,14 @@ def profile_info(request, user_id=None):
 
     # Fetch user's skills
     skills = user.skills.all()
-
-    # Skill addition form
-    skill_form = AddSkillForm()
     
-    if request.method == 'POST' and 'add_skill' in request.POST:
+    if request.method == 'POST' and 'add_skill' in request.POST and user == request.user:
         skill_names = request.POST.getlist('skills')
         for skill_name in skill_names:
             if skill_name.strip():
                 skill, _ = Skill.objects.get_or_create(name=skill_name.strip())
                 user.skills.add(skill)
-        return redirect('profile_info', user_id=user.id)
+        return redirect('profile_info')
 
     # Pass the data to the template
     context = {
@@ -778,7 +775,6 @@ def profile_info(request, user_id=None):
         'offered_services': offered_services,
         'requested_services': requested_services,
         'skills': skills,
-        'skill_form': skill_form,
     }
     return render(request, 'profile_info.html', context)
 
@@ -870,9 +866,3 @@ def applied_services(request):
     responses = ListingResponse.objects.filter(user=request.user)
     
     return render(request, 'applied_services.html', {'responses': responses})
-
-@login_required
-def user_profile(request, user_id):
-    user = get_object_or_404(User, id=user_id)
-    listings = Listing.objects.filter(creator=user)
-    return render(request, 'user_profile.html', {'user': user, 'listings': listings})
