@@ -41,8 +41,10 @@
 
         <!-- Right Column: Skills and Services -->
         <div class="col-right">
-            <h2>Hi 👋 {{ user.name }}, complete your profile to earn more time credits!</h2>
-            <p>Get the most out of our platform by sharing more about yourself and how you prefer to offer services.</p>
+            {% if user == request.user %}
+                <h2>Hi 👋 {{ user.name }}, complete your profile to earn more time credits!</h2>
+                <p>Get the most out of our platform by sharing more about yourself and how you prefer to offer services.</p>
+            {% endif %}
             <!-- Skills Section -->
             <div class="checklist-item">
                 {% if request.user == user %}
