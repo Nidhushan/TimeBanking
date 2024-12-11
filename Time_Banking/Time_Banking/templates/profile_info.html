@@ -41,8 +41,10 @@
 
         <!-- Right Column: Skills and Services -->
         <div class="col-right">
-            <h2>Hi 👋 {{ user.name }}, complete your profile to earn more time credits!</h2>
-            <p>Get the most out of our platform by sharing more about yourself and how you prefer to offer services.</p>
+            {% if user == request.user %}
+                <h2>Hi 👋 {{ user.name }}, complete your profile to earn more time credits!</h2>
+                <p>Get the most out of our platform by sharing more about yourself and how you prefer to offer services.</p>
+            {% endif %}
             <!-- Skills Section -->
             <div class="checklist-item">
                 {% if request.user == user %}
@@ -63,8 +65,14 @@
                 {% if request.user == user %}
                 <form method="post" class="add-skill-form">
                     {% csrf_token %}
-                    <input type="text" name="skills" placeholder="Enter a skill">
-                    <button type="submit" name="add_skill">+</button>
+                    <div class="input-group" style="margin-bottom: 20px;">
+                        <input class="skillbar" type="text" name="skills" placeholder="Enter a skill">
+                        <div class="input-group-append">
+                            <button class="btn btn-dark addskill" name="add_skill" type="submit">
+                                <i class="fa-solid fa-add"></i>
+                            </button>
+                        </div>
+                    </div>
                 </form>
                 {% endif %}
             </div>
