@@ -39,6 +39,12 @@ urlpatterns = [
     path('verify-reset-code/', views.verify_reset_code, name='verify_reset_code'),
     path('reset-password/', views.reset_password, name='reset_password'),
     path('create-listing/', views.create_listing_page, name='create_listing_page'),
+    path('accepted-services/', views.accepted_services, name='accepted_services'),
+    # path('submit-feedback/<int:transaction_id>/', views.submit_feedback, name='submit_feedback'),
+    path('listing/<int:listing_id>/mark_completed/', views.mark_listing_completed, name='mark_listing_completed'),
+    path('submit-feedback/<int:listing_id>/', views.submit_feedback, name='submit_feedback'),
+
+
     # path('add-service/', views.add_service, name='add_service'),
     # path('request-service/', views.request_service, name='request_service'),
     

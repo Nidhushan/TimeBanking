@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block title %}
-Applied Service
+Applied Services
 {% endblock %}
 
 {% block content %}
@@ -14,7 +14,17 @@ Applied Service
             <h5 class="card-title">{{ response.listing.title }}</h5>
             <p class="card-text">{{ response.listing.description }}</p>
             <p class="card-text">Your applied status: {{ response.message }}</p>
+
+            {% if response.listing.servicetransaction_set.exists %}
+                {% for transaction in response.listing.servicetransaction_set.all %}
+                    {% if transaction.status == 'Pending' and not transaction.feedback_given %}
+                        <a href="{% url 'submit_feedback' transaction.id %}" class="btn btn-success mt-2">Submit Feedback</a>
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
         </div>
     </div>
+{% empty %}
+<p>No applied services found.</p>
 {% endfor %}
 {% endblock %}

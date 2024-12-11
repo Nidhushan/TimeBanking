@@ -2,11 +2,11 @@
 {% load static %}
 
 {% block title %}
-My Service
+My Services
 {% endblock %}
 
 {% block content %}
-<h3>Servie Requests</h3>
+<h3>Service Requests</h3>
 {% for listing in listings %}
     <a href="{% url 'view_applicants' listing.id %}" class="card-link">
         <div class="card">
@@ -14,8 +14,16 @@ My Service
             <div class="card-body">
                 <h5 class="card-title">{{ listing.title }}</h5>
                 <p class="card-text">{{ listing.description }}</p>
+
+                {% for transaction in listing.servicetransaction_set.all %}
+                    {% if transaction.status == 'Pending' and not transaction.feedback_given %}
+                        <a href="{% url 'submit_feedback' transaction.id %}" class="btn btn-success mt-2">Submit Feedback</a>
+                    {% endif %}
+                {% endfor %}
             </div>
         </div>
     </a>
+{% empty %}
+<p>No service requests found.</p>
 {% endfor %}
 {% endblock %}
