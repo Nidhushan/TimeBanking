@@ -10,7 +10,7 @@ from django.core.exceptions import ValidationError
 from django.core.mail import send_mail
 from django.conf import settings
 import uuid
-from .models import Listing, User, ListingResponse, ListingAvailability, Category, Tag, Skill, Notification
+from .models import Listing, User, ListingResponse, ListingAvailability, Category, Tag, Skill, Notification, Feedback, ServiceTransaction
 from .forms import RegisterForm, ProfileCreationForm, ProfileEditForm, AddSkillForm
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
@@ -20,6 +20,173 @@ import json
 from .forms import ProfileEditForm
 from django.http import HttpResponseNotAllowed
 from django.contrib import messages
+
+@login_required
+@csrf_exempt
+def mark_listing_completed(request, listing_id):
+    try:
+        listing = get_object_or_404(Listing, id=listing_id, creator=request.user)
+
+        # Ensure the listing hasn't already been completed
+        if listing.status == "Completed":
+            return JsonResponse({'error': 'Listing already marked as completed.'}, status=400)
+
+        # Find the accepted response
+        accepted_response = ListingResponse.objects.filter(listing=listing, status=2).first()
+        if not accepted_response:
+            return JsonResponse({'error': 'No accepted applicant found.'}, status=400)
+
+        # Mark the listing as completed
+        listing.status = "Completed"
+        listing.save()
+
+        # Ensure correct transaction creation
+        transaction, created = ServiceTransaction.objects.get_or_create(
+            listing=listing,
+            provider=accepted_response.user,  # Correct provider from the accepted response
+            requester=accepted_response.user if listing.listing_type == "Request" else listing.creator, 
+            defaults={
+                'duration': listing.duration.total_seconds() / 60,  # Ensure duration is in minutes
+                'status': 'Completed'
+            }
+        )
+
+        # Notify the applicant
+        Notification.objects.create(
+            user=accepted_response.user,
+            message=f"Your service '{listing.title}' was marked as completed! Submit your feedback.",
+            url=f"/submit-feedback/{listing.id}/"
+        )
+
+        return JsonResponse({'success': 'Listing marked as completed.'}, status=200)
+
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+@login_required
+@csrf_exempt
+def view_applicants(request, listing_id):
+    listing = get_object_or_404(Listing, id=listing_id)
+    responses = ListingResponse.objects.filter(listing=listing)
+    
+    # Check if service is already accepted
+    if ServiceTransaction.objects.filter(listing=listing, status='Pending').exists():
+        transaction = ServiceTransaction.objects.get(listing=listing, status='Pending')
+        return render(request, 'view_applicants.html', {'transaction': transaction})
+
+    if request.method == 'POST':
+        response_id = request.POST.get('response_id')
+        selected_response = get_object_or_404(ListingResponse, id=response_id)
+
+        # Create the service transaction
+        transaction = ServiceTransaction.objects.create(
+            listing=listing,
+            provider=listing.creator,
+            requester=selected_response.user,
+            duration=listing.duration,
+            status='Pending'
+        )
+
+        # Notify the requester
+        Notification.objects.create(
+            user=selected_response.user,
+            message="Your service has been accepted!",
+            url="/accepted-services/"
+        )
+
+        # Update Response Statuses
+        selected_response.status = 2  # Accepted
+        selected_response.message = "Accepted"
+        selected_response.save()
+
+        # Mark other responses as Rejected
+        for response in responses.exclude(id=response_id):
+            response.status = 3  # Rejected
+            response.message = "Rejected"
+            response.save()
+            Notification.objects.create(
+                user=response.user,
+                message="Your application was rejected.",
+                url="/appliedservices"
+            )
+
+        return redirect('view_applicants', listing_id=listing.id)
+
+    return render(request, 'view_applicants.html', {'responses': responses})
+
+
+@login_required
+def accepted_services(request):
+    transactions = ServiceTransaction.objects.filter(
+        requester=request.user, 
+        status='Pending',
+        feedback_given=False
+    )
+    return render(request, 'accepted_services.html', {'transactions': transactions})
+
+
+# views.py
+
+from django.db.models import Sum
+
+def calculate_quality_multiplier(rating):
+    return {
+        5: 1.5,
+        4: 1.2,
+        3: 1.0,
+        2: 0.8,
+        1: 0.5
+    }.get(rating, 1.0)
+
+@login_required
+def submit_feedback(request, listing_id):
+    try:
+        transaction = get_object_or_404(
+            ServiceTransaction,
+            listing_id=listing_id,
+            requester=request.user,
+            status='Completed',
+            feedback_given=False
+        )
+
+        if request.method == 'POST':
+            try:
+                q1 = int(request.POST.get('q1'))
+                q2 = int(request.POST.get('q2'))
+                q3 = int(request.POST.get('q3'))
+                q4 = int(request.POST.get('q4'))
+            except (TypeError, ValueError):
+                messages.error(request, "Invalid feedback submission.")
+                return redirect('submit_feedback', listing_id=listing_id)
+
+            avg_rating = round((q1 + q2 + q3 + q4) / 4)
+            quality_multiplier = calculate_quality_multiplier(avg_rating)
+
+            # Save Feedback
+            Feedback.objects.create(
+                transaction=transaction,
+                provider=transaction.provider,
+                requester=transaction.requester,
+                rating=avg_rating,
+                comment=f"Q1: {q1}, Q2: {q2}, Q3: {q3}, Q4: {q4}"
+            )
+
+            # Update transaction and provider
+            transaction.feedback_given = True
+            transaction.multiplier = quality_multiplier
+            transaction.save()
+
+            # Update provider stats
+            update_provider_metrics(transaction)
+
+            messages.success(request, "Feedback submitted successfully!")
+            return redirect("home")
+
+        return render(request, "submit_feedback.html", {'transaction': transaction})
+
+    except Exception as e:
+        messages.error(request, f"An error occurred: {str(e)}")
+        return redirect("home")
 
 
 def home(request):
@@ -432,10 +599,25 @@ def view_listing(request, listing_id):
     if request.method != 'GET':
         return HttpResponseNotAllowed(['GET'])
     listing = get_object_or_404(Listing, id=listing_id)
+    listing = get_object_or_404(Listing, id=listing_id)
+    service_accepted = ListingResponse.objects.filter(listing=listing, status=2).exists()
+    service_completed = ServiceTransaction.objects.filter(listing=listing, status='Completed').exists()
+    feedback_given = Feedback.objects.filter(transaction__listing=listing, transaction__requester=request.user).exists()
+
+    # Check if service has been accepted
+    service_accepted = ListingResponse.objects.filter(
+        listing=listing, status=2  # 2 = Accepted
+    ).exists()
+    
     context = {
-        'listing': listing
+        'listing': listing,
+        'service_accepted': service_accepted,
+        'service_completed': service_completed,
+        'feedback_given': feedback_given,
     }
     return render(request, 'view_listing.html', context)
+
+    
 
 
 @csrf_exempt
@@ -599,52 +781,65 @@ curl -X POST "http://localhost:8000/api/edit-listing/1/" \
      -F "tags=2" -F "tags=3" \
      -F "image=@<image_path>"
 """
+# views.py
+
 @login_required
 def edit_listing(request, listing_id):
     if request.method == 'POST':
         try:
             listing = get_object_or_404(Listing, id=listing_id, creator=request.user)
 
+            # Collect form data
             title = request.POST.get('title')
             description = request.POST.get('description')
             category_id = request.POST.get('category')
             duration_in_minutes = request.POST.get('duration')
             listing_type = request.POST.get('listing_type')
-            status = request.POST.get('status')
             tag_ids = request.POST.getlist('tags')
             image = request.FILES.get('image')
 
-            if not title or not description or not category_id or not duration_in_minutes or not listing_type or not status or not image:
-                missing_fields = [field for field in ['title', 'description', 'category', 'duration', 'listing_type', 'status', 'image'] if not request.POST.get(field)]
-                error_msg = f'Missing required fields: {", ".join(missing_fields)}'
-                return JsonResponse({'error': error_msg}, status=400)
+            # Validation checks
+            if not all([title, description, category_id, duration_in_minutes, listing_type]):
+                missing_fields = [field for field in ['title', 'description', 'category', 'duration', 'listing_type'] if not request.POST.get(field)]
+                return JsonResponse({'error': f'Missing required fields: {", ".join(missing_fields)}'}, status=400)
             
             if len(description) > 1000:
                 return JsonResponse({'error': 'Description is too long'}, status=400)
-
+            
             if listing_type not in ['Offer', 'Request']:
                 return JsonResponse({'error': 'Invalid listing type.'}, status=400)
 
+            # Update listing details
             listing.title = title
             listing.description = description
-            listing.category = Category(category_id).label
+            listing.category = category_id
             listing.listing_type = listing_type
+            listing.duration = timedelta(minutes=int(duration_in_minutes))
+            listing.status = "Available"  # Reset status
 
-            try:
-                duration_in_minutes = int(duration_in_minutes)  # Ensure it's an integer
-                listing.duration = timedelta(minutes=duration_in_minutes)  # Convert to timedelta
-            except ValueError:
-                return JsonResponse({'error': 'Duration must be a valid integer'}, status=400)
-            
-            listing.status = status
-            
+            if image:
+                listing.image = image
+
             if tag_ids:
                 tags = Tag.objects.filter(id__in=tag_ids)
                 listing.tags.set(tags)
 
-            listing.image = image
-
             listing.save()
+
+            # Reset previous transactions and responses
+            ServiceTransaction.objects.filter(listing=listing).delete()
+            previous_responses = ListingResponse.objects.filter(listing=listing)
+            
+            # Notify previous applicants about the reset
+            for response in previous_responses:
+                Notification.objects.create(
+                    user=response.user,
+                    message=f"Service '{listing.title}' was updated and reopened. Feel free to apply again!",
+                    url=f"/listing/{listing.id}/"
+                )
+
+            # Delete old responses
+            previous_responses.delete()
 
             return JsonResponse({
                 'id': listing.id,
@@ -751,15 +946,23 @@ def edit_profile(request):
 def get_profile(request):
     return render(request, 'profile_info.html', {'user': request.user})
 
+# views.py
+
+@login_required
 def profile_info(request, user_id=None):
     user = get_object_or_404(User, id=user_id) if user_id else request.user
 
-    # Separate services into offers and requests
+    # Calculate earned credits
+    total_credits = ServiceTransaction.objects.filter(
+        provider=user, status='Completed'
+    ).aggregate(
+        total_credits=Sum(models.F('duration') * models.F('multiplier') / 60)
+    )['total_credits'] or 0
+
     offered_services = Listing.objects.filter(creator=user, listing_type="Offer")
     requested_services = Listing.objects.filter(creator=user, listing_type="Request")
-
-    # Fetch user's skills
     skills = user.skills.all()
+
     
     if request.method == 'POST' and 'add_skill' in request.POST and user == request.user:
         skill_names = request.POST.getlist('skills')

@@ -96,6 +96,12 @@ class Listing(models.Model):
             raise ValidationError({
                 'status': f"Invalid status for {listing_type_label}. Valid options are: {', '.join(valid_statuses)}"
             })
+        
+    def save(self, *args, **kwargs):
+        # If already exists and is being edited, reset its status
+        if self.pk:
+            self.status = "Available"
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.title
@@ -123,11 +129,15 @@ class ListingAvailability(models.Model):
     to_time = models.DateTimeField()
 
 # New model for service transactions
+# models.py
+
 class ServiceTransaction(models.Model):
     listing = models.ForeignKey(Listing, on_delete=models.CASCADE)
-    provider = models.ForeignKey(User, on_delete=models.CASCADE, related_name='provided_services')
-    requester = models.ForeignKey(User, on_delete=models.CASCADE, related_name='requested_services')
-    duration = models.DurationField()
+    provider = models.ForeignKey(User, on_delete=models.CASCADE, related_name='provided_transactions')
+    requester = models.ForeignKey(User, on_delete=models.CASCADE, related_name='requested_transactions')
+    duration = models.IntegerField()  # Duration in minutes
+    feedback_given = models.BooleanField(default=False)
+    multiplier = models.FloatField(default=1.0)
     status = models.CharField(
         max_length=20,
         choices=[
@@ -137,10 +147,9 @@ class ServiceTransaction(models.Model):
         ],
         default='Pending'
     )
-    feedback_given = models.BooleanField(default=False)
 
-    def __str__(self):
-        return f"Transaction {self.id}: {self.requester} -> {self.provider}"
+    def calculate_credits(self):
+        return round(self.duration * self.multiplier / 60, 2)
     
 # New model for feedback
 class Feedback(models.Model):
@@ -153,13 +162,28 @@ class Feedback(models.Model):
     def __str__(self):
         return f"Feedback for Transaction {self.transaction.id} by {self.requester}"
 
-def update_provider_metrics(feedback):
-    provider = feedback.provider
+# models.py
+
+def update_provider_metrics(transaction):
+    provider = transaction.provider
+
+    # Update average rating
     all_ratings = Feedback.objects.filter(provider=provider).values_list('rating', flat=True)
-    provider.avg_rating = sum(all_ratings) / len(all_ratings)
-    new_multiplier = provider.multiplier + (feedback.rating - 3) * 0.1
-    provider.multiplier = max(0.5, min(2.0, new_multiplier))
-    provider.total_minutes += feedback.transaction.duration.total_seconds() / 60  # Convert duration to minutes
+    avg_rating = sum(all_ratings) / len(all_ratings) if all_ratings else 0
+
+    # Update multiplier
+    multiplier = 1 + (avg_rating - 3) * 0.1
+    provider.multiplier = max(0.5, min(2.0, multiplier))
+
+    # Update total credits
+    earned_credits = ServiceTransaction.objects.filter(
+        provider=provider, status='Completed'
+    ).aggregate(
+        total_credits=Sum(models.F('duration') * models.F('multiplier') / 60)
+    )['total_credits'] or 0
+
+    provider.total_minutes = earned_credits * 60
+    provider.avg_rating = round(avg_rating, 2)
     provider.save()
 
 # images within a listing

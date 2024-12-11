@@ -1,10 +1,62 @@
 {% extends "master.html" %}
 
 {% block content %}
-<h2>Submit Feedback for Transaction {{ transaction.id }}</h2>
-<form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Submit Feedback</button>
-</form>
+<div class="container mt-5">
+    <h2 class="text-center">Submit Feedback</h2>
+    <form method="POST" class="feedback-form">
+        {% csrf_token %}
+
+        <!-- Feedback Questions -->
+        <div class="form-group row align-items-center">
+            <label class="col-sm-6 col-form-label">How satisfied are you with the service?</label>
+            <div class="col-sm-6 d-flex justify-content-between">
+                {% for i in "12345" %}
+                <label class="radio-inline">
+                    <input type="radio" name="q1" value="{{ i }}" required> {{ i }}
+                </label>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="form-group row align-items-center">
+            <label class="col-sm-6 col-form-label">How professional was the provider?</label>
+            <div class="col-sm-6 d-flex justify-content-between">
+                {% for i in "12345" %}
+                <label class="radio-inline">
+                    <input type="radio" name="q2" value="{{ i }}" required> {{ i }}
+                </label>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="form-group row align-items-center">
+            <label class="col-sm-6 col-form-label">How likely are you to recommend this service?</label>
+            <div class="col-sm-6 d-flex justify-content-between">
+                {% for i in "12345" %}
+                <label class="radio-inline">
+                    <input type="radio" name="q3" value="{{ i }}" required> {{ i }}
+                </label>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="form-group row align-items-center">
+            <label class="col-sm-6 col-form-label">Overall experience with the transaction?</label>
+            <div class="col-sm-6 d-flex justify-content-between">
+                {% for i in "12345" %}
+                <label class="radio-inline">
+                    <input type="radio" name="q4" value="{{ i }}" required> {{ i }}
+                </label>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Submit Button -->
+        <div class="form-group row">
+            <div class="col-sm-12 text-center">
+                <button type="submit" class="btn btn-primary">Submit Feedback</button>
+            </div>
+        </div>
+    </form>
+</div>
 {% endblock %}

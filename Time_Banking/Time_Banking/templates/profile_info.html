@@ -26,10 +26,14 @@
                     <p>Link: <a href="{{ user.link }}">{{ user.link }}</a></p>
                 </div>
 
-                <!-- Time Credits Section -->
                 <div class="time-credits">
                     <h3>Time Credits Earned</h3>
-                    <p>{{ user.time_credits|default:"0" }} hours</p>
+                    <p>{{ total_credits|default:"0" }} hours</p>
+                </div>
+
+                <div class="multiplier-section">
+                    <h3>Current Multiplier</h3>
+                    <p>{{ multiplier|default:"1.0" }}</p>
                 </div>
 
                 {% if user == request.user %}
