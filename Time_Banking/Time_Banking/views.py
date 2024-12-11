@@ -271,8 +271,8 @@ def change_password(request):
 curl -X POST http://localhost:8000/api/delete-account/ \
      -b "sessionid=<your_session_id>"
 """
+# @csrf_exempt  
 @login_required  # Ensures the user is logged in
-@csrf_exempt  
 def delete_account(request):
     if request.method == 'POST':
         try:
@@ -338,20 +338,20 @@ def user_settings_page(request):
     return render(request, 'user_settings.html')
 
 
-def user_detail(request, id):
-    user = get_object_or_404(User, pk=id)
-    data = {
-        "email": user.email,  # Include email
-        "multiplier": user.multiplier,
-        "avg_rating": float(user.avg_rating),
-        "name": user.name,
-        "picture_url": user.picture.url if user.picture else "",
-        "title": user.title,
-        "location": user.location,
-        "bio": user.bio,
-        "link": user.link,
-    }
-    return JsonResponse(data)
+# def user_detail(request, id):
+#     user = get_object_or_404(User, pk=id)
+#     data = {
+#         "email": user.email,  # Include email
+#         "multiplier": user.multiplier,
+#         "avg_rating": float(user.avg_rating),
+#         "name": user.name,
+#         "picture_url": user.picture.url if user.picture else "",
+#         "title": user.title,
+#         "location": user.location,
+#         "bio": user.bio,
+#         "link": user.link,
+#     }
+#     return JsonResponse(data)
 
 def get_all_listings(request):
     # should be modified if the database of listings is too large
@@ -741,15 +741,15 @@ def edit_profile(request):
         form = ProfileEditForm(request.POST, request.FILES, instance=request.user)
         if form.is_valid():
             form.save()
-            return redirect('profile_info')  # Ensure this matches your URL name
+            return redirect('profile_info')  
     else:
         form = ProfileEditForm(instance=request.user)
     return render(request, 'edit_profile.html', {'form': form})
 
 
-@login_required
-def get_profile(request):
-    return render(request, 'profile_info.html', {'user': request.user})
+# @login_required
+# def get_profile(request):
+#     return render(request, 'profile_info.html', {'user': request.user})
 
 def profile_info(request, user_id=None):
     user = get_object_or_404(User, id=user_id) if user_id else request.user

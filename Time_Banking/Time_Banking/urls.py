@@ -45,7 +45,7 @@ urlpatterns = [
     # path('login/', views.login, name='login'),
 
     path('accounts/login/', views.custom_login, name='login'),
-    path("api/user/<int:id>/", views.user_detail, name="user_detail"),
+    # path("api/user/<int:id>/", views.user_detail, name="user_detail"),
 
 
     path("api/listings/", views.get_all_listings, name="get_all_listings"),

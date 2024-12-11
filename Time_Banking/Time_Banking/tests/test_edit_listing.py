@@ -3,6 +3,7 @@ from django.urls import reverse
 from django.core.files.uploadedfile import SimpleUploadedFile
 from ..models import Listing, User, Tag, Category
 from datetime import timedelta
+from unittest.mock import patch
 
 
 class EditListingViewTests(TestCase):
@@ -46,6 +47,14 @@ class EditListingViewTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()['title'], 'Updated Title')
+        
+    def test_edit_listing_page_renders(self):
+        self.client.login(username="testuser", password="password")
+        response = self.client.get(reverse('edit_listing_page', args=[self.listing.id]))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'edit_listing.html')
+
 
     def test_edit_listing_as_non_creator(self):
         self.client.login(username="otheruser", password="password")
@@ -128,3 +137,29 @@ class EditListingViewTests(TestCase):
         self.assertEqual(response.status_code, 400)
         self.assertIn('error', response.json())
         self.assertEqual(response.json()['error'], 'Description is too long')
+        
+    def test_edit_listing_post_request_required(self):
+        # Test that a POST request is required
+        response = self.client.get(reverse('edit_listing', kwargs={'listing_id': self.listing.id}))
+        self.assertEqual(response.status_code, 405)
+        self.assertJSONEqual(response.content, {"error": "POST request required"})
+
+    def test_edit_listing_internal_server_error(self):
+        # Simulate an internal server error
+        image = SimpleUploadedFile("test_image.jpg", b"file_content", content_type="image/jpeg")
+        with patch('Time_Banking.models.Listing.save', side_effect=Exception('Test exception')):
+            response = self.client.post(reverse('edit_listing', args=[self.listing.id]), {
+                'title': 'Updated Title',
+                'description': 'Updated Description',
+                'category': Category.PROGRAMMING_TECH,
+                'duration': '45',
+                'listing_type': 'Request',
+                'status': 'Fulfilled',
+                'tags': [self.tag1.id],
+                'image': image,
+            })
+        
+            self.assertEqual(response.status_code, 500)
+            self.assertIn('error', response.json())
+            self.assertEqual(response.json()['error'], 'Test exception')
+        
