@@ -28,20 +28,20 @@
     {% if listing.creator == user %}
         <a href="{% url 'edit_listing_page' listing.id %}" class="btn btn-primary">Edit</a>
 
-        {# Check if the service has been accepted before showing 'Mark as Completed' #}
-        {% if listing.status != "Completed" and service_accepted %}
+        {# Show the 'Mark as Completed' button only if the listing is not already completed #}
+        {% if listing.status != "Completed" and service_accepted and not service_completed %}
             <form method="POST" action="{% url 'mark_listing_completed' listing.id %}" id="markCompletedForm" class="complete-form mt-3">
                 {% csrf_token %}
                 <button type="submit" class="btn btn-success">Mark as Completed</button>
             </form>
         {% endif %}
     {% else %}
-        {# Allow the requester to see the Submit Feedback button if eligible #}
+        {# Allow the requester to submit feedback if eligible #}
         {% if service_completed and not feedback_given %}
             <a href="{% url 'submit_feedback' listing.id %}" class="btn btn-warning mt-3">Submit Feedback</a>
         {% endif %}
 
-        {# Allow the user to apply only if not the listing owner #}
+        {# Show apply button only if not accepted already #}
         {% if not service_accepted %}
             <form method="POST" action="{% url 'apply_service' listing.id %}" id="applyform" class="accept-form">
                 {% csrf_token %}
@@ -55,6 +55,26 @@
 
 {% block extra_scripts %}
 <script>
+    // Handle Mark as Completed Form
+    document.getElementById('markCompletedForm')?.addEventListener('submit', function(event) {
+        event.preventDefault();
+        fetch(this.action, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': this.querySelector('[name="csrfmiddlewaretoken"]').value
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.success);
+                window.location.reload();  // Reload only if successful
+            } else {
+                alert(data.error);  // Show error alert
+            }
+        });
+    });
+
     // Handle Apply Service Form
     document.getElementById('applyform')?.addEventListener('submit', function(event) {
         event.preventDefault(); 
@@ -73,30 +93,12 @@
             if (data.success) {
                 messageBox.textContent = data.success;
                 messageBox.style.color = 'green';
+                messageBox.style.display = 'block';
+                window.location.reload();  // Reload on success
             } else {
                 messageBox.textContent = data.error;
                 messageBox.style.color = 'red';
-            }
-            messageBox.style.display = 'block';
-        })
-    });
-
-    // Handle Mark as Completed Form
-    document.getElementById('markCompletedForm')?.addEventListener('submit', function(event) {
-        event.preventDefault();
-        fetch(this.action, {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': this.querySelector('[name="csrfmiddlewaretoken"]').value
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert(data.success);
-                window.location.reload();
-            } else {
-                alert(data.error);
+                messageBox.style.display = 'block';
             }
         });
     });

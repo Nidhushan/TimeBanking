@@ -10,7 +10,7 @@ from django.core.exceptions import ValidationError
 from django.core.mail import send_mail
 from django.conf import settings
 import uuid
-from .models import Listing, User, ListingResponse, ListingAvailability, Category, Tag, Skill, Notification, Feedback, ServiceTransaction
+from .models import Listing, User, ListingResponse, ListingAvailability, Category, Tag, Skill, Notification, Feedback, ServiceTransaction, update_provider_metrics
 from .forms import RegisterForm, ProfileCreationForm, ProfileEditForm, AddSkillForm
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
@@ -27,7 +27,6 @@ def mark_listing_completed(request, listing_id):
     try:
         listing = get_object_or_404(Listing, id=listing_id, creator=request.user)
 
-        # Ensure the listing hasn't already been completed
         if listing.status == "Completed":
             return JsonResponse({'error': 'Listing already marked as completed.'}, status=400)
 
@@ -40,16 +39,19 @@ def mark_listing_completed(request, listing_id):
         listing.status = "Completed"
         listing.save()
 
-        # Ensure correct transaction creation
+        # Create or update service transaction
         transaction, created = ServiceTransaction.objects.get_or_create(
             listing=listing,
-            provider=accepted_response.user,  # Correct provider from the accepted response
-            requester=accepted_response.user if listing.listing_type == "Request" else listing.creator, 
+            provider=accepted_response.user,
+            requester=listing.creator if listing.listing_type == "Request" else accepted_response.user,
             defaults={
-                'duration': listing.duration.total_seconds() / 60,  # Ensure duration is in minutes
-                'status': 'Completed'
+                'duration': listing.duration.total_seconds() / 60,
+                'status': 'Completed',
             }
         )
+
+        # Update provider metrics
+        update_provider_metrics(transaction.provider)
 
         # Notify the applicant
         Notification.objects.create(
@@ -125,8 +127,6 @@ def accepted_services(request):
     return render(request, 'accepted_services.html', {'transactions': transactions})
 
 
-# views.py
-
 from django.db.models import Sum
 
 def calculate_quality_multiplier(rating):
@@ -138,46 +138,47 @@ def calculate_quality_multiplier(rating):
         1: 0.5
     }.get(rating, 1.0)
 
+# Updated Function: Submit Feedback
 @login_required
 def submit_feedback(request, listing_id):
     try:
+        # Fetch the relevant transaction
         transaction = get_object_or_404(
             ServiceTransaction,
             listing_id=listing_id,
-            requester=request.user,
+            requester=request.user,  # The one giving feedback
             status='Completed',
             feedback_given=False
         )
 
+        listing = transaction.listing
+        provider = transaction.provider  # Correct provider
+
         if request.method == 'POST':
-            try:
-                q1 = int(request.POST.get('q1'))
-                q2 = int(request.POST.get('q2'))
-                q3 = int(request.POST.get('q3'))
-                q4 = int(request.POST.get('q4'))
-            except (TypeError, ValueError):
-                messages.error(request, "Invalid feedback submission.")
-                return redirect('submit_feedback', listing_id=listing_id)
+            # Collect feedback ratings
+            q1 = int(request.POST.get('q1'))
+            q2 = int(request.POST.get('q2'))
+            q3 = int(request.POST.get('q3'))
+            q4 = int(request.POST.get('q4'))
 
+            # Calculate average rating
             avg_rating = round((q1 + q2 + q3 + q4) / 4)
-            quality_multiplier = calculate_quality_multiplier(avg_rating)
 
-            # Save Feedback
+            # Save feedback
             Feedback.objects.create(
                 transaction=transaction,
-                provider=transaction.provider,
-                requester=transaction.requester,
+                provider=provider,
+                requester=request.user,
                 rating=avg_rating,
                 comment=f"Q1: {q1}, Q2: {q2}, Q3: {q3}, Q4: {q4}"
             )
 
-            # Update transaction and provider
+            # Mark the transaction as having received feedback
             transaction.feedback_given = True
-            transaction.multiplier = quality_multiplier
             transaction.save()
 
-            # Update provider stats
-            update_provider_metrics(transaction)
+            # Update provider metrics (multiplier and average rating)
+            update_provider_metrics(provider)
 
             messages.success(request, "Feedback submitted successfully!")
             return redirect("home")
@@ -948,6 +949,9 @@ def get_profile(request):
 
 # views.py
 
+from django.db.models import Avg
+from django.db.models import Sum
+
 @login_required
 def profile_info(request, user_id=None):
     user = get_object_or_404(User, id=user_id) if user_id else request.user
@@ -959,26 +963,24 @@ def profile_info(request, user_id=None):
         total_credits=Sum(models.F('duration') * models.F('multiplier') / 60)
     )['total_credits'] or 0
 
+    # Fetch required data
     offered_services = Listing.objects.filter(creator=user, listing_type="Offer")
     requested_services = Listing.objects.filter(creator=user, listing_type="Request")
     skills = user.skills.all()
 
-    
-    if request.method == 'POST' and 'add_skill' in request.POST and user == request.user:
-        skill_names = request.POST.getlist('skills')
-        for skill_name in skill_names:
-            if skill_name.strip():
-                skill, _ = Skill.objects.get_or_create(name=skill_name.strip())
-                user.skills.add(skill)
-        return redirect('profile_info')
+    # Calculate multiplier if missing
+    multiplier = user.multiplier
 
-    # Pass the data to the template
+    # Update the context
     context = {
         'user': user,
         'offered_services': offered_services,
         'requested_services': requested_services,
         'skills': skills,
+        'total_credits': total_credits,
+        'multiplier': multiplier,
     }
+
     return render(request, 'profile_info.html', context)
 
 

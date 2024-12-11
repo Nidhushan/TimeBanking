@@ -162,26 +162,33 @@ class Feedback(models.Model):
     def __str__(self):
         return f"Feedback for Transaction {self.transaction.id} by {self.requester}"
 
+from django.db.models import FloatField
+
 # models.py
+from django.core.exceptions import ImproperlyConfigured
 
-def update_provider_metrics(transaction):
-    provider = transaction.provider
+from django.db.models import Avg, Sum, F
 
-    # Update average rating
+def update_provider_metrics(provider):
+    if not isinstance(provider, User):
+        raise ImproperlyConfigured(f"Expected a User instance for 'provider', got {type(provider).__name__}.")
+
+    # Calculate the average rating based on all feedback
     all_ratings = Feedback.objects.filter(provider=provider).values_list('rating', flat=True)
-    avg_rating = sum(all_ratings) / len(all_ratings) if all_ratings else 0
+    avg_rating = float(sum(all_ratings)) / len(all_ratings) if all_ratings else 0.0
 
-    # Update multiplier
-    multiplier = 1 + (avg_rating - 3) * 0.1
-    provider.multiplier = max(0.5, min(2.0, multiplier))
+    # Recalculate multiplier based on average rating
+    new_multiplier = max(0.5, min(2.0, 1 + (avg_rating - 3.0) * 0.1))
+    provider.multiplier = round(new_multiplier, 2)
 
-    # Update total credits
+    # Calculate earned credits based on completed transactions
     earned_credits = ServiceTransaction.objects.filter(
         provider=provider, status='Completed'
     ).aggregate(
-        total_credits=Sum(models.F('duration') * models.F('multiplier') / 60)
-    )['total_credits'] or 0
+        total_credits=Sum(F('duration') * F('multiplier') / 60)
+    )['total_credits'] or 0.0
 
+    # Update the provider’s metrics
     provider.total_minutes = earned_credits * 60
     provider.avg_rating = round(avg_rating, 2)
     provider.save()
