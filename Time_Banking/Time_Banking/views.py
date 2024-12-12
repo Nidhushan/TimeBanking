@@ -794,13 +794,21 @@ def edit_listing(request, listing_id):
         try:
             listing = get_object_or_404(Listing, id=listing_id)
             # Simulate form validation logic
-            if request.POST['duration'] <= 0:
-                raise ValidationError("Invalid duration.")
+            # if request.POST['duration'] <= 0:
+            #     raise ValidationError("Invalid duration.")
+            try:
+                duration_in_minutes = int(request.POST.get('duration'))
+                if duration_in_minutes <= 0:
+                    return JsonResponse({'error': 'Invalid duration.'}, status=400)
+            except (ValueError, TypeError):
+                return JsonResponse({'error': 'Duration must be a valid integer'}, status=400)
+            if len(description) > 1000:
+                return JsonResponse({'error': 'Description is too long'}, status=400)
             # Update the listing logic
         except ValidationError as e:
             return JsonResponse({"error": str(e)}, status=400)
         except Exception as e:
-            return JsonResponse({"error": "Internal Server Error"}, status=500)
+            return JsonResponse({"error": str(e)}, status=500)
         try:
             listing = get_object_or_404(Listing, id=listing_id, creator=request.user)
 
