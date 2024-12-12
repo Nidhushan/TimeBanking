@@ -51,7 +51,7 @@ urlpatterns = [
     # path('login/', views.login, name='login'),
 
     path('accounts/login/', views.custom_login, name='login'),
-    path("api/user/<int:id>/", views.user_detail, name="user_detail"),
+    # path("api/user/<int:id>/", views.user_detail, name="user_detail"),
 
 
     path("api/listings/", views.get_all_listings, name="get_all_listings"),
@@ -89,7 +89,7 @@ urlpatterns = [
     path('create-listing/', views.create_listing_page, name='create_listing_page'),
     path('myservices/', views.my_service, name='my_service'),
     path('applicants/<int:listing_id>/', views.view_applicants, name='view_applicants'),
-    path('get-notifications/', views.get_notifications, name='get_otifications'),
+    path('get-notifications/', views.get_notifications, name='get_notifications'),
     path('appliedservices/', views.applied_services, name='applied_services'),
     path('notifications/mark-as-read/<int:notification_id>/', views.mark_as_read, name='mark_as_read'),
     path('user/<int:user_id>/', views.profile_info, name='user_profile'),
