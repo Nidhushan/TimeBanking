@@ -6,15 +6,20 @@ Applied Service
 {% endblock %}
 
 {% block content %}
+<link rel="stylesheet" href="{% static 'css/services.css' %}">
+
+<div class="container_isne">
 <h3>Applied Services</h3>
 {% for response in responses %}
-    <div class="card">
-        <img src="{{ response.listing.image.url }}" class="card-img-top" alt="{{ response.listing.title }}">
-        <div class="card-body">
-            <h5 class="card-title">{{ response.listing.title }}</h5>
+    <div class="card_iz78">
+        <img src="{{ response.listing.image.url }}" class="card-img-left" alt="{{ response.listing.title }}">
+        <div class="card-body_se4d">
+            <div class="card-title_s4e8">{{ response.listing.title }}</div>
             <p class="card-text">{{ response.listing.description }}</p>
             <p class="card-text">Your applied status: {{ response.message }}</p>
         </div>
     </div>
+</div>
+    
 {% endfor %}
 {% endblock %}

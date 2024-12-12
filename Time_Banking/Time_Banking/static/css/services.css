@@ -1,0 +1,36 @@
+.container_isne{
+    background-color: #fafafa;
+}
+.card_iz78{
+        background-color: white;
+        border-radius: 5px;
+        box-shadow: 0 0 4px 1px rgba(0, 0, 0, .05), 2px 2px 2px 1px rgba(0, 0, 0, .05);
+        padding: 20px;
+        margin: 10px 10%;
+        max-width: 80%; 
+        box-sizing: border-box;
+        height: 150px; /* Set a fixed height for the card */
+        display: flex;
+        align-items: center;
+}
+.card-img-left{
+    width: 100px;
+    height: 100px; /* Set the desired fixed height */
+    object-fit: cover; /* Ensures the image scales to fit the container without distortion */
+    border-radius: 5px;
+}
+.card-body_se4d {
+    margin: 0 0 0 10px;
+    height: 100px;
+}
+.card-title_s4e8{
+    font-weight: 500
+}
+.card-text_s4e8 {
+    overflow: hidden;
+    text-overflow: ellipsis; /* Adds ellipsis (...) for overflowing text */
+    display: -webkit-box;
+    -webkit-line-clamp: 4; /* Limits the text to 4 lines */
+    -webkit-box-orient: vertical;
+    height: auto;
+}
