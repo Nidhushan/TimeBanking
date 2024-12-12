@@ -50,9 +50,6 @@ def mark_listing_completed(request, listing_id):
             }
         )
 
-        # Update provider metrics
-        update_provider_metrics(transaction.provider)
-
         # Notify the applicant
         Notification.objects.create(
             user=accepted_response.user,
@@ -138,24 +135,22 @@ def calculate_quality_multiplier(rating):
         1: 0.5
     }.get(rating, 1.0)
 
-# Updated Function: Submit Feedback
 @login_required
 def submit_feedback(request, listing_id):
     try:
-        # Fetch the relevant transaction
+        # Fetch the transaction related to the listing
         transaction = get_object_or_404(
             ServiceTransaction,
             listing_id=listing_id,
-            requester=request.user,  # The one giving feedback
+            requester=request.user,  # The one submitting feedback
             status='Completed',
             feedback_given=False
         )
 
-        listing = transaction.listing
-        provider = transaction.provider  # Correct provider
+        provider = transaction.provider  # Correct provider receiving feedback
 
         if request.method == 'POST':
-            # Collect feedback ratings
+            # Collect ratings from form submission
             q1 = int(request.POST.get('q1'))
             q2 = int(request.POST.get('q2'))
             q3 = int(request.POST.get('q3'))
@@ -164,11 +159,11 @@ def submit_feedback(request, listing_id):
             # Calculate average rating
             avg_rating = round((q1 + q2 + q3 + q4) / 4)
 
-            # Save feedback
+            # Create feedback entry
             Feedback.objects.create(
                 transaction=transaction,
-                provider=provider,
-                requester=request.user,
+                provider=provider,  # Feedback goes to the provider
+                requester=request.user,  # Person submitting feedback
                 rating=avg_rating,
                 comment=f"Q1: {q1}, Q2: {q2}, Q3: {q3}, Q4: {q4}"
             )
@@ -177,8 +172,8 @@ def submit_feedback(request, listing_id):
             transaction.feedback_given = True
             transaction.save()
 
-            # Update provider metrics (multiplier and average rating)
-            update_provider_metrics(provider)
+            # Update metrics for the provider
+            update_provider_metrics(provider, transaction.listing_id)
 
             messages.success(request, "Feedback submitted successfully!")
             return redirect("home")
@@ -599,7 +594,6 @@ def get_all_listings(request):
 def view_listing(request, listing_id):
     if request.method != 'GET':
         return HttpResponseNotAllowed(['GET'])
-    listing = get_object_or_404(Listing, id=listing_id)
     listing = get_object_or_404(Listing, id=listing_id)
     service_accepted = ListingResponse.objects.filter(listing=listing, status=2).exists()
     service_completed = ServiceTransaction.objects.filter(listing=listing, status='Completed').exists()
