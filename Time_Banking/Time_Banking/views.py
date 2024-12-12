@@ -20,6 +20,8 @@ import json
 from .forms import ProfileEditForm
 from django.http import HttpResponseNotAllowed
 from django.contrib import messages
+from django.http import HttpResponseForbidden
+
 
 @login_required
 @csrf_exempt
@@ -591,13 +593,21 @@ def get_all_listings(request):
 #         )
 #     return JsonResponse(data, safe=False)
 
+
 def view_listing(request, listing_id):
+    listing = get_object_or_404(Listing, id=listing_id)
+    
+    if not request.user.is_authenticated:
+        return JsonResponse({'error': 'Authentication required'}, status=403)
+    
+    feedback_given = Feedback.objects.filter(
+        transaction__listing=listing,
+        transaction__requester=request.user
+    ).exists()
     if request.method != 'GET':
         return HttpResponseNotAllowed(['GET'])
-    listing = get_object_or_404(Listing, id=listing_id)
     service_accepted = ListingResponse.objects.filter(listing=listing, status=2).exists()
     service_completed = ServiceTransaction.objects.filter(listing=listing, status='Completed').exists()
-    feedback_given = Feedback.objects.filter(transaction__listing=listing, transaction__requester=request.user).exists()
 
     # Check if service has been accepted
     service_accepted = ListingResponse.objects.filter(
@@ -781,6 +791,16 @@ curl -X POST "http://localhost:8000/api/edit-listing/1/" \
 @login_required
 def edit_listing(request, listing_id):
     if request.method == 'POST':
+        try:
+            listing = get_object_or_404(Listing, id=listing_id)
+            # Simulate form validation logic
+            if request.POST['duration'] <= 0:
+                raise ValidationError("Invalid duration.")
+            # Update the listing logic
+        except ValidationError as e:
+            return JsonResponse({"error": str(e)}, status=400)
+        except Exception as e:
+            return JsonResponse({"error": "Internal Server Error"}, status=500)
         try:
             listing = get_object_or_404(Listing, id=listing_id, creator=request.user)
 
