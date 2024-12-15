@@ -1,17 +1,26 @@
 .container_isne{
-    background-color: #fafafa;
+    margin: 0 20%;
+    margin-bottom: 10%;
+}
+.headline_kkdi{
+    font-size: 30px;
+    font-weight: 600;
+    border-bottom: solid 1px #cccccc;
+    padding: 5% 0 2% 0;
 }
 .card_iz78{
-        background-color: white;
-        border-radius: 5px;
-        box-shadow: 0 0 4px 1px rgba(0, 0, 0, .05), 2px 2px 2px 1px rgba(0, 0, 0, .05);
-        padding: 20px;
-        margin: 10px 10%;
-        max-width: 80%; 
-        box-sizing: border-box;
-        height: 150px; /* Set a fixed height for the card */
-        display: flex;
-        align-items: center;
+    background-color: white;
+    border-radius: 5px;
+    box-shadow: 0 0 4px 1px rgba(0, 0, 0, .05), 2px 2px 2px 1px rgba(0, 0, 0, .05);
+    padding: 20px;
+    margin: 30px 0;
+    box-sizing: border-box;
+    height: 150px; /* Set a fixed height for the card */
+    display: flex;
+    align-items: center;
+}
+.card_iz78:last-child{
+    margin-bottom: 100px;
 }
 .card-img-left{
     width: 100px;
@@ -20,17 +29,36 @@
     border-radius: 5px;
 }
 .card-body_se4d {
-    margin: 0 0 0 10px;
+    margin: 0 0 0 20px;
     height: 100px;
 }
 .card-title_s4e8{
-    font-weight: 500
+    font-weight: 600;
+    font-size: 20px;
+    line-height: 1;
+    color: #000;
+}
+.card-user_ffji{
+    font-weight: 600;
+    font-size: 17px;
+    line-height: 1.5;
+    color: #000;
 }
 .card-text_s4e8 {
-    overflow: hidden;
-    text-overflow: ellipsis; /* Adds ellipsis (...) for overflowing text */
-    display: -webkit-box;
-    -webkit-line-clamp: 4; /* Limits the text to 4 lines */
-    -webkit-box-orient: vertical;
-    height: auto;
+    font-size: 13px;
+    line-height: 1;
+    margin-top: 15px;
+}
+.status_pps4{
+    height: 20px;
+    padding-bottom: 1%;
+    color: dimgray;
+}
+.no-applications{
+    text-align: center; 
+    color: #888; 
+    margin-top: 10%;
+    padding: 15px 10px; 
+    font-size: 25px;
+    font-style: italic;
 }

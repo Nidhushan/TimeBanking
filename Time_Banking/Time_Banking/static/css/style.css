@@ -426,17 +426,16 @@ span {
 }
 
 .social-icons a {
-    color: black; 
+    color: white; 
     margin: 0 10px;
     font-size: 30px;
-    background: white;
     display: flex;
-    width: 50px;
     text-align: right;
 }
 
 .social-icons a:hover {
-    background: #f0a500;
+    color: rgb(222, 222, 222);
+    text-decoration: none;
 }
 
 
@@ -473,14 +472,13 @@ span {
     padding: 0;
     display: flex;
     justify-content: center;
-    align-items: center;
-    height: 100vh;
 }
 
 .profile-form-container {
     width: 90%;
     max-width: 800px;
     background-color: white;
+    margin: 50px;
     padding: 40px;
     border-radius: 10px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
@@ -602,8 +600,8 @@ label {
     display: none;
     position: absolute;
     top: 50px;
-    right: -150px;
-    width: 300px;
+    right: -110px;
+    width: 250px;
     background-color: white;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     border-radius: 8px;

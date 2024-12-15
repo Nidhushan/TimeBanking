@@ -60,7 +60,8 @@
                             </a>
                             <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
                                 <a class="dropdown-item" href="{% url 'profile_info' %}">Profile</a>
-                                <a class="dropdown-item" href="{% url 'applied_services' %}">Service</a>
+                                <a class="dropdown-item" href="{% url 'my_service' %}">Services</a>
+                                <a class="dropdown-item" href="{% url 'applied_services' %}">Applications</a>
                                 <a class="dropdown-item" href="/settings">Settings</a>
                                 <div class="dropdown-divider"></div>
                                 <form action="{% url 'logout' %}" method="post" class="dropdown-item">
@@ -249,7 +250,5 @@
                 });
         });
     </script>
-    {% block extra_scripts %}
-    {% endblock %}
 </body>
 </html>

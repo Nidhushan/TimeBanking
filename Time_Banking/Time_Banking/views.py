@@ -20,6 +20,7 @@ import json
 from .forms import ProfileEditForm
 from django.http import HttpResponseNotAllowed
 from django.contrib import messages
+from django.utils.timezone import localtime
 
 
 def home(request):
@@ -457,8 +458,8 @@ def apply_service(request, listing_id):
         ListingResponse.objects.create(
             listing=listing,
             user=request.user,
-            message="Applied",
-            status=1  # You can use an appropriate integer to indicate 'Accepted' status
+            message="Pending",
+            status=0  # You can use an appropriate integer to indicate 'Accepted' status
         )
 
         Notification.objects.create(
@@ -820,21 +821,21 @@ def view_applicants(request, listing_id):
         
         response = get_object_or_404(ListingResponse, id=response_id)
         response.message = 'Accepted'  
-        response.status = 2
+        response.status = 1
         response.save()
         Notification.objects.create(
             user=response.user,
-            message="You get an update on your applied service.",
+            message="An update on your application.",
             url="/appliedservices"
         )
         for rresponse in responses:
             if rresponse != response:
-                rresponse.message = 'Rejected'  
-                rresponse.status = 3
+                rresponse.message = 'Declined'  
+                rresponse.status = 2
                 rresponse.save()
                 Notification.objects.create(
                     user=rresponse.user,
-                    message="You get an update on your applied service.",
+                    message="An update on your application.",
                     url="/appliedservices"
                 )
 
