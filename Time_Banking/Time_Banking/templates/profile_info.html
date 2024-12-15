@@ -20,11 +20,17 @@
                         <img src="{% static 'images/default-avatar-profile-icon-social-600nw-1677509740.jpg.webp' %}" alt="Default Profile Picture" class="profile-picture">
                     {% endif %}
                     <p> {{ user.title }} {{ user.name }}</p>
+                    
                     <p><i class="fa fa-map-marker"></i> {{ user.location }}</p>
                     <p><i class="fa fa-calendar"></i> Joined in {{ user.date_joined|date:"F Y" }}</p>
                     <p>Bio: {{ user.bio }}</p>
+<p><i class="fa fa-envelope"></i> {{ user.email }}</p>
+
+
                     <p>Link: <a href="{{ user.link }}">{{ user.link }}</a></p>
                 </div>
+                
+                
 
                 <!-- Time Credits Section -->
                 <div class="time-credits">
@@ -38,6 +44,7 @@
                 {% endif %}
             </div>
         </div>
+        
 
         <!-- Right Column: Skills and Services -->
         <div class="col-right">
@@ -49,7 +56,6 @@
             <div class="checklist-item">
                 {% if request.user == user %}
                     <h3>Add Your Skills</h3>
-                    <p>Share the skills you offer to maximize your time credits.</p>
                 {% else %}
                     <h3>Skills</h3>
                 {% endif %}
