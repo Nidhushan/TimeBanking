@@ -36,8 +36,9 @@ class NotificationTests(TestCase):
 class ViewApplicantsTests(TestCase):
 
     def setUp(self):
-        self.user = User.objects.create_user(username='testuser', password='password')
-        self.other_user = User.objects.create_user(username='otheruser', password='password')
+        image = SimpleUploadedFile("test_image.jpg", b"file_content", content_type="image/jpeg")
+        self.user = User.objects.create_user(username='testuser', password='password', picture=image)
+        self.other_user = User.objects.create_user(username='otheruser', password='password', picture=image)
         self.client = Client()
         self.client.login(username='testuser', password='password')
         
