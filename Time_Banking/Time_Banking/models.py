@@ -1,10 +1,11 @@
 
-from datetime import timezone
+from datetime import timezone, timedelta
 from django.db import models
 import datetime
 from django.contrib.auth.models import AbstractUser
 from datetime import timedelta
 from django.core.exceptions import ValidationError
+from django.shortcuts import get_object_or_404
 
 LISTING_TYPES = [
     (True, "Offer"),
@@ -55,8 +56,9 @@ class Skill(models.Model):
         return self.name
 # user account
 class User(AbstractUser):
-    multiplier = models.FloatField(default=1.0) # or DecimalField?
-    avg_rating = models.DecimalField(max_digits=3, decimal_places=2, default=0.00) # 1.00 to 5.00, or 0.00
+    multiplier = models.FloatField(default=1.0)
+    avg_rating = models.DecimalField(max_digits=3, decimal_places=2, default=0.00)
+    total_minutes = models.FloatField(default=0.0) 
     is_verified = models.BooleanField(default=False)  # Track if user is verified
     verification_code = models.CharField(max_length=100, blank=True, null=True)  # Store verification code
     # TODO: profiles
@@ -95,6 +97,12 @@ class Listing(models.Model):
             raise ValidationError({
                 'status': f"Invalid status for {listing_type_label}. Valid options are: {', '.join(valid_statuses)}"
             })
+        
+    def save(self, *args, **kwargs):
+        # If already exists and is being edited, reset its status
+        if self.pk:
+            self.status = "Available"
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.title
@@ -121,6 +129,76 @@ class ListingAvailability(models.Model):
     listing = models.ForeignKey(Listing, on_delete=models.CASCADE)
     from_time = models.DateTimeField()
     to_time = models.DateTimeField()
+
+# New model for service transactions
+# models.py
+
+class ServiceTransaction(models.Model):
+    listing = models.ForeignKey(Listing, on_delete=models.CASCADE)
+    provider = models.ForeignKey(User, on_delete=models.CASCADE, related_name='provided_transactions')
+    requester = models.ForeignKey(User, on_delete=models.CASCADE, related_name='requested_transactions')
+    duration = models.IntegerField()  # Duration in minutes
+    feedback_given = models.BooleanField(default=False)
+    multiplier = models.FloatField(default=1.0)
+    status = models.CharField(
+        max_length=20,
+        choices=[
+            ('Pending', 'Pending'),
+            ('Completed', 'Completed'),
+            ('Cancelled', 'Cancelled'),
+        ],
+        default='Pending'
+    )
+
+    def calculate_credits(self):
+        return round(self.duration * self.multiplier / 60, 2)
+    
+# New model for feedback
+class Feedback(models.Model):
+    transaction = models.OneToOneField(ServiceTransaction, on_delete=models.CASCADE)
+    provider = models.ForeignKey(User, on_delete=models.CASCADE, related_name='feedback_received')
+    requester = models.ForeignKey(User, on_delete=models.CASCADE, related_name='feedback_given')
+    rating = models.IntegerField()
+    comment = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return f"Feedback for Transaction {self.transaction.id} by {self.requester}"
+
+from django.db.models import FloatField
+
+# models.py
+from django.core.exceptions import ImproperlyConfigured
+
+from django.db.models import Avg, Sum, F
+
+def update_provider_metrics(provider, listing_id):
+    if not isinstance(provider, User):
+        raise ImproperlyConfigured(f"Expected a User instance for 'provider', got {type(provider).__name__}.")
+
+    # Recalculate average rating from all feedback
+    all_ratings = Feedback.objects.filter(provider=provider).values_list('rating', flat=True)
+    avg_rating = sum(all_ratings) / len(all_ratings) if all_ratings else 0.0
+
+    # Update the multiplier of the listing's provider
+    listing = get_object_or_404(Listing, id=listing_id)
+    poster = listing.creator  # Assuming 'posted_by' is the field referencing the user who posted the listing
+
+    # Calculate new multiplier
+    new_multiplier = max(0.5, min(2.0, 1 + (avg_rating - 3.0) * 0.1))
+    poster.multiplier = round(new_multiplier, 2)
+    poster.save()  # Save the updated multiplier
+
+    # Calculate earned time credits only for the provider
+    earned_credits = ServiceTransaction.objects.filter(
+        provider=provider, status='Completed'
+    ).aggregate(
+        total_credits=Sum(F('duration') * F('multiplier') / 60)
+    )['total_credits'] or 0.0
+
+    # Update provider stats
+    provider.total_minutes = earned_credits * 60
+    provider.avg_rating = round(avg_rating, 2)
+    provider.save()
 
 # images within a listing
 # class ListingImage(models.Model):
