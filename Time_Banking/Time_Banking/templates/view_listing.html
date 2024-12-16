@@ -42,7 +42,7 @@
         {% endif %}
 
         {# Show apply button only if not accepted already #}
-        {% if not service_accepted %}
+        {% if user.is_authenticated and not service_accepted %}
             <form method="POST" action="{% url 'apply_service' listing.id %}" id="applyform" class="accept-form">
                 {% csrf_token %}
                 <button type="submit" class="btn btn-primary">Apply Service/Request</button>

@@ -597,29 +597,23 @@ def get_all_listings(request):
 def view_listing(request, listing_id):
     listing = get_object_or_404(Listing, id=listing_id)
     
-    if not request.user.is_authenticated:
-        return JsonResponse({'error': 'Authentication required'}, status=403)
-    
-    feedback_given = Feedback.objects.filter(
-        transaction__listing=listing,
-        transaction__requester=request.user
-    ).exists()
-    if request.method != 'GET':
-        return HttpResponseNotAllowed(['GET'])
-    service_accepted = ListingResponse.objects.filter(listing=listing, status=2).exists()
-    service_completed = ServiceTransaction.objects.filter(listing=listing, status='Completed').exists()
+    context = {"listing": listing}
 
-    # Check if service has been accepted
-    service_accepted = ListingResponse.objects.filter(
-        listing=listing, status=2  # 2 = Accepted
-    ).exists()
+    if request.user.is_authenticated:
+        context['feedback_given'] = Feedback.objects.filter(
+            transaction__listing=listing,
+            transaction__requester=request.user
+        ).exists()
+        if request.method != 'GET':
+            return HttpResponseNotAllowed(['GET'])
+        context['service_accepted'] = ListingResponse.objects.filter(listing=listing, status=2).exists()
+        context['service_completed'] = ServiceTransaction.objects.filter(listing=listing, status='Completed').exists()
+
+        # Check if service has been accepted
+        service_accepted = ListingResponse.objects.filter(
+            listing=listing, status=2  # 2 = Accepted
+        ).exists()
     
-    context = {
-        'listing': listing,
-        'service_accepted': service_accepted,
-        'service_completed': service_completed,
-        'feedback_given': feedback_given,
-    }
     return render(request, 'view_listing.html', context)
 
     
