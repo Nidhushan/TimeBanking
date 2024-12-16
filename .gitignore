@@ -9,4 +9,4 @@ Time_Banking/db.sqlite3
 *.sqlite3
 # Ignore image files
 /media/static/images/user/*.jpg
-/media/static/images/user/*.png
+/media/static/images/listing/*.png
