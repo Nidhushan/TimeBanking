@@ -45,7 +45,7 @@ class DeleteListingTest(TestCase):
         # Check for a redirect to the login page (login_required decorator)
         self.assertRedirects(response, f'/accounts/login/?next={self.url}')
 
-    @patch('Time_banking.views.Listing.delete')
+    @patch('Time_Banking.views.Listing.delete')
     def test_delete_listing_exception_handling(self, mock_delete):
         # Simulate an error in the delete operation
         mock_delete.side_effect = Exception('Database error')
