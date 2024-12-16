@@ -89,7 +89,27 @@ class EditProfileViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.user.refresh_from_db()
         self.assertTrue(self.user.skills.filter(name=skill_name).exists())
-        
+
+    def test_remove_skill_from_user(self):
+        # Test adding skills to the user's profile
+        skill_name = 'Python'
+        self.client.post(
+            self.profile_info_url,
+            {
+                'add_skill': 'add_skill',
+                'skills': skill_name
+            }
+        )
+        self.user.refresh_from_db()
+        response = self.client.post(
+            self.profile_info_url,
+            {
+                'remove_skill': '1'
+            }
+        )
+        self.assertEqual(response.status_code, 200)
+        self.user.refresh_from_db()
+        self.assertFalse(self.user.skills.filter(name=skill_name).exists())
         
     def test_delete_profile_picture(self):
         # Test deleting the user's profile picture
