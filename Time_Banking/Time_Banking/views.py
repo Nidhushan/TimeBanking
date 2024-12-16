@@ -459,7 +459,7 @@ def apply_service(request, listing_id):
             listing=listing,
             user=request.user,
             message="Pending",
-            status=0  # You can use an appropriate integer to indicate 'Accepted' status
+            status=1  # You can use an appropriate integer to indicate 'Accepted' status
         )
 
         Notification.objects.create(
@@ -813,7 +813,7 @@ def view_applicants(request, listing_id):
     responses = ListingResponse.objects.filter(listing_id=listing_id)
     # This service is dealt
     for response in responses:
-        if response.status == 1:
+        if response.status == 2:
             return render(request, 'view_applicants.html', {'response': response})
 
     if request.method == 'POST':
@@ -821,7 +821,7 @@ def view_applicants(request, listing_id):
         
         response = get_object_or_404(ListingResponse, id=response_id)
         response.message = 'Accepted'  
-        response.status = 1
+        response.status = 2
         response.save()
         Notification.objects.create(
             user=response.user,
@@ -831,7 +831,7 @@ def view_applicants(request, listing_id):
         for rresponse in responses:
             if rresponse != response:
                 rresponse.message = 'Declined'  
-                rresponse.status = 2
+                rresponse.status = 3
                 rresponse.save()
                 Notification.objects.create(
                     user=rresponse.user,
