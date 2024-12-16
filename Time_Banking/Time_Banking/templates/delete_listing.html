@@ -1,0 +1,18 @@
+{% extends "master.html" %}
+{% load static %}
+
+{% block title %}
+My Service
+{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/services.css' %}">
+<div class="container_jjse">
+    <div class="text">Are you sure you want to delete this service? It will not be displayed and restored after deletion.</div>
+    <form method="POST">
+        {% csrf_token %} 
+        <button type="submit" class="btn btn-primary btn-del">Delete Service</button>
+    </form>
+    <div id="responseMessage"></div>
+</div>
+{% endblock %}
