@@ -68,6 +68,7 @@ class ViewApplicantsTests(TestCase):
         )
 
     def test_view_applicants_get(self):
+        image = SimpleUploadedFile("test_image.jpg", b"file_content", content_type="image/jpeg")
         response = self.client.get(reverse('view_applicants', args=[1]))
         self.assertEqual(response.status_code, 200)
         self.assertIn(self.response1, response.context['responses'])
