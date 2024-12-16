@@ -487,6 +487,11 @@ def get_tags(request):
     tag_list = [{'id': tag.id, 'name': tag.name} for tag in tags]
     return JsonResponse(tag_list, safe=False, status=200)
 
+def get_tags_by_category(request, category_id):
+    tags = Tag.objects.filter(category=category_id)
+    tag_list = [{'id': tag.id, 'name': tag.name} for tag in tags]
+    return JsonResponse(tag_list, safe=False, status=200)
+
 
 """
 curl -X POST http://localhost:8000/api/create-listing/

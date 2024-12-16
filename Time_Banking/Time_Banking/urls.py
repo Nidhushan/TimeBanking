@@ -75,6 +75,7 @@ urlpatterns = [
     # path('api/edit-listing/<int:listing_id>/', views.edit_listing, name='edit_listing'),
     path('api/categories/', views.get_categories, name='get_categories'),
     path('api/tags/', views.get_tags, name='get_tags'),
+    path('api/tags-by-category/<str:category_id>/', views.get_tags_by_category, name='get_tags_by_category'),
     #path('create-profile/', views.create_profile, name='create_profile'),
     # path('change-password/', views.change_password_page, name='change_password_page'),
     # path('delete-account/', views.delete_account_page, name='delete_account_page'),
