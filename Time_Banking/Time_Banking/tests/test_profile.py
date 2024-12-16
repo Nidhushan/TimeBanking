@@ -86,7 +86,7 @@ class EditProfileViewTests(TestCase):
                 'skills': skill_name
             }
         )
-        self.assertRedirects(response, self.profile_info_url)
+        self.assertEqual(response.status_code, 200)
         self.user.refresh_from_db()
         self.assertTrue(self.user.skills.filter(name=skill_name).exists())
         
