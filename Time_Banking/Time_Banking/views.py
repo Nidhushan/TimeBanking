@@ -2,7 +2,7 @@ from datetime import timedelta
 from django.shortcuts import render, get_object_or_404, redirect
 from django.db import models
 from django.db.models import Q
-from django.http import JsonResponse, HttpResponseRedirect
+from django.http import JsonResponse, HttpResponseRedirect, HttpResponseNotAllowed, HttpResponse
 from django.contrib.auth.forms import *
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.password_validation import validate_password
@@ -18,7 +18,6 @@ from django.views.decorators.csrf import csrf_exempt
 import random
 import json
 from .forms import ProfileEditForm
-from django.http import HttpResponseNotAllowed
 from django.contrib import messages
 from django.utils.timezone import localtime
 from django.http import HttpResponseForbidden
@@ -1120,3 +1119,22 @@ def applied_services(request):
     responses = ListingResponse.objects.filter(user=request.user)
     
     return render(request, 'applied_services.html', {'responses': responses})
+
+
+@login_required
+@csrf_exempt
+def delete_listing(request, listing_id):
+    if request.method == 'POST':
+        try:
+            listing = get_object_or_404(Listing, id=listing_id)
+            for r in ListingResponse.objects.filter(listing=listing):
+                r.delete()
+
+            listing.delete()
+
+            return redirect('my_service')
+
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+    
+    return render(request, 'delete_listing.html')

@@ -46,10 +46,6 @@
     position: relative;
     top:-50px;
 }
-.bottom-offset{
-    position: relative;
-    bottom:-30px;
-}
 .card-body_se4d {
     margin: 0 0 0 20px;
     height: 100px;
@@ -66,10 +62,19 @@
     line-height: 1.5;
     color: #000;
 }
+.card-detail {
+    margin-top: 10px;
+    width: 90%;
+    height: 70px;
+}
 .card-text_s4e8 {
     font-size: 13px;
     line-height: 1;
     margin-top: 15px;
+}
+.card-text_s557 {
+    font-size: 13px;
+    line-height: 1;
 }
 .status_pps4{
     height: 20px;
@@ -92,4 +97,19 @@
     display: block;
     width: 200px;
     margin: 10px;
+}
+.container_jjse{
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    margin: 100px auto;
+    width: 500px;
+    padding: 50px;
+    text-align: center;
+}
+.text{
+    text-align: center;
+}
+.btn-del{
+    margin-top: 50px;
 }

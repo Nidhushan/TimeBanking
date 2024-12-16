@@ -82,8 +82,6 @@ urlpatterns = [
     path('api/categories/', views.get_categories, name='get_categories'),
     path('api/tags/', views.get_tags, name='get_tags'),
     #path('create-profile/', views.create_profile, name='create_profile'),
-    # path('change-password/', views.change_password_page, name='change_password_page'),
-    # path('delete-account/', views.delete_account_page, name='delete_account_page'),
     path('settings/', views.user_settings_page, name='user_settings_page'),
     
     path('create-listing/', views.create_listing_page, name='create_listing_page'),
@@ -95,6 +93,7 @@ urlpatterns = [
     path('user/<int:user_id>/', views.profile_info, name='user_profile'),
     path('listing/<int:id>/', views.view_listing, name='view_listing'),
     path('profile/<int:user_id>/', views.profile_info, name='profile_info'),
+    path('delete-listing/<int:listing_id>/', views.delete_listing, name='delete_listing'),
 ]
 
 
