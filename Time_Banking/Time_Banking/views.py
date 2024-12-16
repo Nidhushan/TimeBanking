@@ -634,7 +634,7 @@ def create_listing(request):
                         )
                 latest_listing_posted_at = user_listings_old.latest(
                     "posted_at"
-                ).posted_a
+                ).posted_at
 
             listing = Listing.objects.create(
                 creator=request.user,
