@@ -11,28 +11,35 @@ My Service
 <div class="container_isne">
 <div class="headline_kkdi">Manage your Services</div>
 {% for listing in listings %}
-    <div class="card_iz78">
-        <img src="{{ listing.image.url }}" class="card-img-left" alt="{{ listing.title }}">
+    <div class="card_dd47">
+        <img src="{{ listing.image.url }}" class="card-img-left top-offset" alt="{{ listing.title }}">
         <div class="card-body_se4d">
-            <div><a href="{% url 'view_listing' listing.id %}" class="card-title_s4e8">{{ listing.title }}</a></div>
-            <div class="card-text_s4e8">
+            <div><a href="{% url 'view_listing' listing.id %}" class="card-title_s4e8 top-offset">{{ listing.title }}</a></div>
+            <div class="top-offset">{{ listing.description }}</a></div>
+            <div class="card-text_s4e8 bottom-offset">
                 <div>
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="dimgrey" class="status_pps4">
                         <path stroke-linecap="round" stroke-linejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />
                       </svg>
-                    Status: {{ response.message }}
+                    Status: {{ listing.status }}
                 </div>
                 <div>
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="status_pps4">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
-                      </svg>
-                    Last Updated by {{ response.time|date:"M. j, Y" }}
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="dimgrey" class="status_pps4">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
+                      </svg>                      
+                    Posted at {{ listing.posted_at|date:"M. j, Y" }}
                 </div>
             </div>
         </div>
+        <div class="btn-column">
+            <a href="{% url 'edit_listing_page' listing.id %}" class="btn btn-primary btn-item">Edit</a>
+            <a href="{% url 'view_applicants' listing.id %}" class="btn btn-primary btn-item">Select your applicant</a>
+            <a href="#" class="btn btn-primary btn-item">Delete</a>
+            <a href="#" class="btn btn-primary btn-item">Mark as complete</a>
+        </div>
     </div>
 {% empty %}
-    <div class="no-applications">No applications yet.</div>
+    <div class="no-applications">No services yet.</div>
 {% endfor %}
 </div>
 {% endblock %}

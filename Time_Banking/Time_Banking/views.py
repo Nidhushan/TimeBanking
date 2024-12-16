@@ -813,7 +813,7 @@ def view_applicants(request, listing_id):
     responses = ListingResponse.objects.filter(listing_id=listing_id)
     # This service is dealt
     for response in responses:
-        if response.status == 2:
+        if response.status == 1:
             return render(request, 'view_applicants.html', {'response': response})
 
     if request.method == 'POST':
