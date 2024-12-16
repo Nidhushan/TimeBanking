@@ -1,8 +1,6 @@
 from django.test import TestCase
 from django.urls import reverse
-from django.contrib.auth.models import User
-from django.http import JsonResponse
-from Time_Banking.models import Listing
+from Time_Banking.models import Listing, User
 from unittest.mock import patch
 
 
