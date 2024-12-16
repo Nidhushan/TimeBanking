@@ -15,8 +15,8 @@ My Service
         <img src="{{ listing.image.url }}" class="card-img-left top-offset" alt="{{ listing.title }}">
         <div class="card-body_se4d">
             <div><a href="{% url 'view_listing' listing.id %}" class="card-title_s4e8 top-offset">{{ listing.title }}</a></div>
-            <div class="top-offset">{{ listing.description }}</a></div>
-            <div class="card-text_s4e8 bottom-offset">
+            <div class="top-offset card-detail">{{ listing.description }}</a></div>
+            <div class="card-text_s557">
                 <div>
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="dimgrey" class="status_pps4">
                         <path stroke-linecap="round" stroke-linejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />
@@ -34,7 +34,7 @@ My Service
         <div class="btn-column">
             <a href="{% url 'edit_listing_page' listing.id %}" class="btn btn-primary btn-item">Edit</a>
             <a href="{% url 'view_applicants' listing.id %}" class="btn btn-primary btn-item">Select your applicant</a>
-            <a href="#" class="btn btn-primary btn-item">Delete</a>
+            <a href="{% url 'delete_listing' listing.id %}" class="btn btn-primary btn-item">Delete</a>
             <a href="#" class="btn btn-primary btn-item">Mark as complete</a>
         </div>
     </div>
