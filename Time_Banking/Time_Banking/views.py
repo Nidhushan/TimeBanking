@@ -983,6 +983,13 @@ def profile_info(request, user_id=None):
     # Fetch required data
     offered_services = Listing.objects.filter(creator=user, listing_type="Offer")
     requested_services = Listing.objects.filter(creator=user, listing_type="Request")
+
+    if request.method == 'POST' and 'add_skill' in request.POST and user == request.user:
+        skill_names = request.POST.getlist('skills')
+        for skill_name in skill_names:
+            if skill_name.strip():
+                skill, _ = Skill.objects.get_or_create(name=skill_name.strip())
+                user.skills.add(skill)
     skills = user.skills.all()
 
     # Calculate multiplier if missing
