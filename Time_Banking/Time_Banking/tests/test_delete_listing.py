@@ -13,7 +13,7 @@ class DeleteListingTest(TestCase):
         self.listing = Listing.objects.create(title="Test Listing", creator=self.user)
         
         # Define URL for the delete listing view
-        self.url = reverse('delete-listing', args=[self.listing.id])
+        self.url = reverse('delete_listing', args=[self.listing.id])
 
     def test_delete_listing_success(self):
         # Log in as the user
@@ -33,7 +33,7 @@ class DeleteListingTest(TestCase):
         self.client.login(username='testuser', password='testpassword')
 
         # Try to delete a listing that doesn't exist
-        response = self.client.post(reverse('delete-listing', args=[999]))  # Non-existing listing id
+        response = self.client.post(reverse('delete_listing', args=[999]))  # Non-existing listing id
 
         # Check for a 404 error page
         self.assertEqual(response.status_code, 404)
