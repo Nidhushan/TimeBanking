@@ -83,7 +83,7 @@ class ViewApplicantsTests(TestCase):
 
         notification = Notification.objects.filter(user=self.response1.user).first()
         self.assertIsNotNone(notification)
-        self.assertEqual(notification.message, "You get an update on your applied service.")
+        self.assertEqual(notification.message, "An update on your application.")
 
 
 class AppliedServicesTests(TestCase):
