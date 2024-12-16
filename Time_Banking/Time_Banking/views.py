@@ -796,6 +796,7 @@ def edit_listing(request, listing_id):
                     return JsonResponse({'error': 'Invalid duration.'}, status=400)
             except (ValueError, TypeError):
                 return JsonResponse({'error': 'Duration must be a valid integer'}, status=400)
+            description = request.POST.get('description')
             if len(description) > 1000:
                 return JsonResponse({'error': 'Description is too long'}, status=400)
             # Update the listing logic
