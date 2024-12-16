@@ -109,7 +109,7 @@ def view_applicants(request, listing_id):
             Notification.objects.create(
                 user=response.user,
                 message="Your application was rejected.",
-                url="/appliedservices"
+                url="/services"
             )
 
         return redirect('view_applicants', listing_id=listing.id)
@@ -197,6 +197,26 @@ def home(request):
 
     # Handle search
     query = request.GET.get('search', '')  # Capture the search query from the URL
+    sort_option = request.GET.get('sort', 'date')
+    sort_order = request.GET.get('order', 'asc')
+    selected_category = request.GET.get('category', '')  # Get selected category from URL parameter
+
+    listings = Listing.objects.filter(title__icontains=query)
+
+    # Filter by selected category, if provided
+    if selected_category:
+        listings = listings.filter(category=selected_category)
+
+    # Sort based on the selected option
+    if sort_option == 'date':
+        listings = listings.order_by('posted_at' if sort_order == 'asc' else '-posted_at')
+    elif sort_option == 'cost':
+        listings = listings.order_by('duration' if sort_order == 'asc' else '-duration')
+    elif sort_option == 'category':
+        listings = listings.order_by('category' if sort_order == 'asc' else '-category')
+
+    # Fetch all categories for dropdown
+    categories = Category.choices
 
     if query:
         listings = listings.filter(
@@ -211,6 +231,10 @@ def home(request):
         'business_listings': business_listings,
         'digitalm_listings': digitalm_listings,
         'query': query if query else '',
+        'sort_option': sort_option,
+        'sort_order': sort_order,
+        'selected_category': selected_category,
+        'categories': categories,
     }
 
     if request.GET.get('new_account', '') == 'true':
@@ -1055,7 +1079,7 @@ def view_applicants(request, listing_id):
         Notification.objects.create(
             user=response.user,
             message="An update on your application.",
-            url="/appliedservices"
+            url="/services"
         )
         for rresponse in responses:
             if rresponse != response:
@@ -1065,7 +1089,7 @@ def view_applicants(request, listing_id):
                 Notification.objects.create(
                     user=rresponse.user,
                     message="An update on your application.",
-                    url="/appliedservices"
+                    url="/services"
                 )
 
         return redirect('view_applicants', listing_id=listing_id)
