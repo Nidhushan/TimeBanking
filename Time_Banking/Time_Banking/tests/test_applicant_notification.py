@@ -36,8 +36,9 @@ class NotificationTests(TestCase):
 class ViewApplicantsTests(TestCase):
 
     def setUp(self):
-        self.user = User.objects.create_user(username='testuser', password='password')
-        self.other_user = User.objects.create_user(username='otheruser', password='password')
+        image = SimpleUploadedFile("test_image.jpg", b"file_content", content_type="image/jpeg")
+        self.user = User.objects.create_user(username='testuser', password='password', picture=image)
+        self.other_user = User.objects.create_user(username='otheruser', password='password', picture=image)
         self.client = Client()
         self.client.login(username='testuser', password='password')
         
@@ -68,6 +69,7 @@ class ViewApplicantsTests(TestCase):
         )
 
     def test_view_applicants_get(self):
+        image = SimpleUploadedFile("test_image.jpg", b"file_content", content_type="image/jpeg")
         response = self.client.get(reverse('view_applicants', args=[1]))
         self.assertEqual(response.status_code, 200)
         self.assertIn(self.response1, response.context['responses'])
@@ -83,7 +85,7 @@ class ViewApplicantsTests(TestCase):
 
         notification = Notification.objects.filter(user=self.response1.user).first()
         self.assertIsNotNone(notification)
-        self.assertEqual(notification.message, "You get an update on your applied service.")
+        self.assertEqual(notification.message, "An update on your application.")
 
 
 class AppliedServicesTests(TestCase):

@@ -35,7 +35,8 @@
                 {% for response in responses %}
                 <div class="applicant-card">
                     <div class="applicant-content">
-                        <h5 class="card-title">{{ response.user }}</h5>
+                        <img src="{{ response.user.picture.url }}" alt="Profile Picture" class="profile-picture">
+                        <a href="{% url 'profile_info' user_id=response.user_id %}" class="card-title">{{ response.user }}</a>
                         <form method="POST" class="accept-form">
                             {% csrf_token %}
                             <input type="hidden" name="response_id" value="{{ response.id }}">
@@ -86,6 +87,16 @@
         margin: 0;
     }
 
+    .profile-picture{
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        align-items: center;
+        align-content: center;
+        text-align: center; 
+        margin: 0 auto;
+    }
+
     .applicants-container {
         margin-top: 20px;
     }
@@ -97,7 +108,7 @@
     }
 
     .applicant-card {
-        height: 150px;
+        height: 250px;
         background-color: white;
         border: 1px solid #ddd;
         border-radius: 10px;
@@ -123,9 +134,10 @@
     }
 
     .card-title {
-        font-size: 1.1rem;
+        font-size: 20px;
+        font-weight: 500;
         color: #333;
-        margin-bottom: 15px;
+        margin: 15px 15px;
     }
 
     .accept-btn {
