@@ -874,6 +874,9 @@ def delete_listing(request, listing_id):
     if request.method == 'POST':
         try:
             listing = get_object_or_404(Listing, id=listing_id)
+            for r in ListingResponse.objects.filter(listing=listing):
+                r.delete()
+
             listing.delete()
 
             return redirect('my_service')
