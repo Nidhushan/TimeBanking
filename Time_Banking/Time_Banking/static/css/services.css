@@ -49,6 +49,7 @@
 .card-body_se4d {
     margin: 0 0 0 20px;
     height: 100px;
+    width: 90%;
 }
 .card-title_s4e8{
     font-weight: 600;
@@ -64,7 +65,6 @@
 }
 .card-detail {
     margin-top: 10px;
-    width: 90%;
     height: 70px;
 }
 .card-text_s4e8 {

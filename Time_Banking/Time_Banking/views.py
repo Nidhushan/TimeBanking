@@ -2,7 +2,7 @@ from datetime import timedelta
 from django.shortcuts import render, get_object_or_404, redirect
 from django.db import models
 from django.db.models import Q
-from django.http import JsonResponse, HttpResponseRedirect, HttpResponseNotAllowed, HttpResponse
+from django.http import JsonResponse, HttpResponseRedirect, HttpResponseNotAllowed
 from django.contrib.auth.forms import *
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.password_validation import validate_password
@@ -668,7 +668,7 @@ def apply_service(request, listing_id):
 
         Notification.objects.create(
             user=listing.creator,
-            message="You've got a new applicant.",
+            message="A new applicant on your service.",
             url="/myservices"
         )
 
