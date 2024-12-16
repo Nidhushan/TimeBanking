@@ -61,7 +61,19 @@
                 {% endif %}
                 <ul class="skills-container">
                     {% for skill in skills %}
-                        <li class="skill-item">{{ skill.name }}</li>
+                        <li class="skill-item">
+                            <div style="display: inline-block">
+                                {{ skill.name }}
+                            </div>
+                            {% if request.user == user %}
+                            <form method="post" class="add-skill-form" style="display: inline-block">
+                                {% csrf_token %}
+                                <button class="btn addskill" name="remove_skill" value="{{ skill.id }}" type="submit">
+                                    <i class="fa-solid fa-remove"></i>
+                                </button>
+                            </form>
+                            {% endif %}
+                        </li>
                     {% empty %}
                         <li class="skill-item">No skills added yet.</li>
                     {% endfor %}

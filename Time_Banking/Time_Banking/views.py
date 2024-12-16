@@ -757,17 +757,22 @@ def profile_info(request, user_id=None):
     # Separate services into offers and requests
     offered_services = Listing.objects.filter(creator=user, listing_type="Offer")
     requested_services = Listing.objects.filter(creator=user, listing_type="Request")
+    
+    if request.method == 'POST' and user == request.user:
+        if 'add_skill' in request.POST:
+            skill_names = request.POST.getlist('skills')
+            for skill_name in skill_names:
+                if skill_name.strip():
+                    skill, _ = Skill.objects.get_or_create(name=skill_name.strip())
+                    user.skills.add(skill)
+        if 'remove_skill' in request.POST:
+            to_remove = request.POST['remove_skill']
+            skill = Skill.objects.get(id=to_remove)
+            if skill:
+                skill.delete()
 
     # Fetch user's skills
     skills = user.skills.all()
-    
-    if request.method == 'POST' and 'add_skill' in request.POST and user == request.user:
-        skill_names = request.POST.getlist('skills')
-        for skill_name in skill_names:
-            if skill_name.strip():
-                skill, _ = Skill.objects.get_or_create(name=skill_name.strip())
-                user.skills.add(skill)
-        return redirect('profile_info')
 
     # Pass the data to the template
     context = {
