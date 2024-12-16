@@ -10,7 +10,7 @@ class DeleteListingTest(TestCase):
         self.user = User.objects.create_user(username='testuser', password='testpassword')
         
         # Create a listing associated with the user
-        self.listing = Listing.objects.create(name="Test Listing", owner=self.user)
+        self.listing = Listing.objects.create(title="Test Listing", creator=self.user)
         
         # Define URL for the delete listing view
         self.url = reverse('delete-listing', args=[self.listing.id])
