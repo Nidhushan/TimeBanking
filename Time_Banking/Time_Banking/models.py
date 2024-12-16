@@ -121,7 +121,8 @@ class ListingResponse(models.Model):
     listing = models.ForeignKey(Listing, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     message = models.TextField() # initial message
-    status = models.SmallIntegerField() # TODO: map integers to types, eg. 1 = accept, 2 = reject, etc.
+    status = models.SmallIntegerField() # TODO: map integers to types, eg. 1 = apply 2 = accept, 3 = reject, etc.
+    time = models.DateTimeField(auto_now=True)
 
 # availabilities of a listing
 class ListingAvailability(models.Model):
