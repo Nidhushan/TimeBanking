@@ -10,12 +10,12 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
-from pathlib import Path
 import os
+from pathlib import Path
 
 from decouple import config
 
-SENDGRID_API_KEY = config('SENDGRID_API_KEY')
+SENDGRID_API_KEY = config("SENDGRID_API_KEY")
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -42,7 +42,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    'Time_Banking',
+    "Time_Banking",
 ]
 
 MIDDLEWARE = [
@@ -55,15 +55,15 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.sendgrid.net'
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = "smtp.sendgrid.net"
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'apikey'  # This is the string 'apikey' literally
+EMAIL_HOST_USER = "apikey"  # This is the string 'apikey' literally
 EMAIL_HOST_PASSWORD = SENDGRID_API_KEY
-DEFAULT_FROM_EMAIL = 'timebartersystem@gmail.com'
+DEFAULT_FROM_EMAIL = "timebartersystem@gmail.com"
 
-SESSION_ENGINE = 'django.contrib.sessions.backends.db'  # Database-backed session'
+SESSION_ENGINE = "django.contrib.sessions.backends.db"  # Database-backed session'
 SESSION_COOKIE_SECURE = False
 CSRF_COOKIE_SECURE = False
 
@@ -72,7 +72,7 @@ ROOT_URLCONF = "Time_Banking.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        'DIRS': [BASE_DIR / "templates"], 
+        "DIRS": [BASE_DIR / "templates"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -133,13 +133,13 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
-STATIC_URL = '/static/'
-STATICFILES_DIRS = [BASE_DIR / 'Time_Banking/static']
+STATIC_URL = "/static/"
+STATICFILES_DIRS = [BASE_DIR / "Time_Banking/static"]
 
-STATIC_ROOT = os.path.join(BASE_DIR, 'Time_Banking')  # For production
+STATIC_ROOT = os.path.join(BASE_DIR, "Time_Banking")  # For production
 
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_URL = "/media/"
+MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
 
 # Default primary key field type
@@ -157,4 +157,3 @@ AUTH_USER_MODEL = "Time_Banking.User"
 CSRF_TRUSTED_ORIGINS = ["https://time-banking.bus-hit.me"]
 
 DISABLE_RATE_LIMIT_CHECK = False
-
