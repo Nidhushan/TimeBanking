@@ -100,8 +100,8 @@ class Listing(models.Model):
         
     def save(self, *args, **kwargs):
         # If already exists and is being edited, reset its status
-        if self.pk:
-            self.status = "Available"
+        # if self.pk:
+        #     self.status = "Available"
         super().save(*args, **kwargs)
 
     def __str__(self):
