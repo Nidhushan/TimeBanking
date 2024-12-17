@@ -632,6 +632,7 @@ def view_listing(request, listing_id):
             return HttpResponseNotAllowed(['GET'])
         context['service_accepted'] = ListingResponse.objects.filter(listing=listing, status=2).exists()
         context['service_completed'] = ServiceTransaction.objects.filter(listing=listing, status='Completed').exists()
+        # ServiceTransaction.objects.filter(listing=listing, status='Completed').delete()
 
         # Check if service has been accepted
         service_accepted = ListingResponse.objects.filter(
@@ -1092,6 +1093,9 @@ def view_applicants(request, listing_id):
             message="An update on your application.",
             url="/services"
         )
+        listing = get_object_or_404(Listing, id=listing_id)
+        listing.status = "In Progress"
+        listing.save()
         for rresponse in responses:
             if rresponse != response:
                 rresponse.message = 'Declined'  
