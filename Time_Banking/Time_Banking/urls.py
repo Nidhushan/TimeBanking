@@ -39,6 +39,12 @@ urlpatterns = [
     path('verify-reset-code/', views.verify_reset_code, name='verify_reset_code'),
     path('reset-password/', views.reset_password, name='reset_password'),
     path('create-listing/', views.create_listing_page, name='create_listing_page'),
+    path('accepted-services/', views.accepted_services, name='accepted_services'),
+    # path('submit-feedback/<int:transaction_id>/', views.submit_feedback, name='submit_feedback'),
+    path('listing/<int:listing_id>/mark_completed/', views.mark_listing_completed, name='mark_listing_completed'),
+    path('submit-feedback/<int:listing_id>/', views.submit_feedback, name='submit_feedback'),
+
+
     # path('add-service/', views.add_service, name='add_service'),
     # path('request-service/', views.request_service, name='request_service'),
     
@@ -75,22 +81,21 @@ urlpatterns = [
     # path('api/edit-listing/<int:listing_id>/', views.edit_listing, name='edit_listing'),
     path('api/categories/', views.get_categories, name='get_categories'),
     path('api/tags/', views.get_tags, name='get_tags'),
+    path('api/tags-by-category/<str:category_id>/', views.get_tags_by_category, name='get_tags_by_category'),
     #path('create-profile/', views.create_profile, name='create_profile'),
-    # path('change-password/', views.change_password_page, name='change_password_page'),
-    # path('delete-account/', views.delete_account_page, name='delete_account_page'),
     path('settings/', views.user_settings_page, name='user_settings_page'),
     
     path('create-listing/', views.create_listing_page, name='create_listing_page'),
     path('myservices/', views.my_service, name='my_service'),
     path('applicants/<int:listing_id>/', views.view_applicants, name='view_applicants'),
     path('get-notifications/', views.get_notifications, name='get_notifications'),
-    path('appliedservices/', views.applied_services, name='applied_services'),
+    path('services/', views.applied_services, name='applied_services'),
     path('notifications/mark-as-read/<int:notification_id>/', views.mark_as_read, name='mark_as_read'),
     path('user/<int:user_id>/', views.profile_info, name='user_profile'),
     path('listing/<int:id>/', views.view_listing, name='view_listing'),
     path('profile/<int:user_id>/', views.profile_info, name='profile_info'),
     path('submit-review/<int:user_id>/', views.submit_review, name='submit_review'),
-
+    path('delete-listing/<int:listing_id>/', views.delete_listing, name='delete_listing'),
 ]
 
 

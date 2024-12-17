@@ -32,10 +32,14 @@
                 
                 
 
-                <!-- Time Credits Section -->
                 <div class="time-credits">
                     <h3>Time Credits Earned</h3>
-                    <p>{{ user.time_credits|default:"0" }} hours</p>
+                    <p>{{ total_credits|default:"0" }} hours</p>
+                </div>
+
+                <div class="multiplier-section">
+                    <h3>Current Multiplier</h3>
+                    <p>{{ multiplier|default:"1.0" }}</p>
                 </div>
 
                 {% if user == request.user %}
@@ -61,7 +65,19 @@
                 {% endif %}
                 <ul class="skills-container">
                     {% for skill in skills %}
-                        <li class="skill-item">{{ skill.name }}</li>
+                        <li class="skill-item">
+                            <div style="display: inline-block">
+                                {{ skill.name }}
+                            </div>
+                            {% if request.user == user %}
+                            <form method="post" class="add-skill-form" style="display: inline-block">
+                                {% csrf_token %}
+                                <button class="btn addskill" name="remove_skill" value="{{ skill.id }}" type="submit">
+                                    <i class="fa-solid fa-remove"></i>
+                                </button>
+                            </form>
+                            {% endif %}
+                        </li>
                     {% empty %}
                         <li class="skill-item">No skills added yet.</li>
                     {% endfor %}

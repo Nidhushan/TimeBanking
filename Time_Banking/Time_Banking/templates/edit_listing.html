@@ -94,27 +94,45 @@ Edit listing - Time Banking
                         const categorySelect = document.getElementById('category');
                         categories.forEach(category => {
                             const option = document.createElement('option');
-                            option.value = category.id;
+                            option.value = category.id; // or category.code depending on your API
                             option.text = category.name;
                             categorySelect.add(option);
                         });
                         categorySelect.value = data.category;
+
+                        // call the change event to populate the tags
+                        
+
+                        // Add event listener after categories are loaded
+                        categorySelect.addEventListener('change', function() {
+                            const selectedCategory = this.value;
+                            const tagsSelect = document.getElementById('tags');
+                            
+                            // Clear existing tags
+                            tagsSelect.innerHTML = '';
+
+                            if (selectedCategory) {
+                                // Fetch tags for the selected category
+                                fetch(`/api/tags-by-category/${selectedCategory}/`)
+                                    .then(response => response.json())
+                                    .then(tags => {
+                                        tags.forEach(tag => {
+                                            const option = document.createElement('option');
+                                            option.value = tag.id;
+                                            option.text = tag.name;
+                                            tagsSelect.add(option);
+                                        });
+                                    })
+                                    .catch(error => console.error('Error fetching tags:', error));
+                            }
+                        });
+
+                        categorySelect.dispatchEvent(new Event('change'));
+                        
                     })
                     .catch(error => console.error('Error fetching categories:', error));
-        
-                // Fetch tags dynamically from the database and populate the multiple select dropdown
-                fetch('/api/tags/')
-                    .then(response => response.json())
-                    .then(tags => {
-                        const tagsSelect = document.getElementById('tags');
-                        tags.forEach(tag => {
-                            const option = document.createElement('option');
-                            option.value = tag.id;
-                            option.text = tag.name;
-                            tagsSelect.add(option);
-                        });
-                    })
-                    .catch(error => console.error('Error fetching tags:', error));
+
+
                 
                     const STATUS_CHOICES_OFFER = ["Available", "In Progress", "Completed"];
                     const STATUS_CHOICES_REQUEST = ["Available", "Fulfilled", "Closed"];

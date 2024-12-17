@@ -18,6 +18,7 @@
 
 </head>
 <body>
+    <div class="flex-wrapper">
     <header>
         <nav class="navbar navbar-expand-lg navbar-light bg-light">
             <a class="navbar-brand" href="/">
@@ -60,6 +61,8 @@
                             </a>
                             <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
                                 <a class="dropdown-item" href="{% url 'profile_info' %}">Profile</a>
+                                <a class="dropdown-item" href="{% url 'my_service' %}">Services</a>
+                                <a class="dropdown-item" href="{% url 'applied_services' %}">Applications</a>
                                 <a class="dropdown-item" href="/settings">Settings</a>
                                 <div class="dropdown-divider"></div>
                                 <form action="{% url 'logout' %}" method="post" class="dropdown-item">
@@ -99,10 +102,12 @@
         </div>
     </header>
 
+    
+
     {% block content %}
     {% endblock %}
 
-    <footer>
+    <footer >
         <div class="footer-container">
             <!-- Footer Section 1 -->
             <div class="footer-section">
@@ -151,20 +156,20 @@
                 </ul>
             </div>
         </div>
-        </div>
         
         <!-- Footer Bottom -->
         <!-- Modified Footer Structure -->
-<footer class="footer bg-dark text-center py-3">
-    <div class="container d-flex justify-content-between align-items-center">
-        <p class="text-light mb-0">© 2024 All rights reserved.</p>
-        <ul class="social-icons list-inline mb-0">
-            <li class="list-inline-item"><a href="#"><i class="fab fa-facebook"></i></a></li>
-            <li class="list-inline-item"><a href="#"><i class="fab fa-twitter"></i></a></li>
-            <li class="list-inline-item"><a href="#"><i class="fab fa-instagram"></i></a></li>
-        </ul>
+        <footer class="footer bg-dark text-center py-3">
+            <div class="container d-flex justify-content-between align-items-center">
+                <p class="text-light mb-0">© 2024 All rights reserved.</p>
+                <ul class="social-icons list-inline mb-0">
+                    <li class="list-inline-item"><a href="#"><i class="fab fa-facebook"></i></a></li>
+                    <li class="list-inline-item"><a href="#"><i class="fab fa-twitter"></i></a></li>
+                    <li class="list-inline-item"><a href="#"><i class="fab fa-instagram"></i></a></li>
+                </ul>
+            </div>
+    </footer>
     </div>
-</footer>
 
     </footer>
 
@@ -203,7 +208,6 @@
                     const notificationDropdown = document.getElementById('notificationDropdown');
                     const notificationCount = document.getElementById('notificationCount');
                     const notifications = data.notifications;
-                    console.log(notifications.length)
 
                     if(notifications.length===0){
                         notificationDropdown.innerHTML = `
