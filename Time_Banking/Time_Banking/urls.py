@@ -89,6 +89,8 @@ urlpatterns = [
     path('user/<int:user_id>/', views.profile_info, name='user_profile'),
     path('listing/<int:id>/', views.view_listing, name='view_listing'),
     path('profile/<int:user_id>/', views.profile_info, name='profile_info'),
+    path('submit-review/<int:user_id>/', views.submit_review, name='submit_review'),
+
 ]
 
 

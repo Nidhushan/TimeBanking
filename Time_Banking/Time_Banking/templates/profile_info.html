@@ -135,7 +135,51 @@
                     <p>No requested services found for {{ user.username }}.</p>
                 {% endif %}
             </div>
+            <div class="reviews-section" >
+                
+                {% if request.user.is_authenticated and request.user != user %}
+                    <!-- Review form only shows for authenticated users viewing other profiles -->
+                    <div class="review-form-container">
+                        <h3>Write a Review</h3>
+                        <form method="post" action="{% url 'submit_review' user.id %}">
+                            {% csrf_token %}
+                            <textarea id="review" name="review" class="review-input" 
+                                placeholder="Share your experience working with {{ user.username }}..."></textarea>
+                            <button type="submit" class="submit-review">Submit Review</button>
+                        </form>
+                    </div>
+                {% endif %}
             
+                <!-- Display Reviews - Visible to everyone including profile owner -->
+                <div class="reviews" id="reviews">
+                    {% if reviews %}
+                        {% for review in reviews %}
+                            <div class="review-card">
+                                <div class="review-header">
+                                    {% if review.reviewer.picture %}
+                                        <img src="{{ review.reviewer.picture.url }}" 
+                                            alt="{{ review.reviewer.username }}" 
+                                            class="reviewer-image">
+                                    {% else %}
+                                        <img src="{% static 'images/default-avatar.jpg' %}" 
+                                            alt="{{ review.reviewer.username }}" 
+                                            class="reviewer-image">
+                                    {% endif %}
+                                    <div>
+                                        <h3>{{ review.reviewer.username }}</h3>
+                                        <small>{{ review.created_at|date:"F d, Y" }}</small>
+                                    </div>
+                                </div>
+                                <p class="review-content">{{ review.content }}</p>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <p>No reviews yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+              
+        
         </div>
     </div>
 </div>

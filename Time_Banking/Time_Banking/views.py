@@ -10,7 +10,7 @@ from django.core.exceptions import ValidationError
 from django.core.mail import send_mail
 from django.conf import settings
 import uuid
-from .models import Listing, User, ListingResponse, ListingAvailability, Category, Tag, Skill, Notification
+from .models import Listing, User, ListingResponse, ListingAvailability, Category, Tag, Skill, Notification, Review
 from .forms import RegisterForm, ProfileCreationForm, ProfileEditForm, AddSkillForm
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
@@ -753,6 +753,9 @@ def edit_profile(request):
 
 def profile_info(request, user_id=None):
     user = get_object_or_404(User, id=user_id) if user_id else request.user
+        
+    reviews = Review.objects.filter(reviewed_user=user).order_by('-created_at')
+
 
     # Separate services into offers and requests
     offered_services = Listing.objects.filter(creator=user, listing_type="Offer")
@@ -775,6 +778,7 @@ def profile_info(request, user_id=None):
         'offered_services': offered_services,
         'requested_services': requested_services,
         'skills': skills,
+        'reviews':reviews,
     }
     return render(request, 'profile_info.html', context)
 
@@ -866,3 +870,23 @@ def applied_services(request):
     responses = ListingResponse.objects.filter(user=request.user)
     
     return render(request, 'applied_services.html', {'responses': responses})
+@login_required
+def submit_review(request, user_id):
+    profile_user = get_object_or_404(User, id=user_id)
+    
+    if request.user == profile_user:
+        return HttpResponseForbidden("You cannot review your own profile")
+        
+    if request.method == 'POST':
+        review_text = request.POST.get('review')
+        
+        if review_text:
+            Review.objects.create(
+                reviewer=request.user,
+                reviewed_user=profile_user,
+                content=review_text
+            )
+        
+        return redirect('profile_info', user_id=user_id)  # Make sure this matches your profile URL name
+
+    return redirect('profile_info', user_id=user_id)
