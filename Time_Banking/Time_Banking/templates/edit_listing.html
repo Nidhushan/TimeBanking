@@ -98,6 +98,10 @@ Edit listing - Time Banking
                             option.text = category.name;
                             categorySelect.add(option);
                         });
+                        categorySelect.value = data.category;
+
+                        // call the change event to populate the tags
+                        
 
                         // Add event listener after categories are loaded
                         categorySelect.addEventListener('change', function() {
@@ -122,8 +126,13 @@ Edit listing - Time Banking
                                     .catch(error => console.error('Error fetching tags:', error));
                             }
                         });
+
+                        categorySelect.dispatchEvent(new Event('change'));
+                        
                     })
                     .catch(error => console.error('Error fetching categories:', error));
+
+
                 
                     const STATUS_CHOICES_OFFER = ["Available", "In Progress", "Completed"];
                     const STATUS_CHOICES_REQUEST = ["Available", "Fulfilled", "Closed"];
