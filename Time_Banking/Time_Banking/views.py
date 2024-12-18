@@ -118,7 +118,8 @@ def submit_feedback(request, listing_id):
                 provider=provider,  # Feedback goes to the provider
                 requester=request.user,  # Person submitting feedback
                 rating=avg_rating,
-                comment=f"Q1: {q1}, Q2: {q2}, Q3: {q3}, Q4: {q4}"
+                comment=f"Q1: {q1}, Q2: {q2}, Q3: {q3}, Q4: {q4}",
+                details=request.POST.get('review')
             )
 
             # Mark the transaction as having received feedback
@@ -957,6 +958,10 @@ from django.db.models import Sum
 def profile_info(request, user_id=None):
     user = get_object_or_404(User, id=user_id) if user_id else request.user
 
+    reviews = Feedback.objects.filter(provider=user).exclude(
+        details__isnull=True
+    ).exclude(details__exact='').order_by('-created_at')
+
     # Calculate earned credits
     # total_credits = ServiceTransaction.objects.filter(
     #     provider=user, status='Completed'
@@ -996,6 +1001,7 @@ def profile_info(request, user_id=None):
         'skills': skills,
         'total_credits': total_credits,
         'multiplier': multiplier,
+        'reviews': reviews
     }
 
     return render(request, 'profile_info.html', context)

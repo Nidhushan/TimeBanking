@@ -152,6 +152,36 @@
                 {% endif %}
             </div>
             
+            <!-- reviews -->
+            <div class="reviews-section" >
+                <h3>Reviews</h3>
+                <div class="reviews" id="reviews">
+                    {% if reviews %}
+                        {% for review in reviews %}
+                            <div class="review-card">
+                                <div class="review-header">
+                                    {% if review.requester.picture %}
+                                        <img src="{{ review.requester.picture.url }}" 
+                                            alt="{{ review.requester.username }}" 
+                                            class="reviewer-image">
+                                    {% else %}
+                                        <img src="{% static 'images/default-avatar.jpg' %}" 
+                                            alt="{{ review.requester.username }}" 
+                                            class="reviewer-image">
+                                    {% endif %}
+                                    <div>
+                                        <h3>{{ review.requester.username }}</h3>
+                                        <small>{{ review.created_at|date:"F d, Y" }}</small>
+                                    </div>
+                                </div>
+                                <p class="review-content">{{ review.details }}</p>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <p>No reviews yet.</p>
+                    {% endif %}
+                </div>
+            </div>
         </div>
     </div>
 </div>
