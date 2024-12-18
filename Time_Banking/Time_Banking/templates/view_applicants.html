@@ -35,7 +35,11 @@
                 {% for response in responses %}
                 <div class="applicant-card">
                     <div class="applicant-content">
-                        <img src="{{ response.user.picture.url }}" alt="Profile Picture" class="profile-picture">
+                        {% if response.user.picture %}
+                            <img src="{{ response.user.picture.url }}" alt="Profile Picture" class="profile-picture">
+                        {% else %}
+                            <img src="{% static 'images/default-avatar-profile-icon-social-600nw-1677509740.jpg.webp' %}" alt="Default Profile Picture" class="profile-picture">
+                        {% endif %}
                         <a href="{% url 'profile_info' user_id=response.user_id %}" class="card-title">{{ response.user }}</a>
                         <form method="POST" class="accept-form">
                             {% csrf_token %}
