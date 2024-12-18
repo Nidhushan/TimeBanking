@@ -33,7 +33,7 @@ def mark_listing_completed(request, listing_id):
             return JsonResponse({'error': 'Listing already marked as completed.'}, status=400)
         
         # Find the accepted response
-        accepted_response = ListingResponse.objects.filter(listing=listing, status=2).first()
+        accepted_response = ListingResponse.objects.filter(listing=listing, message="Accepted").first()
         if not accepted_response:
             return JsonResponse({'error': 'No accepted applicant found.'}, status=400)
         
@@ -582,7 +582,7 @@ def view_listing(request, listing_id):
         ).exists()
         if request.method != 'GET':
             return HttpResponseNotAllowed(['GET'])
-        context['service_accepted'] = ListingResponse.objects.filter(listing=listing, status=2).exists()
+        context['service_accepted'] = ListingResponse.objects.filter(listing=listing, message="Accepted").exists()
         context['service_completed'] = ServiceTransaction.objects.filter(listing=listing, status='Completed').exists()
 
         # Check if service has been accepted
@@ -607,7 +607,7 @@ def apply_service(request, listing_id):
             return JsonResponse({'error': 'You cannot apply your own service/request.'}, status=403)
         
         # Check for duplicate application
-        if ListingResponse.objects.filter(listing=listing, user=request.user).exists():
+        if ListingResponse.objects.filter(listing=listing, user=request.user, message="Pending").exists():
             return JsonResponse({'error': 'You have already applied to this listing.'}, status=400)
 
         # Create a response to mark the service/request as accepted
@@ -1037,11 +1037,11 @@ def my_service(request):
 @login_required   
 @csrf_exempt 
 def view_applicants(request, listing_id):
-    responses = ListingResponse.objects.filter(listing_id=listing_id)
+    responses = ListingResponse.objects.filter(listing_id=listing_id).exclude(message="Completed")
     
     # This service is dealt
     for response in responses:
-        if response.status == 2:
+        if response.message == "Accepted":
             return render(request, 'view_applicants.html', {'response': response})
 
     if request.method == 'POST':
