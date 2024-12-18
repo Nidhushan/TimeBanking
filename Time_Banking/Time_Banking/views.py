@@ -52,78 +52,18 @@ def mark_listing_completed(request, listing_id):
             duration=listing.duration.total_seconds() / 60,
             status='Completed'
         )
-        print("transaction")
         # Notify the applicant
         Notification.objects.create(
             user=accepted_response.user,
             message=f"Your service '{listing.title}' was marked as completed! Submit your feedback.",
             url=f"/submit-feedback/{listing.id}/"
         )
-        print("feedback noti")
 
         return JsonResponse({'success': 'Listing marked as completed.'}, status=200)
 
     except Exception as e:
-        print(e)
         return JsonResponse({'error': str(e)}, status=500)
 
-@login_required
-@csrf_exempt
-def view_applicants(request, listing_id):
-    
-    print("into view_applicants")
-    listing = get_object_or_404(Listing, id=listing_id)
-    responses = ListingResponse.objects.filter(listing=listing)
-    
-    print("into view_applicants")
-    
-    # Check if service is already accepted
-    if ServiceTransaction.objects.filter(listing=listing, status='Pending').exists():
-        print("Service already accepted")
-        transaction = ServiceTransaction.objects.get(listing=listing, status='Pending')
-        return render(request, 'view_applicants.html', {'transaction': transaction})
-
-    if request.method == 'POST':
-        response_id = request.POST.get('response_id')
-        selected_response = get_object_or_404(ListingResponse, id=response_id)
-
-        # Create the service transaction
-        print("create the service transaction")
-        transaction = ServiceTransaction.objects.create(
-            listing=listing,
-            provider=listing.creator,
-            requester=selected_response.user,
-            duration=listing.duration.total_seconds() / 60,
-            status='Pending'
-        )
-        print("create the service transaction")
-
-        # Notify the requester
-        Notification.objects.create(
-            user=selected_response.user,
-            message="Your service has been accepted!",
-            url="/accepted-services/"
-        )
-
-        # Update Response Statuses
-        selected_response.status = 2  # Accepted
-        selected_response.message = "Accepted"
-        selected_response.save()
-
-        # Mark other responses as Rejected
-        for response in responses.exclude(id=response_id):
-            response.status = 3  # Rejected
-            response.message = "Rejected"
-            response.save()
-            Notification.objects.create(
-                user=response.user,
-                message="Your application was rejected.",
-                url="/services"
-            )
-
-        return redirect('view_applicants', listing_id=listing.id)
-
-    return render(request, 'view_applicants.html', {'responses': responses})
 
 
 @login_required
@@ -159,7 +99,6 @@ def submit_feedback(request, listing_id):
             feedback_given=False
         )
         
-        print("into submit_feedback")
 
         provider = transaction.provider  # Correct provider receiving feedback
 
@@ -196,7 +135,6 @@ def submit_feedback(request, listing_id):
 
     except Exception as e:
         messages.error(request, f"An error occurred: {str(e)}")
-        print(e)
         return redirect("home")
 
 
