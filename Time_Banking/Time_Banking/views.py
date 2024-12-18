@@ -31,47 +31,55 @@ def mark_listing_completed(request, listing_id):
 
         if listing.status == "Completed":
             return JsonResponse({'error': 'Listing already marked as completed.'}, status=400)
-
+        
         # Find the accepted response
         accepted_response = ListingResponse.objects.filter(listing=listing, status=2).first()
         if not accepted_response:
             return JsonResponse({'error': 'No accepted applicant found.'}, status=400)
+        
+        accepted_response.message = "Completed"
+        accepted_response.save()
 
         # Mark the listing as completed
-        listing.status = "Completed"
+        listing.status = "Available"
         listing.save()
 
         # Create or update service transaction
-        transaction, created = ServiceTransaction.objects.get_or_create(
+        ServiceTransaction.objects.create(
             listing=listing,
-            provider=accepted_response.user,
+            provider=listing.creator if listing.listing_type == "Offer" else accepted_response.user,
             requester=listing.creator if listing.listing_type == "Request" else accepted_response.user,
-            defaults={
-                'duration': listing.duration.total_seconds() / 60,
-                'status': 'Completed',
-            }
+            duration=listing.duration.total_seconds() / 60,
+            status='Completed'
         )
-
+        print("transaction")
         # Notify the applicant
         Notification.objects.create(
             user=accepted_response.user,
             message=f"Your service '{listing.title}' was marked as completed! Submit your feedback.",
             url=f"/submit-feedback/{listing.id}/"
         )
+        print("feedback noti")
 
         return JsonResponse({'success': 'Listing marked as completed.'}, status=200)
 
     except Exception as e:
+        print(e)
         return JsonResponse({'error': str(e)}, status=500)
 
 @login_required
 @csrf_exempt
 def view_applicants(request, listing_id):
+    
+    print("into view_applicants")
     listing = get_object_or_404(Listing, id=listing_id)
     responses = ListingResponse.objects.filter(listing=listing)
     
+    print("into view_applicants")
+    
     # Check if service is already accepted
     if ServiceTransaction.objects.filter(listing=listing, status='Pending').exists():
+        print("Service already accepted")
         transaction = ServiceTransaction.objects.get(listing=listing, status='Pending')
         return render(request, 'view_applicants.html', {'transaction': transaction})
 
@@ -80,13 +88,15 @@ def view_applicants(request, listing_id):
         selected_response = get_object_or_404(ListingResponse, id=response_id)
 
         # Create the service transaction
+        print("create the service transaction")
         transaction = ServiceTransaction.objects.create(
             listing=listing,
             provider=listing.creator,
             requester=selected_response.user,
-            duration=listing.duration,
+            duration=listing.duration.total_seconds() / 60,
             status='Pending'
         )
+        print("create the service transaction")
 
         # Notify the requester
         Notification.objects.create(
@@ -148,6 +158,8 @@ def submit_feedback(request, listing_id):
             status='Completed',
             feedback_given=False
         )
+        
+        print("into submit_feedback")
 
         provider = transaction.provider  # Correct provider receiving feedback
 
@@ -184,6 +196,7 @@ def submit_feedback(request, listing_id):
 
     except Exception as e:
         messages.error(request, f"An error occurred: {str(e)}")
+        print(e)
         return redirect("home")
 
 
@@ -874,7 +887,8 @@ def edit_listing(request, listing_id):
             listing.save()
 
             # Reset previous transactions and responses
-            ServiceTransaction.objects.filter(listing=listing).delete()
+            # ServiceTransaction.objects.filter(listing=listing).delete()
+            
             previous_responses = ListingResponse.objects.filter(listing=listing)
             
             # Notify previous applicants about the reset
@@ -1006,11 +1020,13 @@ def profile_info(request, user_id=None):
     user = get_object_or_404(User, id=user_id) if user_id else request.user
 
     # Calculate earned credits
-    total_credits = ServiceTransaction.objects.filter(
-        provider=user, status='Completed'
-    ).aggregate(
-        total_credits=Sum(models.F('duration') * models.F('multiplier') / 60)
-    )['total_credits'] or 0
+    # total_credits = ServiceTransaction.objects.filter(
+    #     provider=user, status='Completed'
+    # ).aggregate(
+    #     total_credits=Sum(models.F('duration') * models.F('multiplier') / 60)
+    # )['total_credits'] or 0
+    
+    total_credits = round(user.total_minutes / 60, 2)
 
     # Fetch required data
     offered_services = Listing.objects.filter(creator=user, listing_type="Offer")
@@ -1078,6 +1094,7 @@ def my_service(request):
 @csrf_exempt 
 def view_applicants(request, listing_id):
     responses = ListingResponse.objects.filter(listing_id=listing_id)
+    
     # This service is dealt
     for response in responses:
         if response.status == 2:

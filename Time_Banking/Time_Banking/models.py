@@ -185,7 +185,7 @@ def update_provider_metrics(provider, listing_id):
 
     # Calculate new multiplier
     new_multiplier = max(0.5, min(2.0, 1 + (avg_rating - 3.0) * 0.1))
-    poster.multiplier = round(new_multiplier, 2)
+    poster.multiplier = round( new_multiplier , 2)
     poster.save()  # Save the updated multiplier
 
     # Calculate earned time credits only for the provider
