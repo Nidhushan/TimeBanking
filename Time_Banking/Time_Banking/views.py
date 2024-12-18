@@ -27,13 +27,21 @@ from django.http import HttpResponseForbidden
 @csrf_exempt
 def mark_listing_completed(request, listing_id):
     try:
-        listing = get_object_or_404(Listing, id=listing_id, creator=request.user)
+        listing = get_object_or_404(Listing, id=listing_id)
+        # if offer, then it's listing owner who mark it as completed
+        # if request, then it's the respondent
+        if listing.listing_type == "Offer" and listing.creator != request.user:
+            return JsonResponse({'error': 'You are not authorized to mark this listing as completed.'}, status=403)
 
         if listing.status == "Completed":
             return JsonResponse({'error': 'Listing already marked as completed.'}, status=400)
         
         # Find the accepted response
-        accepted_response = ListingResponse.objects.filter(listing=listing, message="Accepted").first()
+        accepted_response = (
+            ListingResponse.objects.filter(listing=listing, message="Accepted").first()
+        ) if listing.listing_type == "Offer" else (
+            ListingResponse.objects.filter(listing=listing, message="Accepted", user=request.user).first()
+        )
         if not accepted_response:
             return JsonResponse({'error': 'No accepted applicant found.'}, status=400)
         
@@ -41,7 +49,7 @@ def mark_listing_completed(request, listing_id):
         accepted_response.save()
 
         # Mark the listing as completed
-        listing.status = "Available"
+        listing.status = "Available" if listing.listing_type == "Offer" else "Completed"
         listing.save()
 
         # Create or update service transaction
@@ -54,7 +62,7 @@ def mark_listing_completed(request, listing_id):
         )
         # Notify the applicant
         Notification.objects.create(
-            user=accepted_response.user,
+            user=listing.creator if listing.listing_type == "Request" else accepted_response.user,
             message=f"Your service '{listing.title}' was marked as completed! Submit your feedback.",
             url=f"/submit-feedback/{listing.id}/"
         )
@@ -137,7 +145,7 @@ def submit_feedback(request, listing_id):
             r.save()
 
             # Update metrics for the provider
-            update_provider_metrics(provider, transaction.listing_id)
+            update_provider_metrics(provider)
 
             messages.success(request, "Feedback submitted successfully!")
             return redirect("home")
@@ -630,7 +638,7 @@ def apply_service(request, listing_id):
 
         Notification.objects.create(
             user=listing.creator,
-            message="A new applicant on your service.",
+            message=f"A new applicant on your {listing.listing_type}.",
             url="/myservices"
         )
 

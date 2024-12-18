@@ -16,11 +16,11 @@ STATUS_CHOICES = [
     ("Available", "Available"),
     ("In Progress", "In Progress"),
     ("Completed", "Completed"),
-    ("Fulfilled", "Fulfilled"),
-    ("Closed", "Closed"),
+    # ("Fulfilled", "Fulfilled"),
+    # ("Closed", "Closed"),
 ]
-STATUS_CHOICES_OFFER = ["Available", "In Progress", "Completed"]
-STATUS_CHOICES_REQUEST = ["Available", "Fulfilled", "Closed"]
+# STATUS_CHOICES_OFFER = ["Available", "In Progress", "Completed"]
+# STATUS_CHOICES_REQUEST = ["Available", "Fulfilled", "Closed"]
 
 # defines top-most category for offers & requests
 # class Category(models.Model):
@@ -90,13 +90,13 @@ class Listing(models.Model):
     edited_at = models.DateTimeField(auto_now=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="Available")
 
-    def clean(self):
-        valid_statuses = STATUS_CHOICES_OFFER if self.listing_type else STATUS_CHOICES_REQUEST
-        if self.status and self.status not in valid_statuses:
-            listing_type_label = "Offer" if self.listing_type else "Request"
-            raise ValidationError({
-                'status': f"Invalid status for {listing_type_label}. Valid options are: {', '.join(valid_statuses)}"
-            })
+    # def clean(self):
+    #     valid_statuses = STATUS_CHOICES_OFFER if self.listing_type else STATUS_CHOICES_REQUEST
+    #     if self.status and self.status not in valid_statuses:
+    #         listing_type_label = "Offer" if self.listing_type else "Request"
+    #         raise ValidationError({
+    #             'status': f"Invalid status for {listing_type_label}. Valid options are: {', '.join(valid_statuses)}"
+    #         })
         
     def save(self, *args, **kwargs):
         # If already exists and is being edited, reset its status
@@ -174,7 +174,7 @@ from django.core.exceptions import ImproperlyConfigured
 
 from django.db.models import Avg, Sum, F
 
-def update_provider_metrics(provider, listing_id):
+def update_provider_metrics(provider):
     if not isinstance(provider, User):
         raise ImproperlyConfigured(f"Expected a User instance for 'provider', got {type(provider).__name__}.")
 
@@ -182,14 +182,10 @@ def update_provider_metrics(provider, listing_id):
     all_ratings = Feedback.objects.filter(provider=provider).values_list('rating', flat=True)
     avg_rating = sum(all_ratings) / len(all_ratings) if all_ratings else 0.0
 
-    # Update the multiplier of the listing's provider
-    listing = get_object_or_404(Listing, id=listing_id)
-    poster = listing.creator  # Assuming 'posted_by' is the field referencing the user who posted the listing
-
     # Calculate new multiplier
     new_multiplier = max(0.5, min(2.0, 1 + (avg_rating - 3.0) * 0.1))
-    poster.multiplier = round( new_multiplier , 2)
-    poster.save()  # Save the updated multiplier
+    provider.multiplier = round( new_multiplier , 2)
+    provider.save()  # Save the updated multiplier
 
     # Calculate earned time credits only for the provider
     earned_credits = ServiceTransaction.objects.filter(

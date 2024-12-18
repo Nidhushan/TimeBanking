@@ -32,7 +32,13 @@ Applied Service
             </div>
         </div>
         <div class="btn-column">
-            {% if response.message == "Completed" and response.feedback_given == False %}
+            {% if response.message == "Accepted" and response.listing.listing_type == "Request" %}
+                <form method="POST" action="{% url 'mark_listing_completed' response.listing.id %}" id="markCompletedForm" class="complete-form mt-3">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-primary btn-item">Mark as Completed</button>
+                </form>
+            {% endif %}
+            {% if response.message == "Completed" and response.feedback_given == False and response.listing.listing_type == "Offer" %}
                 <a href="{% url 'submit_feedback' response.listing.id %}" class="btn btn-primary btn-item">Submit feedback</a>
             {% endif %}
         </div>
@@ -41,4 +47,25 @@ Applied Service
     <div class="no-applications">No applications yet.</div>
 {% endfor %}
 </div>
+<script>
+    // Handle Mark as Completed Form
+    document.getElementById('markCompletedForm')?.addEventListener('submit', function(event) {
+        event.preventDefault();
+        fetch(this.action, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': this.querySelector('[name="csrfmiddlewaretoken"]').value
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.success);
+                window.location.reload();  // Reload only if successful
+            } else {
+                alert(data.error);  // Show error alert
+            }
+        });
+    });
+</script>
 {% endblock %}
