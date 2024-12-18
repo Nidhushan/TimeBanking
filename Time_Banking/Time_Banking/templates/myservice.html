@@ -41,9 +41,6 @@ My Service
                 <button type="submit" class="btn btn-primary btn-item">Mark as Completed</button>
             </form>
             {% endif %}
-            {% if listing.status == "Completed" and not feedback_given %}
-            <a href="{% url 'submit_feedback' listing.id %}" class="btn btn-primary btn-item">Submit Feedback</a>
-            {% endif %}
         </div>
     </div>
 {% empty %}
