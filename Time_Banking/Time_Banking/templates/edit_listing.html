@@ -47,7 +47,7 @@ Edit listing - Time Banking
                     <label for="image">Image:</label>
                     <input type="file" id="image" name="image" accept="image/*">
                 </div>
-                <div class="form-group">
+                <div class="form-group" style="display: none;">
                     <!-- Type (Offer or Request) -->
                     <label>Type:</label>
                     <input type="radio" id="offer" name="listing_type" value="Offer" {% if listing.listing_type == "Offer" %}checked{% endif %} required>
