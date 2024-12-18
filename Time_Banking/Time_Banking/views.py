@@ -126,6 +126,16 @@ def submit_feedback(request, listing_id):
             transaction.feedback_given = True
             transaction.save()
 
+            # mark the response as having received feedback
+            r = ListingResponse.objects.get(
+                user=request.user,
+                message="Completed",
+                feedback_given=False,
+                listing_id=listing_id
+            )
+            r.feedback_given = True
+            r.save()
+
             # Update metrics for the provider
             update_provider_metrics(provider, transaction.listing_id)
 
