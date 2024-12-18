@@ -1,6 +1,27 @@
 {% extends "master.html" %}
 
 {% block content %}
+<style>
+    .review-form-container {
+        background: #f8fafc;
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        max-width: 100%;
+    }
+
+    .review-input {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        margin: 10px 0;
+        min-height: 100px;
+        resize: vertical;
+        font-family: inherit;
+        max-width: 100%;
+    }
+</style>
 <div class="container mt-5">
     <h2 class="text-center">Submit Feedback</h2>
     <form method="POST" class="feedback-form">
@@ -49,6 +70,13 @@
                 </label>
                 {% endfor %}
             </div>
+        </div>
+
+        <!-- freeform review -->
+        <div class="review-form-container">
+            <h3>Write a Review</h3>
+            <textarea id="review" name="review" class="review-input" 
+                placeholder="Share your experience working with the provider..."></textarea>
         </div>
 
         <!-- Submit Button -->
