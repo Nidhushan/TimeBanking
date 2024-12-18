@@ -56,6 +56,12 @@ Create Account - Time Banking
                                 </p>
                             {% endfor %}                
                         {% endif %}
+                        {% if error%}   
+                            <p style="font-size: 13px; color: red;">
+                                {{ error|escape }}
+                            </p>
+                    {% endif %}
+                        <p id="other-error" style="font-size: 13px; color: red;"></p>
                     </div>
                     <button type="submit" class="btn btn-primary btn-block create-account">Create Account</button>
                 </form>

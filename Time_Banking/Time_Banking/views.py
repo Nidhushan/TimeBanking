@@ -982,6 +982,9 @@ def edit_profile(request):
     if request.method == 'POST':
         form = ProfileEditForm(request.POST, request.FILES, instance=request.user)
         if form.is_valid():
+            if form.cleaned_data.get('picture') is None:
+                # set default user picture
+                request.user.picture = 'static/images/default-avatar-profile-icon-social-600nw-1677509740.jpg.webp'
             form.save()
             return redirect('profile_info')  
     else:
