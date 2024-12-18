@@ -35,11 +35,37 @@ My Service
             <a href="{% url 'edit_listing_page' listing.id %}" class="btn btn-primary btn-item">Edit</a>
             <a href="{% url 'view_applicants' listing.id %}" class="btn btn-primary btn-item">Select your applicant</a>
             <a href="{% url 'delete_listing' listing.id %}" class="btn btn-primary btn-item">Delete</a>
-            <a href="#" class="btn btn-primary btn-item">Mark as complete</a>
+            {% if listing.status == "In Progress" %}
+            <form method="POST" action="{% url 'mark_listing_completed' listing.id %}" id="markCompletedForm" class="complete-form mt-3">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-primary btn-item">Mark as Completed</button>
+            </form>
+            {% endif %}
         </div>
     </div>
 {% empty %}
     <div class="no-applications">No services yet.</div>
 {% endfor %}
 </div>
+<script>
+    // Handle Mark as Completed Form
+    document.getElementById('markCompletedForm')?.addEventListener('submit', function(event) {
+        event.preventDefault();
+        fetch(this.action, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': this.querySelector('[name="csrfmiddlewaretoken"]').value
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.success);
+                window.location.reload();  // Reload only if successful
+            } else {
+                alert(data.error);  // Show error alert
+            }
+        });
+    });
+</script>
 {% endblock %}

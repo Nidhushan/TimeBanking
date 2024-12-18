@@ -658,8 +658,8 @@ label {
     display: none;
     position: absolute;
     top: 50px;
-    right: -110px;
-    width: 250px;
+    left: -150px;
+    width: 300px;
     background-color: white;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     border-radius: 8px;
@@ -685,7 +685,6 @@ label {
 }
 
 .notification-item a {
-    text-decoration: none;
     color: #333;
 }
 
