@@ -632,7 +632,6 @@ def view_listing(request, listing_id):
             return HttpResponseNotAllowed(['GET'])
         context['service_accepted'] = ListingResponse.objects.filter(listing=listing, status=2).exists()
         context['service_completed'] = ServiceTransaction.objects.filter(listing=listing, status='Completed').exists()
-        # ServiceTransaction.objects.filter(listing=listing, status='Completed').delete()
 
         # Check if service has been accepted
         service_accepted = ListingResponse.objects.filter(
