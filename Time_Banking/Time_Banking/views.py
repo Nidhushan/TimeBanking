@@ -167,7 +167,8 @@ def submit_feedback(request, listing_id):
                 provider=provider,  # Feedback goes to the provider
                 requester=request.user,  # Person submitting feedback
                 rating=avg_rating,
-                comment=f"Q1: {q1}, Q2: {q2}, Q3: {q3}, Q4: {q4}"
+                comment=f"Q1: {q1}, Q2: {q2}, Q3: {q3}, Q4: {q4}",
+                details=request.POST.get('review')
             )
 
             # Mark the transaction as having received feedback

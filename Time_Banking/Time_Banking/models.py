@@ -160,6 +160,7 @@ class Feedback(models.Model):
     requester = models.ForeignKey(User, on_delete=models.CASCADE, related_name='feedback_given')
     rating = models.IntegerField()
     comment = models.TextField(blank=True, null=True)
+    details = models.TextField(blank=True, null=True)
 
     def __str__(self):
         return f"Feedback for Transaction {self.transaction.id} by {self.requester}"
