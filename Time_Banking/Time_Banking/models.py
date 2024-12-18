@@ -161,6 +161,7 @@ class Feedback(models.Model):
     rating = models.IntegerField()
     comment = models.TextField(blank=True, null=True)
     details = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"Feedback for Transaction {self.transaction.id} by {self.requester}"
